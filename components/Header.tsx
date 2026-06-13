@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 
 export default function Header() {
   const headerRef = useRef<HTMLElement>(null);
@@ -61,8 +62,13 @@ export default function Header() {
     <header className="site-header" id="siteHeader" ref={headerRef}>
       <div className="container header-inner">
         <a className="brand" href="#hero" aria-label="Beyond Borders home">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/images/brand/logo.png" alt="Beyond Borders" />
+          <Image
+            src="/assets/images/brand/logo.png"
+            alt="Beyond Borders"
+            width={154}
+            height={75}
+            priority
+          />
           <span className="brand-tag">The Travel Partner</span>
         </a>
 

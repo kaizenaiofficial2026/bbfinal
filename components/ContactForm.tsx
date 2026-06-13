@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
 import Select from "./Select";
+import { submitEnquiry, initialEnquiryState } from "@/app/actions";
 
 const JOURNEY_OPTIONS = [
   "Glamour of Sri Lanka",
@@ -12,22 +13,13 @@ const JOURNEY_OPTIONS = [
 ];
 
 export default function ContactForm() {
-  const [note, setNote] = useState(
-    "Presentation form only. Use email or phone for a real enquiry.",
+  const [state, formAction, pending] = useActionState(
+    submitEnquiry,
+    initialEnquiryState,
   );
 
   return (
-    <form
-      className="contact-form"
-      id="contactForm"
-      data-reveal
-      onSubmit={(event) => {
-        event.preventDefault();
-        setNote(
-          "Thanks. This preview form is static, so please use email or phone for a real enquiry.",
-        );
-      }}
-    >
+    <form className="contact-form" id="contactForm" data-reveal action={formAction}>
       <div className="form-grid">
         <div className="form-field">
           <label htmlFor="name">Name</label>
@@ -76,8 +68,8 @@ export default function ContactForm() {
         </div>
       </div>
       <div className="form-actions">
-        <button className="btn btn-primary" type="submit">
-          Send enquiry
+        <button className="btn btn-primary" type="submit" disabled={pending}>
+          {pending ? "Sending…" : "Send enquiry"}
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
             <path
               d="M5 12h14M13 6l6 6-6 6"
@@ -88,8 +80,8 @@ export default function ContactForm() {
             />
           </svg>
         </button>
-        <p className="form-note" id="formNote">
-          {note}
+        <p className="form-note" id="formNote" aria-live="polite">
+          {state.note}
         </p>
       </div>
     </form>

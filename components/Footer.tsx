@@ -1,15 +1,17 @@
+import Image from "next/image";
+
 export default function Footer() {
   return (
     <footer className="footer">
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               className="footer-logo"
               src="/assets/images/brand/logo.png"
               alt="Beyond Borders"
-              loading="lazy"
+              width={154}
+              height={75}
             />
             <p>
               Handcrafted private journeys across Sri Lanka, designed in Colombo

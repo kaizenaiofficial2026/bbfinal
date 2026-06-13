@@ -1,12 +1,16 @@
+import Image from "next/image";
+
 export default function Hero() {
   return (
     <section className="hero" id="hero">
       <div className="hero-media">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           id="heroImage"
           src="/assets/images/heroes/hero-image.jpg"
           alt="Sri Lanka landscape at golden hour"
+          fill
+          priority
+          sizes="100vw"
         />
       </div>
 
