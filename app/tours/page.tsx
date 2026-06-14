@@ -3,7 +3,7 @@ import CTASection from "@/components/CTASection";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
 import TourPackageList from "@/components/TourPackageList";
-import { tourPackages } from "@/lib/travel";
+import { getPublishedPackages } from "@/lib/data/packages";
 
 export const metadata: Metadata = {
   title: "Tours",
@@ -11,7 +11,9 @@ export const metadata: Metadata = {
     "Explore Beyond Borders Sri Lanka tour packages with transfers, breakfast and dedicated assistance included.",
 };
 
-export default function ToursPage() {
+export default async function ToursPage() {
+  const packages = await getPublishedPackages();
+
   return (
     <SiteShell>
       <main>
@@ -33,7 +35,7 @@ export default function ToursPage() {
                 capital stay, a classic city visit or a compact Colombo escape.
               </p>
             </div>
-            <TourPackageList packages={tourPackages} />
+            <TourPackageList packages={packages} />
           </div>
         </section>
         <CTASection

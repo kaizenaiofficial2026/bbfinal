@@ -1,24 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
+import { initialBookingState, submitBooking } from "@/app/actions";
 
 type BookingRequestFormProps = {
+  packageId: string;
   packageTitle: string;
 };
 
 export default function BookingRequestForm({
+  packageId,
   packageTitle,
 }: BookingRequestFormProps) {
-  const [prepared, setPrepared] = useState(false);
+  const [state, formAction, pending] = useActionState(
+    submitBooking,
+    initialBookingState,
+  );
+  const [startedAt] = useState(() => Date.now());
 
   return (
-    <form
-      className="booking-form"
-      onSubmit={(event) => {
-        event.preventDefault();
-        setPrepared(true);
-      }}
-    >
+    <form className="booking-form" action={formAction}>
+      <input type="hidden" name="tourPackageId" value={packageId} />
+      <input type="hidden" name="packageTitle" value={packageTitle} />
+      <input type="hidden" name="startedAt" value={startedAt} />
+      <div className="visually-hidden" aria-hidden="true">
+        <label htmlFor="booking-company">Company</label>
+        <input
+          id="booking-company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
       <div className="booking-form-section">
         <span className="booking-form-label">Traveller details</span>
         <div className="form-grid">
@@ -95,58 +109,20 @@ export default function BookingRequestForm({
       <div className="booking-payment-preview">
         <div className="booking-payment-head">
           <div>
-            <span className="booking-form-label">Mock payment details</span>
-            <h2>Payment details preview</h2>
+            <span className="booking-form-label">Payment timing</span>
+            <h2>Secure link after planner review</h2>
           </div>
           <strong>TBD</strong>
         </div>
         <p>
-          This preview does not process, validate, store or submit card details.
-          Beyond Borders will confirm the final total and secure payment
-          instructions after review.
+          No card details are collected here. Beyond Borders confirms the final
+          total first, then emails a single-use hosted checkout link.
         </p>
-        <div className="booking-card-preview" aria-hidden="true">
-          <span>Beyond Borders</span>
-          <strong>•••• •••• •••• ••••</strong>
-          <div>
-            <small>MM / YY</small>
-            <small>CVC</small>
-          </div>
-        </div>
-        <div className="booking-mock-fields">
-          <div className="form-field">
-            <label htmlFor="mock-card-number">Card number</label>
-            <input
-              id="mock-card-number"
-              type="text"
-              placeholder="Mock field only"
-              readOnly
-            />
-          </div>
-          <div className="form-field">
-            <label htmlFor="mock-card-expiry">Expiry</label>
-            <input
-              id="mock-card-expiry"
-              type="text"
-              placeholder="MM / YY"
-              readOnly
-            />
-          </div>
-          <div className="form-field">
-            <label htmlFor="mock-card-cvc">CVC</label>
-            <input
-              id="mock-card-cvc"
-              type="text"
-              placeholder="CVC"
-              readOnly
-            />
-          </div>
-        </div>
       </div>
 
       <div className="booking-submit-row">
-        <button className="btn btn-primary" type="submit">
-          Prepare booking request
+        <button className="btn btn-primary" type="submit" disabled={pending}>
+          {pending ? "Sending…" : "Send booking request"}
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
             <path
               d="M5 12h14M13 6l6 6-6 6"
@@ -158,9 +134,8 @@ export default function BookingRequestForm({
           </svg>
         </button>
         <p className="form-note" aria-live="polite">
-          {prepared
-            ? "Booking request prepared. A Beyond Borders planner will confirm package total and payment instructions."
-            : "Frontend-only booking preview. No payment will be taken here."}
+          {state.note}
+          {state.reference ? ` Reference: ${state.reference}` : ""}
         </p>
       </div>
     </form>

@@ -6,10 +6,10 @@ import BookingRequestForm from "@/components/BookingRequestForm";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
 import {
-  getTourPackage,
-  tourPackageSlugs,
-  tourPackages,
-} from "@/lib/travel";
+  getPackageBySlug,
+  getPackageSlugs,
+  getPublishedPackages,
+} from "@/lib/data/packages";
 
 type BookingPageProps = {
   params: Promise<{
@@ -17,17 +17,19 @@ type BookingPageProps = {
   }>;
 };
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
-export function generateStaticParams() {
-  return tourPackageSlugs.map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  const slugs = await getPackageSlugs();
+
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
   params,
 }: BookingPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const tourPackage = getTourPackage(slug);
+  const tourPackage = await getPackageBySlug(slug);
 
   if (!tourPackage) {
     return {
@@ -43,11 +45,11 @@ export async function generateMetadata({
 
 export default async function BookingPage({ params }: BookingPageProps) {
   const { slug } = await params;
-  const tourPackage = getTourPackage(slug);
+  const tourPackage = await getPackageBySlug(slug);
 
   if (!tourPackage) notFound();
 
-  const relatedPackages = tourPackages
+  const relatedPackages = (await getPublishedPackages())
     .filter((item) => item.slug !== tourPackage.slug)
     .slice(0, 3);
 
@@ -120,7 +122,10 @@ export default async function BookingPage({ params }: BookingPageProps) {
                 </section>
               </div>
 
-              <BookingRequestForm packageTitle={tourPackage.title} />
+              <BookingRequestForm
+                packageId={tourPackage.id}
+                packageTitle={tourPackage.title}
+              />
             </article>
 
             <aside className="booking-sidebar" data-reveal>
@@ -129,7 +134,13 @@ export default async function BookingPage({ params }: BookingPageProps) {
                 <h2>Amount confirmed after planner review</h2>
                 <div className="booking-total-row">
                   <span>Package total</span>
-                  <strong>TBD</strong>
+                  <strong>
+                    {tourPackage.priceAmount != null
+                      ? `${tourPackage.currency} ${Number(
+                          tourPackage.priceAmount,
+                        ).toLocaleString()}`
+                      : "TBD"}
+                  </strong>
                 </div>
                 <div className="booking-total-row">
                   <span>Payment status</span>

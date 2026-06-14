@@ -5,7 +5,11 @@ import { notFound } from "next/navigation";
 import CTASection from "@/components/CTASection";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
-import { destinationSlugs, destinations, getDestination } from "@/lib/travel";
+import {
+  getDestinationBySlug,
+  getDestinationSlugs,
+  getPublishedDestinations,
+} from "@/lib/data/destinations";
 
 type DestinationPageProps = {
   params: Promise<{
@@ -13,17 +17,19 @@ type DestinationPageProps = {
   }>;
 };
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
-export function generateStaticParams() {
-  return destinationSlugs.map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  const slugs = await getDestinationSlugs();
+
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
   params,
 }: DestinationPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const destination = getDestination(slug);
+  const destination = await getDestinationBySlug(slug);
 
   if (!destination) {
     return {
@@ -39,11 +45,11 @@ export async function generateMetadata({
 
 export default async function DestinationPage({ params }: DestinationPageProps) {
   const { slug } = await params;
-  const destination = getDestination(slug);
+  const destination = await getDestinationBySlug(slug);
 
   if (!destination) notFound();
 
-  const related = destinations
+  const related = (await getPublishedDestinations())
     .filter((item) => item.slug !== destination.slug)
     .slice(0, 3);
 
