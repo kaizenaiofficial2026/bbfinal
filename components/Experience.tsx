@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const STEPS = [
   {
     title: "Tailor-made itineraries",
@@ -44,28 +46,28 @@ export default function Experience() {
 
         <div className="experience-composition" data-reveal>
           <figure className="exp-photo one">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               id="experienceImage"
               src="/assets/images/destinations/yala.jpg"
               alt="Peacock in Yala National Park"
-              loading="lazy"
+              fill
+              sizes="(max-width: 720px) 100vw, (max-width: 1180px) 56vw, 520px"
             />
           </figure>
           <figure className="exp-photo two">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/assets/images/destinations/galle.jpg"
               alt="Galle coastal lighthouse"
-              loading="lazy"
+              fill
+              sizes="(max-width: 720px) 100vw, (max-width: 1180px) 44vw, 330px"
             />
           </figure>
           <figure className="exp-photo three">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/assets/images/destinations/nuwara-eliya.jpg"
               alt="Tea landscape in Nuwara Eliya"
-              loading="lazy"
+              fill
+              sizes="(max-width: 720px) 180px, 250px"
             />
           </figure>
           <div className="experience-card">

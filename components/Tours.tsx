@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const CARDS = [
   {
     img: "/assets/images/destinations/bentota.jpg",
@@ -43,11 +45,11 @@ export default function Tours() {
 
         <div className="tour-layout">
           <article className="tour-feature" data-reveal>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/assets/images/tours/glamour-sri-lanka.jpg"
               alt="Travelers on a curated Sri Lanka experience"
-              loading="lazy"
+              fill
+              sizes="(max-width: 720px) 100vw, (max-width: 1180px) 100vw, 58vw"
             />
             <div className="tour-feature-body">
               <span className="tour-badge">Luxury</span>
@@ -69,8 +71,12 @@ export default function Tours() {
               {CARDS.map((c) => (
                 <article className="tour-card" key={c.title}>
                   <div className="tour-card-image">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={c.img} alt={c.alt} loading="lazy" />
+                    <Image
+                      src={c.img}
+                      alt={c.alt}
+                      fill
+                      sizes="(max-width: 720px) 100vw, (max-width: 1180px) 50vw, 168px"
+                    />
                   </div>
                   <div className="tour-card-body">
                     <span className="tour-badge">{c.badge}</span>

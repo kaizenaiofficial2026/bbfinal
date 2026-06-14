@@ -1,15 +1,16 @@
+import Image from "next/image";
 import ContactForm from "./ContactForm";
 
 export default function Contact() {
   return (
     <section className="section contact" id="contact">
       <div className="contact-bg" aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           id="contactImage"
           src="/assets/images/heroes/contact-header.jpg"
           alt=""
-          loading="lazy"
+          fill
+          sizes="100vw"
         />
       </div>
 

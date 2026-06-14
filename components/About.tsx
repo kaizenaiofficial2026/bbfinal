@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function About() {
   return (
     <section className="section section-ivory about" id="about">
@@ -48,28 +50,28 @@ export default function About() {
 
         <div className="about-composition" data-reveal>
           <figure className="about-image-main">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               id="aboutImage"
               src="/assets/images/heroes/about-header.jpg"
               alt="Travelers viewing Sri Lankan highlands"
-              loading="lazy"
+              fill
+              sizes="(max-width: 720px) 100vw, (max-width: 1180px) 52vw, 640px"
             />
           </figure>
           <figure className="about-image-small">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/assets/images/destinations/kandy.jpg"
               alt="Temple of the Sacred Tooth Relic in Kandy"
-              loading="lazy"
+              fill
+              sizes="(max-width: 720px) 100vw, (max-width: 1180px) 46vw, 320px"
             />
           </figure>
           <figure className="about-medallion">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/assets/images/misc/about-travel.jpg"
               alt="Travelers exploring Sri Lanka"
-              loading="lazy"
+              fill
+              sizes="180px"
             />
           </figure>
           <p className="about-note">

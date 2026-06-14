@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const PANELS = [
@@ -99,8 +100,12 @@ export default function Destinations() {
           <div className="dest-track" id="destTrack" data-reveal-group>
             {PANELS.map((p) => (
               <Link className="dest-panel" href={p.href} key={p.index}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.img} alt={p.alt} loading="lazy" />
+                <Image
+                  src={p.img}
+                  alt={p.alt}
+                  fill
+                  sizes="(max-width: 720px) 100vw, (max-width: 980px) 50vw, 76vw"
+                />
                 <span className="dest-tag">{p.tag}</span>
                 <div className="dest-content">
                   <span className="dest-index">{p.index}</span>

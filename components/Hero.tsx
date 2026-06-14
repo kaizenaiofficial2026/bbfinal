@@ -66,10 +66,11 @@ export default function Hero() {
 
           <aside className="hero-panel hero-fade" aria-label="Featured journey">
             <div className="hero-panel-img">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/assets/images/destinations/sigiriya.jpg"
                 alt="Sigiriya rock fortress rising above forest"
+                fill
+                sizes="(max-width: 980px) 520px, 360px"
               />
             </div>
             <div className="hero-panel-body">
