@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 const PANELS = [
   {
@@ -76,55 +79,156 @@ const PANELS = [
   },
 ];
 
+// 2 cards visible at a time → 4 pages → 3 transitions
+const VISIBLE = 2;
+const TOTAL_PAGES = Math.ceil(PANELS.length / VISIBLE);
+const GAP = 22; // matches CSS gap
+// px of vertical scroll allocated per horizontal page transition
+const SCROLL_PER_PAGE = 700;
+
 export default function Destinations() {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [activePage, setActivePage] = useState(0);
+
+  useEffect(() => {
+    const outer = outerRef.current;
+    const track = trackRef.current;
+    const viewport = viewportRef.current;
+    if (!outer || !track || !viewport) return;
+
+    const sizeCards = () => {
+      // available height for cards = section height minus header/padding/dots/footer
+      // we let CSS drive the height via the fixed 500px on .dest-viewport
+      // but we must set the card widths so 2 cards exactly fill the viewport width
+      const vw = viewport.clientWidth;
+      const cardW = (vw - GAP) / VISIBLE;
+      track.querySelectorAll<HTMLElement>(".dest-panel").forEach((card) => {
+        card.style.width = `${cardW}px`;
+      });
+    };
+
+    sizeCards();
+    window.addEventListener("resize", sizeCards);
+
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const rect = outer.getBoundingClientRect();
+        const scrolledIn = -rect.top;
+        const scrollSpace = rect.height - window.innerHeight;
+        if (scrollSpace <= 0) return;
+
+        const progress = Math.max(0, Math.min(1, scrolledIn / scrollSpace));
+
+        // How far to slide: one "page" = cardWidth + gap between pages
+        const vw = viewport.clientWidth;
+        const pageWidth = vw + GAP; // one full page step in px
+        const translateX = progress * (TOTAL_PAGES - 1) * pageWidth;
+        track.style.transform = `translateX(-${translateX}px)`;
+
+        const page = Math.min(TOTAL_PAGES - 1, Math.floor(progress * TOTAL_PAGES));
+        setActivePage(page);
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", sizeCards);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  const outerHeight = `calc(100vh + ${(TOTAL_PAGES - 1) * SCROLL_PER_PAGE}px)`;
+
   return (
-    <section className="destinations" id="destinations">
-      <div className="dest-sticky">
-        <div className="container">
-          <div className="dest-head" data-reveal>
-            <div>
-              <span className="section-kicker">Island atlas</span>
-              <h2 className="display display-lg">
-                Eight cinematic chapters of Sri Lanka.
-              </h2>
+    <div
+      className="dest-scroll-outer"
+      ref={outerRef}
+      style={{ height: outerHeight }}
+    >
+      <div className="dest-scroll-sticky">
+        <section className="destinations" id="destinations">
+
+          {/* Header — sits above the scrolling track */}
+          <div className="container">
+            <div className="dest-head">
+              <div>
+                <span className="section-kicker">Island atlas</span>
+                <h2 className="display display-lg">
+                  Cinematic chapters of Sri Lanka.
+                </h2>
+              </div>
+              <p className="lead">
+                Move from carved stone and sacred cities to tea mist, surf
+                breaks and wild national parks without losing the feeling of a
+                single beautifully held journey.
+              </p>
             </div>
-            <p className="lead">
-              Move from carved stone and sacred cities to tea mist, surf breaks
-              and wild national parks without losing the feeling of a single
-              beautifully held journey.
-            </p>
           </div>
-        </div>
 
-        <div className="dest-window" aria-label="Featured destinations">
-          <div className="dest-track" id="destTrack" data-reveal-group>
-            {PANELS.map((p) => (
-              <Link className="dest-panel" href={p.href} key={p.index}>
-                <Image
-                  src={p.img}
-                  alt={p.alt}
-                  fill
-                  sizes="(max-width: 720px) 100vw, (max-width: 980px) 50vw, 76vw"
-                />
-                <span className="dest-tag">{p.tag}</span>
-                <div className="dest-content">
-                  <span className="dest-index">{p.index}</span>
-                  <div>
-                    <h3>{p.title}</h3>
-                    <p>{p.desc}</p>
+          {/* Scrolling card strip — all 8 cards in one row, clips at viewport edge */}
+          <div className="dest-viewport" ref={viewportRef}>
+            <div
+              className="dest-track"
+              ref={trackRef}
+            >
+              {PANELS.map((p) => (
+                <Link className="dest-panel" href={p.href} key={p.index}>
+                  <Image
+                    src={p.img}
+                    alt={p.alt}
+                    fill
+                    sizes="(max-width: 720px) 100vw, 50vw"
+                  />
+                  <span className="dest-tag">{p.tag}</span>
+                  <div className="dest-content">
+                    <span className="dest-index">{p.index}</span>
+                    <div>
+                      <h3>{p.title}</h3>
+                      <p>{p.desc}</p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="container">
-          <div className="dest-progress" aria-hidden="true">
-            <span id="destProgress" />
+          {/* Dots + CTA */}
+          <div className="container">
+            <div className="dest-pagination">
+              {Array.from({ length: TOTAL_PAGES }).map((_, i) => (
+                <button
+                  key={i}
+                  className={"dest-dot" + (i === activePage ? " is-active" : "")}
+                  aria-label={`Page ${i + 1}`}
+                  // dots are read-only scroll indicators — no click handler needed
+                />
+              ))}
+            </div>
+
+            <div className="dest-footer">
+              <Link className="btn btn-line" href="/destinations">
+                View more destinations
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M7 17 17 7M9 7h8v8"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Link>
+            </div>
           </div>
-        </div>
+
+        </section>
       </div>
-    </section>
+    </div>
   );
 }

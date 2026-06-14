@@ -3,8 +3,17 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const NAV_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/tours", label: "Tours" },
+  { href: "/destinations", label: "Destinations" },
+];
 
 export default function Header() {
+  const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -79,10 +88,19 @@ export default function Header() {
           aria-label="Primary navigation"
           ref={navRef}
         >
-          <Link href="/">Home</Link>
-          <Link href="/about">About</Link>
-          <Link href="/tours">Tours</Link>
-          <Link href="/destinations">Destinations</Link>
+          {NAV_LINKS.map(({ href, label }) => {
+            const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={isActive ? "nav-active" : undefined}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="header-actions">

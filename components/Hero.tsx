@@ -7,8 +7,8 @@ export default function Hero() {
       <div className="hero-media">
         <Image
           id="heroImage"
-          src="/assets/images/heroes/hero-image.jpg"
-          alt="Sri Lanka landscape at golden hour"
+          src="/assets/images/heroes/hero-airplane-coast.png"
+          alt="Airplane flying above tropical coastline and green islands"
           fill
           priority
           sizes="100vw"
@@ -18,9 +18,6 @@ export default function Hero() {
       <div className="container hero-inner">
         <div className="hero-grid">
           <div className="hero-copy">
-            <p className="hero-kicker hero-fade">
-              Sri Lanka private travel design
-            </p>
             <h1 className="hero-title" aria-label="Beyond Borders">
               <span className="hero-title-line">
                 <span className="hero-title-word">Beyond</span>
@@ -63,25 +60,6 @@ export default function Hero() {
               </Link>
             </div>
           </div>
-
-          <aside className="hero-panel hero-fade" aria-label="Featured journey">
-            <div className="hero-panel-img">
-              <Image
-                src="/assets/images/destinations/sigiriya.jpg"
-                alt="Sigiriya rock fortress rising above forest"
-                fill
-                sizes="(max-width: 980px) 520px, 360px"
-              />
-            </div>
-            <div className="hero-panel-body">
-              <small>Featured route</small>
-              <h2>From capital lights to ancient stone</h2>
-              <p>
-                A private rhythm from Colombo to Sigiriya, Kandy and the hill
-                country, shaped around your pace.
-              </p>
-            </div>
-          </aside>
         </div>
 
         <div className="hero-metrics hero-fade" data-reveal-group>

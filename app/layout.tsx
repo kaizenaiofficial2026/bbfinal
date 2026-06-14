@@ -1,21 +1,5 @@
 import type { Metadata } from "next";
-import { Lato, Montserrat } from "next/font/google";
 import "./globals.css";
-
-const lato = Lato({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  weight: ["400", "700", "900"],
-  display: "swap",
-  variable: "--font-lato",
-});
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["600"],
-  display: "swap",
-  variable: "--font-montserrat",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -36,11 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`is-loading ${lato.variable} ${montserrat.variable}`}
-      >
-        {children}
-      </body>
+      <body className="is-loading">{children}</body>
     </html>
   );
 }

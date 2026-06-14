@@ -1,5 +1,4 @@
 import Hero from "@/components/Hero";
-import About from "@/components/About";
 import Destinations from "@/components/Destinations";
 import Tours from "@/components/Tours";
 import Experience from "@/components/Experience";
@@ -11,7 +10,6 @@ export default function Home() {
     <SiteShell>
       <main>
         <Hero />
-        <About />
         <Destinations />
         <Tours />
         <Experience />

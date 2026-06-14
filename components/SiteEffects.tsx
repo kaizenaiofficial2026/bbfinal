@@ -18,6 +18,7 @@ export default function SiteEffects() {
     const disposers: Array<() => void> = [];
 
     const cleanupLoading = () => {
+      html.classList.remove("has-motion");
       body.classList.remove("is-loading");
       document.getElementById("preloader")?.classList.add("is-hidden");
       document
@@ -49,7 +50,6 @@ export default function SiteEffects() {
         initReveals();
         initCounters();
         initParallax();
-        initDestinations();
       } catch (error) {
         console.warn("Motion failed to load:", error);
         cleanupLoading();
@@ -148,11 +148,14 @@ export default function SiteEffects() {
 
       if (cancelled) return;
 
-      animate(
-        "#heroImage",
-        { scale: [1.04, 1], opacity: [0.65, 1] },
-        { duration: 1.8, ease: [0.22, 1, 0.36, 1] },
-      );
+      const heroImage = document.getElementById("heroImage");
+      if (heroImage) {
+        animate(
+          heroImage,
+          { opacity: [0.65, 1] },
+          { duration: 1.8, ease: [0.22, 1, 0.36, 1] },
+        );
+      }
       animate(
         ".hero-title-word",
         { y: [18, 0] },
@@ -247,7 +250,7 @@ export default function SiteEffects() {
           () => {
             animate(
               el,
-              { y: [28, 0] },
+              { opacity: [0, 1], y: [28, 0] },
               { duration: 0.84, ease: [0.22, 1, 0.36, 1] },
             );
           },
@@ -262,7 +265,7 @@ export default function SiteEffects() {
           () => {
             animate(
               Array.from(group.children),
-              { y: [28, 0] },
+              { opacity: [0, 1], y: [28, 0] },
               {
                 duration: 0.84,
                 delay: stagger(0.08),
@@ -298,7 +301,6 @@ export default function SiteEffects() {
 
     function initParallax() {
       const hero = document.getElementById("hero");
-      const heroImage = document.getElementById("heroImage");
       const heroCopy = document.querySelector<HTMLElement>(".hero-copy");
       const aboutImage = document.getElementById("aboutImage");
       const experienceImage = document.getElementById("experienceImage");
@@ -308,8 +310,6 @@ export default function SiteEffects() {
         disposers.push(
           scroll(
             (progress: number) => {
-              if (heroImage)
-                heroImage.style.setProperty("translate", `0 ${progress * 4}%`);
               if (heroCopy) {
                 heroCopy.style.opacity = String(
                   1 - Math.min(0.72, progress * 1.25),
@@ -371,51 +371,6 @@ export default function SiteEffects() {
           ),
         );
       }
-    }
-
-    function initDestinations() {
-      const section = document.getElementById("destinations");
-      const sticky = section?.querySelector(".dest-sticky");
-      const track = document.getElementById("destTrack");
-      const progressBar = document.getElementById("destProgress");
-      const desktop = window.matchMedia("(min-width: 980px)");
-      let distance = 0;
-
-      if (!section || !sticky || !track) return;
-
-      const measure = () => {
-        if (!desktop.matches) {
-          section.classList.remove("is-ready");
-          section.style.height = "";
-          track.style.transform = "";
-          if (progressBar) progressBar.style.width = "";
-          return;
-        }
-
-        section.classList.add("is-ready");
-        distance = Math.max(0, track.scrollWidth - window.innerWidth + 48);
-        section.style.height = `${window.innerHeight + distance}px`;
-      };
-
-      measure();
-      window.addEventListener("resize", measure, { passive: true });
-      desktop.addEventListener("change", measure);
-
-      const stop = scroll(
-        (progress: number) => {
-          if (!desktop.matches) return;
-          track.style.transform = `translate3d(${-distance * progress}px, 0, 0)`;
-          if (progressBar) progressBar.style.width = `${progress * 100}%`;
-        },
-        { target: section, offset: ["start start", "end end"] },
-      );
-
-      disposers.push(() => {
-        window.removeEventListener("resize", measure);
-        desktop.removeEventListener("change", measure);
-        stop();
-        section.style.height = "";
-      });
     }
 
     run();
