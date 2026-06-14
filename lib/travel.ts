@@ -423,3 +423,11 @@ export function getDestination(slug: string) {
 export const destinationSlugs = destinations.map(
   (destination) => destination.slug,
 );
+
+export function getTourPackage(slug: string) {
+  return tourPackages.find((tourPackage) => tourPackage.slug === slug);
+}
+
+export const tourPackageSlugs = tourPackages.map(
+  (tourPackage) => tourPackage.slug,
+);

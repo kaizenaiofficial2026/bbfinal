@@ -44,7 +44,7 @@ export default function TourPackageList({ packages }: TourPackageListProps) {
                 <span key={inclusion}>{inclusion}</span>
               ))}
             </div>
-            <Link className="icon-link" href="/contacts">
+            <Link className="icon-link" href={`/booking/${tour.slug}`}>
               Book this journey
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                 <path
