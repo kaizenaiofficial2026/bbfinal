@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import ContactForm from "./ContactForm";
 
 export default function Contact() {
@@ -7,7 +8,7 @@ export default function Contact() {
       <div className="contact-bg" aria-hidden="true">
         <Image
           id="contactImage"
-          src="/assets/images/heroes/contact-header.jpg"
+          src="/assets/images/misc/cta.jpg"
           alt=""
           fill
           sizes="100vw"

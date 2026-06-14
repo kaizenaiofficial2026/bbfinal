@@ -17,7 +17,7 @@ export default function DestinationsPage() {
       <main>
         <PageHero
           title="Destinations"
-          label="Island atlas"
+          label="Destinations"
           image="/assets/images/heroes/colombo-sri-lanka.jpg"
           summary="A full island grid of ancient capitals, tea country, coastal forts, national parks, surf beaches and city arrivals."
         />

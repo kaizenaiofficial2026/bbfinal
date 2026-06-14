@@ -1,18 +1,21 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export default function Hero() {
   return (
     <section className="hero" id="hero">
       <div className="hero-media">
-        <Image
+        <video
           id="heroImage"
-          src="/assets/images/heroes/hero-airplane-coast.png"
-          alt="Airplane flying above tropical coastline and green islands"
-          fill
-          priority
-          sizes="100vw"
-        />
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster="/assets/images/heroes/hero-airplane-coast.png"
+          aria-hidden="true"
+        >
+          <source src="/assets/hero-bg.mp4" type="video/mp4" />
+        </video>
       </div>
 
       <div className="container hero-inner">
@@ -62,24 +65,6 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="hero-metrics hero-fade" data-reveal-group>
-          <div className="hero-metric">
-            <strong>12+</strong>
-            <span>Island destinations</span>
-          </div>
-          <div className="hero-metric">
-            <strong>4</strong>
-            <span>Signature tour styles</span>
-          </div>
-          <div className="hero-metric">
-            <strong>24/7</strong>
-            <span>Dedicated assistance</span>
-          </div>
-          <div className="hero-metric">
-            <strong>100%</strong>
-            <span>Tailor-made journeys</span>
-          </div>
-        </div>
       </div>
       <a className="scroll-cue" href="#about">
         Scroll

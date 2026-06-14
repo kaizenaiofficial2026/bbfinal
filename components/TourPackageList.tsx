@@ -10,7 +10,7 @@ export default function TourPackageList({ packages }: TourPackageListProps) {
   return (
     <div className="tour-package-grid" data-reveal-group>
       {packages.map((tour) => (
-        <article className="tour-package-card" key={tour.slug}>
+        <article className="tour-package-card" id={tour.slug} key={tour.slug}>
           <div className="tour-package-image">
             <Image
               src={tour.image}

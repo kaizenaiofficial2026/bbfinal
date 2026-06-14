@@ -2,7 +2,7 @@ import Hero from "@/components/Hero";
 import Destinations from "@/components/Destinations";
 import Tours from "@/components/Tours";
 import Experience from "@/components/Experience";
-import Contact from "@/components/Contact";
+import HomeCTA from "@/components/HomeCTA";
 import SiteShell from "@/components/SiteShell";
 
 export default function Home() {
@@ -13,7 +13,7 @@ export default function Home() {
         <Destinations />
         <Tours />
         <Experience />
-        <Contact />
+        <HomeCTA />
       </main>
     </SiteShell>
   );

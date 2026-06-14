@@ -23,8 +23,7 @@ export default function Experience() {
   return (
     <section className="section section-sand experience" id="experience">
       <div className="container experience-grid">
-        <div className="experience-copy" data-reveal>
-          <span className="section-kicker">Journey design</span>
+        <div className="experience-copy">
           <h2 className="display display-lg">
             What changes when the island is planned around you.
           </h2>
@@ -35,7 +34,7 @@ export default function Experience() {
 
           <div className="timeline">
             {STEPS.map((s) => (
-              <div className="timeline-item" data-reveal key={s.title}>
+              <div className="timeline-item" key={s.title}>
                 <span className="timeline-dot" />
                 <h3>{s.title}</h3>
                 <p>{s.desc}</p>
@@ -44,7 +43,7 @@ export default function Experience() {
           </div>
         </div>
 
-        <div className="experience-composition" data-reveal>
+        <div className="experience-composition">
           <figure className="exp-photo one">
             <Image
               id="experienceImage"

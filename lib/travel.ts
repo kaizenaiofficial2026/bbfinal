@@ -301,7 +301,7 @@ export const tourPackages: TourPackage[] = [
     hotels: "5-star",
     destinations: "Colombo",
     duration: "4 days / 3 nights",
-    image: "/assets/images/tours/glamour-sri-lanka.jpg",
+    image: "/assets/images/destinations/colombo-city.jpg",
     summary:
       "Colombo at its most polished, with five-star living, curated dining and an elegant capital-city rhythm.",
     inclusions: [
@@ -343,7 +343,7 @@ export const tourPackages: TourPackage[] = [
     hotels: "Quality hotels",
     destinations: "Colombo",
     duration: "4 days / 3 nights",
-    image: "/assets/images/tours/classic-city.jpg",
+    image: "/assets/images/destinations/colombo.jpg",
     summary:
       "The essential Colombo stay, balancing colonial quarters, temples, bazaars and comfortable city downtime.",
     inclusions: [
@@ -385,7 +385,7 @@ export const tourPackages: TourPackage[] = [
     hotels: "3-star",
     destinations: "Colombo",
     duration: "3 days / 2 nights",
-    image: "/assets/images/tours/heart-of-city.jpg",
+    image: "/assets/images/destinations/colombo-2.jpg",
     summary:
       "A compact Colombo break that covers the city essentials with transfers, breakfast and simple comfort handled.",
     inclusions: [

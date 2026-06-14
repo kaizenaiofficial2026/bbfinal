@@ -79,12 +79,13 @@ const PANELS = [
   },
 ];
 
-// 2 cards visible at a time → 4 pages → 3 transitions
+// 2-card page rhythm with larger editorial cards on wide screens.
 const VISIBLE = 2;
 const TOTAL_PAGES = Math.ceil(PANELS.length / VISIBLE);
 const GAP = 22; // matches CSS gap
 // px of vertical scroll allocated per horizontal page transition
-const SCROLL_PER_PAGE = 700;
+const SCROLL_PER_PAGE = 820;
+const END_HOLD_PROGRESS = 0.86;
 
 export default function Destinations() {
   const outerRef = useRef<HTMLDivElement>(null);
@@ -99,11 +100,10 @@ export default function Destinations() {
     if (!outer || !track || !viewport) return;
 
     const sizeCards = () => {
-      // available height for cards = section height minus header/padding/dots/footer
-      // we let CSS drive the height via the fixed 500px on .dest-viewport
-      // but we must set the card widths so 2 cards exactly fill the viewport width
       const vw = viewport.clientWidth;
-      const cardW = (vw - GAP) / VISIBLE;
+      const cardsInView =
+        window.innerWidth <= 720 ? 1 : window.innerWidth <= 980 ? 1.25 : 1.62;
+      const cardW = (vw - GAP) / cardsInView;
       track.querySelectorAll<HTMLElement>(".dest-panel").forEach((card) => {
         card.style.width = `${cardW}px`;
       });
@@ -122,14 +122,25 @@ export default function Destinations() {
         if (scrollSpace <= 0) return;
 
         const progress = Math.max(0, Math.min(1, scrolledIn / scrollSpace));
+        const slideProgress = Math.min(1, progress / END_HOLD_PROGRESS);
 
-        // How far to slide: one "page" = cardWidth + gap between pages
         const vw = viewport.clientWidth;
-        const pageWidth = vw + GAP; // one full page step in px
-        const translateX = progress * (TOTAL_PAGES - 1) * pageWidth;
+        const cards = Array.from(track.querySelectorAll<HTMLElement>(".dest-panel"));
+        const lastCard = cards.at(-1);
+        const cardW = lastCard?.offsetWidth ?? 0;
+        const trackW = track.scrollWidth;
+        const lastCardCenterOffset = Math.max(0, (vw - cardW) / 2);
+        const maxTranslate = Math.max(
+          0,
+          trackW - cardW - lastCardCenterOffset,
+        );
+        const translateX = slideProgress * maxTranslate;
         track.style.transform = `translateX(-${translateX}px)`;
 
-        const page = Math.min(TOTAL_PAGES - 1, Math.floor(progress * TOTAL_PAGES));
+        const page = Math.min(
+          TOTAL_PAGES - 1,
+          Math.floor(slideProgress * TOTAL_PAGES),
+        );
         setActivePage(page);
       });
     };
@@ -158,16 +169,14 @@ export default function Destinations() {
           <div className="container">
             <div className="dest-head">
               <div>
-                <span className="section-kicker">Island atlas</span>
                 <h2 className="display display-lg">
                   Cinematic chapters of Sri Lanka.
                 </h2>
+                <p className="lead">
+                  From ancient rock fortresses to pristine beaches – discover
+                  why Sri Lanka is called the pearl of the Indian Ocean.
+                </p>
               </div>
-              <p className="lead">
-                Move from carved stone and sacred cities to tea mist, surf
-                breaks and wild national parks without losing the feeling of a
-                single beautifully held journey.
-              </p>
             </div>
           </div>
 

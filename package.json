@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "build:hero-video": "bash scripts/create-hero-video.sh",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
