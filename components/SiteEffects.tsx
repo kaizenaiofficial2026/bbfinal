@@ -150,7 +150,7 @@ export default function SiteEffects() {
 
       animate(
         "#heroImage",
-        { scale: [1.14, 1.06], opacity: [0.65, 1] },
+        { scale: [1.04, 1], opacity: [0.65, 1] },
         { duration: 1.8, ease: [0.22, 1, 0.36, 1] },
       );
       animate(
@@ -309,7 +309,7 @@ export default function SiteEffects() {
           scroll(
             (progress: number) => {
               if (heroImage)
-                heroImage.style.setProperty("translate", `0 ${progress * 12}%`);
+                heroImage.style.setProperty("translate", `0 ${progress * 4}%`);
               if (heroCopy) {
                 heroCopy.style.opacity = String(
                   1 - Math.min(0.72, progress * 1.25),

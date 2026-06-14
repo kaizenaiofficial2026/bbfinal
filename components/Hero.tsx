@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -36,7 +37,7 @@ export default function Hero() {
               by people who know the island by heart.
             </p>
             <div className="hero-actions hero-fade">
-              <a className="btn btn-primary" href="#tours">
+              <Link className="btn btn-primary" href="/tours">
                 Explore tours
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <path
@@ -47,8 +48,8 @@ export default function Hero() {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </a>
-              <a className="btn btn-light" href="#destinations">
+              </Link>
+              <Link className="btn btn-light" href="/destinations">
                 View destinations
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <path
@@ -59,7 +60,7 @@ export default function Hero() {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </a>
+              </Link>
             </div>
           </div>
 

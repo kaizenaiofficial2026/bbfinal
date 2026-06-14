@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Header() {
   const headerRef = useRef<HTMLElement>(null);
@@ -61,7 +62,7 @@ export default function Header() {
   return (
     <header className="site-header" id="siteHeader" ref={headerRef}>
       <div className="container header-inner">
-        <a className="brand" href="#hero" aria-label="Beyond Borders home">
+        <Link className="brand" href="/" aria-label="Beyond Borders home">
           <Image
             src="/assets/images/brand/logo.png"
             alt="Beyond Borders"
@@ -70,7 +71,7 @@ export default function Header() {
             priority
           />
           <span className="brand-tag">The Travel Partner</span>
-        </a>
+        </Link>
 
         <nav
           className="nav"
@@ -78,15 +79,15 @@ export default function Header() {
           aria-label="Primary navigation"
           ref={navRef}
         >
-          <a href="#about">About</a>
-          <a href="#destinations">Destinations</a>
-          <a href="#tours">Tours</a>
-          <a href="#experience">Why Us</a>
+          <Link href="/">Home</Link>
+          <Link href="/about">About</Link>
+          <Link href="/tours">Tours</Link>
+          <Link href="/destinations">Destinations</Link>
         </nav>
 
         <div className="header-actions">
-          <a className="btn btn-line" href="#contact">
-            Contact
+          <Link className="btn btn-line" href="/contacts">
+            Contact Us
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
               <path
                 d="M5 12h14M13 6l6 6-6 6"
@@ -96,7 +97,7 @@ export default function Header() {
                 strokeLinejoin="round"
               />
             </svg>
-          </a>
+          </Link>
           <button
             className="menu-toggle"
             type="button"

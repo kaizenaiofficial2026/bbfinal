@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -69,20 +70,22 @@ export default function Footer() {
           <div>
             <h3>Explore</h3>
             <ul>
-              <li><a href="#about">About</a></li>
-              <li><a href="#destinations">Destinations</a></li>
-              <li><a href="#tours">Tours</a></li>
-              <li><a href="#experience">Why Us</a></li>
+              <li><Link href="/">Home</Link></li>
+              <li><Link href="/about">About</Link></li>
+              <li><Link href="/tours">Tours</Link></li>
+              <li><Link href="/destinations">Destinations</Link></li>
+              <li><Link href="/contacts">Contact Us</Link></li>
             </ul>
           </div>
 
           <div>
             <h3>Destinations</h3>
             <ul>
-              <li><a href="#destinations">Sigiriya</a></li>
-              <li><a href="#destinations">Kandy</a></li>
-              <li><a href="#destinations">Galle</a></li>
-              <li><a href="#destinations">Yala</a></li>
+              <li><Link href="/sigiriya">Sigiriya</Link></li>
+              <li><Link href="/kandy">Kandy</Link></li>
+              <li><Link href="/galle">Galle</Link></li>
+              <li><Link href="/yala">Yala</Link></li>
+              <li><Link href="/polonnaruwa">Polonnaruwa</Link></li>
             </ul>
           </div>
 

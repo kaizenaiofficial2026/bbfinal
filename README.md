@@ -8,7 +8,7 @@ the original single-file `BBdesign/index.html`.
 
 - **Next.js 16** (App Router, Turbopack, static prerender)
 - **React 19** + **TypeScript** (strict)
-- **next/font** — Fraunces, Instrument Sans, IBM Plex Mono (self-hosted, no network font load)
+- **next/font** — Lato and Montserrat (self-hosted, no network font load)
 - **motion** (v12) + **lenis** — preloader intro, smooth scroll, reveals, count-ups, parallax, pinned horizontal destinations
 
 ## Getting started
@@ -32,6 +32,11 @@ app/
   layout.tsx        # fonts, metadata, <html>/<body>, globals.css
   page.tsx          # composes the sections (server component)
   globals.css       # full design system, ported 1:1 from the original
+  about/page.tsx    # About route
+  tours/page.tsx    # Tour packages route
+  destinations/page.tsx
+  contacts/page.tsx
+  [slug]/page.tsx   # Destination detail routes
 components/
   Preloader.tsx     # loading overlay markup
   Header.tsx        # "use client" — sticky header, scroll hide/show, mobile menu
@@ -47,6 +52,8 @@ components/
   SiteEffects.tsx   # "use client" — all motion/Lenis orchestration (renders null)
 public/
   assets/images/... # brand, heroes, destinations, tours, misc
+lib/
+  travel.ts         # typed destinations and tour package data
 ```
 
 ## Notes

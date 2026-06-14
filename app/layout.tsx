@@ -1,29 +1,27 @@
 import type { Metadata } from "next";
-import { Fraunces, Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Lato, Montserrat } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
+const lato = Lato({
   subsets: ["latin"],
   style: ["normal", "italic"],
+  weight: ["400", "700", "900"],
   display: "swap",
-  variable: "--font-fraunces",
+  variable: "--font-lato",
 });
 
-const instrumentSans = Instrument_Sans({
+const montserrat = Montserrat({
   subsets: ["latin"],
+  weight: ["600"],
   display: "swap",
-  variable: "--font-instrument",
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  display: "swap",
-  variable: "--font-plex",
+  variable: "--font-montserrat",
 });
 
 export const metadata: Metadata = {
-  title: "Beyond Borders | The Travel Partner",
+  title: {
+    default: "Beyond Borders | The Travel Partner",
+    template: "%s | Beyond Borders",
+  },
   description:
     "Beyond Borders designs private Sri Lanka journeys across ancient cities, tea country, leopard country and golden shores — handcrafted in Colombo.",
   icons: {
@@ -39,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`is-loading ${fraunces.variable} ${instrumentSans.variable} ${ibmPlexMono.variable}`}
+        className={`is-loading ${lato.variable} ${montserrat.variable}`}
       >
         {children}
       </body>
