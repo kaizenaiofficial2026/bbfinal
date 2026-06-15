@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Inter, Lora } from "next/font/google";
+import CookieConsent from "@/components/CookieConsent";
 import "./globals.css";
 
 const bodoniModa = Bodoni_Moda({
@@ -45,7 +46,10 @@ export default function RootLayout({
       lang="en"
       className={`${bodoniModa.variable} ${lora.variable} ${inter.variable}`}
     >
-      <body className="is-loading">{children}</body>
+      <body className="is-loading">
+        {children}
+        <CookieConsent />
+      </body>
     </html>
   );
 }

@@ -4579,3 +4579,89 @@ html.lenis body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Cookie consent banner ---- */
+.cookie-consent {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200; /* above content/header (90), below the preloader (999) */
+  display: flex;
+  justify-content: center;
+  padding: clamp(0.85rem, 2vw, 1.4rem);
+  padding-bottom: calc(
+    clamp(0.85rem, 2vw, 1.4rem) + env(safe-area-inset-bottom, 0px)
+  );
+  pointer-events: none; /* only the card is interactive */
+  animation: cookieSlideUp 0.5s var(--ease) both;
+}
+
+.cookie-consent-inner {
+  pointer-events: auto;
+  width: min(960px, 100%);
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(28, 26, 21, 0.18);
+  padding: clamp(0.9rem, 2vw, 1.15rem) clamp(1.1rem, 2.5vw, 1.6rem);
+}
+
+.cookie-consent-text {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.cookie-consent-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+/* The shared .btn is tall (52px) for hero CTAs — trim it for this compact bar. */
+.cookie-consent-actions .btn {
+  min-height: 44px;
+  padding: 12px 22px;
+}
+
+@keyframes cookieSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Don't overlap the open mobile navigation. */
+body.menu-open .cookie-consent {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .cookie-consent-inner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 0.9rem;
+  }
+  .cookie-consent-actions {
+    justify-content: center;
+  }
+  .cookie-consent-actions .btn {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cookie-consent {
+    animation: none;
+  }
+}
