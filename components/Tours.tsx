@@ -1,12 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { tourPackages } from "@/lib/travel";
-
-const packageOrder = [
-  "glamour-of-sri-lanka",
-  "sunbath-on-sands-standard",
-  "a-classic-of-the-city",
-];
+import type { TourPackage } from "@/lib/data/types";
 
 const imageFocus: Record<string, string> = {
   "glamour-of-sri-lanka": "center center",
@@ -14,11 +8,11 @@ const imageFocus: Record<string, string> = {
   "a-classic-of-the-city": "center center",
 };
 
-const packages = packageOrder
-  .map((slug) => tourPackages.find((tour) => tour.slug === slug))
-  .filter((tour): tour is (typeof tourPackages)[number] => Boolean(tour));
+type ToursProps = {
+  packages: TourPackage[];
+};
 
-export default function Tours() {
+export default function Tours({ packages }: ToursProps) {
   return (
     <section className="luxury-packages-section" id="tours">
       <div className="container">

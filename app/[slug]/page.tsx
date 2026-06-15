@@ -5,7 +5,12 @@ import { notFound } from "next/navigation";
 import CTASection from "@/components/CTASection";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
-import { destinationSlugs, destinations, getDestination } from "@/lib/travel";
+import {
+  getDestinationBySlug,
+  getDestinationSlugs,
+  getPublishedDestinations,
+} from "@/lib/data/destinations";
+import { destinations as editorialDestinations } from "@/scripts/seed-data";
 
 type DestinationPageProps = {
   params: Promise<{
@@ -13,17 +18,19 @@ type DestinationPageProps = {
   }>;
 };
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
-export function generateStaticParams() {
-  return destinationSlugs.map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  const slugs = await getDestinationSlugs();
+
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
   params,
 }: DestinationPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const destination = getDestination(slug);
+  const destination = await getDestinationBySlug(slug);
 
   if (!destination) {
     return {
@@ -31,8 +38,9 @@ export async function generateMetadata({
     };
   }
 
-  const pageTitle = destination.detailTitle ?? destination.title;
-  const pageTagline = destination.detailTagline ?? destination.tagline;
+  const editorial = editorialDestinations.find((item) => item.slug === slug);
+  const pageTitle = editorial?.detailTitle ?? destination.title;
+  const pageTagline = editorial?.detailTagline ?? destination.tagline;
 
   return {
     title: pageTitle,
@@ -42,16 +50,24 @@ export async function generateMetadata({
 
 export default async function DestinationPage({ params }: DestinationPageProps) {
   const { slug } = await params;
-  const destination = getDestination(slug);
+  const destination = await getDestinationBySlug(slug);
 
   if (!destination) notFound();
 
-  const pageTitle = destination.detailTitle ?? destination.title;
-  const pageTagline = destination.detailTagline ?? destination.tagline;
-  const description = destination.description ?? [destination.summary];
+  // The publishable/editable core (title, images, status, highlights) comes from
+  // the backend; the richer editorial detail content (quick facts, descriptions,
+  // key-attraction bullets, related places) is sourced from the static content
+  // module by slug so the detail UI renders exactly as designed.
+  const editorial = editorialDestinations.find((item) => item.slug === slug);
+
+  const pageTitle = editorial?.detailTitle ?? destination.title;
+  const pageTagline = editorial?.detailTagline ?? destination.tagline;
+  const description = editorial?.description ?? [destination.summary];
+  const keyAttractionItems = editorial?.keyAttractionItems;
+  const quickFacts = editorial?.quickFacts ?? [];
   const related =
-    destination.relatedPlaces ??
-    destinations
+    editorial?.relatedPlaces ??
+    (await getPublishedDestinations())
       .filter((item) => item.slug !== destination.slug)
       .slice(0, 3)
       .map((item) => ({
@@ -95,9 +111,9 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
 
               <div className="destination-copy-block">
                 <h2>Key attraction</h2>
-                {destination.keyAttractionItems ? (
+                {keyAttractionItems ? (
                   <ul className="destination-highlight-list">
-                    {destination.keyAttractionItems.map((item) => (
+                    {keyAttractionItems.map((item) => (
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
@@ -120,7 +136,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
               <div className="destination-fact-card">
                 <span>Quick Facts</span>
                 <dl className="destination-quick-facts">
-                  {destination.quickFacts.map((fact) => (
+                  {quickFacts.map((fact) => (
                     <div key={fact.label}>
                       <dt>{fact.label}</dt>
                       <dd>{fact.value}</dd>

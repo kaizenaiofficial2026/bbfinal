@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Select, { type SelectOption } from "./Select";
 import { submitEnquiry, initialEnquiryState } from "@/app/actions";
 
@@ -38,9 +38,15 @@ export default function ContactForm() {
     submitEnquiry,
     initialEnquiryState,
   );
+  const [startedAt] = useState(() => Date.now());
 
   return (
     <form className="contact-form" id="contactForm" data-reveal action={formAction}>
+      <input type="hidden" name="startedAt" value={startedAt} />
+      <div className="visually-hidden" aria-hidden="true">
+        <label htmlFor="company">Company</label>
+        <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
       <div className="form-grid">
         <div className="form-field">
           <label htmlFor="name">Name</label>

@@ -3,95 +3,26 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-
-const PANELS = [
-  {
-    href: "/sigiriya",
-    img: "/assets/images/destinations/sigiriya.jpg",
-    alt: "Sigiriya rock fortress above jungle",
-    tag: "UNESCO",
-    index: "01",
-    title: "Sigiriya",
-    desc: "The eighth wonder of the world, where water gardens, frescoes and stone stairways rise from the forest.",
-  },
-  {
-    href: "/kandy",
-    img: "/assets/images/destinations/kandy.jpg",
-    alt: "Kandy temple and lake",
-    tag: "Sacred city",
-    index: "02",
-    title: "Kandy",
-    desc: "Home of the Sacred Tooth Relic, botanical gardens and evenings wrapped in temple bells.",
-  },
-  {
-    href: "/galle",
-    img: "/assets/images/destinations/galle-fort.jpg",
-    alt: "Galle Fort coast and lighthouse",
-    tag: "Coastal fort",
-    index: "03",
-    title: "Galle",
-    desc: "Dutch ramparts, sea air, boutique lanes and sunset walks along the largest remaining fortress in Asia.",
-  },
-  {
-    href: "/nuwara-eliya",
-    img: "/assets/images/destinations/nuwara-eliya-2.jpg",
-    alt: "Nuwara Eliya tea estates and mountains",
-    tag: "Tea country",
-    index: "04",
-    title: "Nuwara Eliya",
-    desc: "Little England in the highlands, with tea estates, cool mornings and one of the world's most scenic train routes.",
-  },
-  {
-    href: "/yala",
-    img: "/assets/images/destinations/yala-2.jpg",
-    alt: "Wild landscape in Yala National Park",
-    tag: "Safari",
-    index: "05",
-    title: "Yala",
-    desc: "Leopard country, coastal lagoons and dawn safaris through Sri Lanka's most visited national park.",
-  },
-  {
-    href: "/trincomalee",
-    img: "/assets/images/destinations/trincomalee.jpg",
-    alt: "Trincomalee coastline and natural harbor",
-    tag: "Blue coast",
-    index: "06",
-    title: "Trincomalee",
-    desc: "A natural harbor, Nilaveli Beach, Koneswaram Temple and whale watching in season.",
-  },
-  {
-    href: "/colombo",
-    img: "/assets/images/destinations/colombo.jpg",
-    alt: "Colombo city skyline and coast",
-    tag: "Capital",
-    index: "07",
-    title: "Colombo",
-    desc: "The island's beating capital, from Galle Face Green and Gangaramaya Temple to markets and skyline dinners.",
-  },
-  {
-    href: "/bentota",
-    img: "/assets/images/destinations/bentota.jpg",
-    alt: "Bentota beach and river",
-    tag: "Beach",
-    index: "08",
-    title: "Bentota",
-    desc: "Golden sand, Madu River, turtle hatcheries and slow coastal days designed around warm water.",
-  },
-];
+import type { Destination } from "@/lib/data/types";
 
 // 2-card page rhythm with larger editorial cards on wide screens.
 const VISIBLE = 2;
-const TOTAL_PAGES = Math.ceil(PANELS.length / VISIBLE);
 const GAP = 22; // matches CSS gap
 // px of vertical scroll allocated per horizontal page transition
 const SCROLL_PER_PAGE = 820;
 const END_HOLD_PROGRESS = 0.86;
 
-export default function Destinations() {
+type DestinationsProps = {
+  destinations: Destination[];
+};
+
+export default function Destinations({ destinations }: DestinationsProps) {
   const outerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const [activePage, setActivePage] = useState(0);
+  const panels = destinations.slice(0, 8);
+  const totalPages = Math.max(1, Math.ceil(panels.length / VISIBLE));
 
   useEffect(() => {
     let disposed = false;
@@ -144,8 +75,8 @@ export default function Destinations() {
         track.style.transform = `translateX(-${translateX}px)`;
 
         const page = Math.min(
-          TOTAL_PAGES - 1,
-          Math.floor(slideProgress * TOTAL_PAGES),
+          totalPages - 1,
+          Math.floor(slideProgress * totalPages),
         );
         setActivePage(page);
       });
@@ -159,9 +90,13 @@ export default function Destinations() {
       window.removeEventListener("resize", sizeCards);
       cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [totalPages]);
 
-  const outerHeight = `calc(100vh + ${(TOTAL_PAGES - 1) * SCROLL_PER_PAGE}px)`;
+  if (panels.length === 0) {
+    return null;
+  }
+
+  const outerHeight = `calc(100vh + ${(totalPages - 1) * SCROLL_PER_PAGE}px)`;
 
   return (
     <div
@@ -193,20 +128,20 @@ export default function Destinations() {
               className="dest-track"
               ref={trackRef}
             >
-              {PANELS.map((p) => (
-                <Link className="dest-panel" href={p.href} key={p.index}>
+              {panels.map((destination, index) => (
+                <Link className="dest-panel" href={`/${destination.slug}`} key={destination.slug}>
                   <Image
-                    src={p.img}
-                    alt={p.alt}
+                    src={destination.image}
+                    alt={destination.title}
                     fill
                     sizes="(max-width: 720px) 100vw, 50vw"
                   />
-                  <span className="dest-tag">{p.tag}</span>
+                  <span className="dest-tag">{destination.tagline}</span>
                   <div className="dest-content">
-                    <span className="dest-index">{p.index}</span>
+                    <span className="dest-index">{String(index + 1).padStart(2, "0")}</span>
                     <div>
-                      <h3>{p.title}</h3>
-                      <p>{p.desc}</p>
+                      <h3>{destination.title}</h3>
+                      <p>{destination.summary}</p>
                     </div>
                   </div>
                 </Link>
@@ -217,7 +152,7 @@ export default function Destinations() {
           {/* Dots + CTA */}
           <div className="container">
             <div className="dest-pagination">
-              {Array.from({ length: TOTAL_PAGES }).map((_, i) => (
+              {Array.from({ length: totalPages }).map((_, i) => (
                 <button
                   key={i}
                   className={"dest-dot" + (i === activePage ? " is-active" : "")}

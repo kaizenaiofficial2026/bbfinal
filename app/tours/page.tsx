@@ -3,7 +3,7 @@ import CTASection from "@/components/CTASection";
 import HeroSlideshow from "@/components/HeroSlideshow";
 import SiteShell from "@/components/SiteShell";
 import TourPackageList from "@/components/TourPackageList";
-import { tourPackages } from "@/lib/travel";
+import { getPublishedPackages } from "@/lib/data/packages";
 
 const TOUR_HERO_IMAGES = [
   "/assets/images/heroes/tourpage/tour1.jpg",
@@ -18,7 +18,9 @@ export const metadata: Metadata = {
     "Explore Beyond Borders Sri Lanka tour packages with transfers, breakfast and dedicated assistance included.",
 };
 
-export default function ToursPage() {
+export default async function ToursPage() {
+  const packages = await getPublishedPackages();
+
   return (
     <SiteShell>
       <main className="tours-page">
@@ -44,7 +46,7 @@ export default function ToursPage() {
                 evolves around your interests, travel style and preferred pace.
               </p>
             </div>
-            <TourPackageList packages={tourPackages} />
+            <TourPackageList packages={packages} />
           </div>
         </section>
         <CTASection

@@ -43,8 +43,6 @@ function ScrambleLink({ href, label }: ScrambleLinkProps) {
   const scramblingRef = useRef(false);
 
   useEffect(() => {
-    setDisplayLabel(label);
-
     return () => {
       if (intervalRef.current) {
         window.clearInterval(intervalRef.current);

@@ -3,7 +3,7 @@ import CTASection from "@/components/CTASection";
 import DestinationGrid from "@/components/DestinationGrid";
 import HeroSlideshow from "@/components/HeroSlideshow";
 import SiteShell from "@/components/SiteShell";
-import { destinations } from "@/lib/travel";
+import { getPublishedDestinations } from "@/lib/data/destinations";
 
 const DESTINATION_HERO_IMAGES = [
   "/assets/images/heroes/destinationpage/dest1.jpg",
@@ -19,7 +19,9 @@ export const metadata: Metadata = {
     "Browse Sri Lanka destinations curated by Beyond Borders, from Colombo and Kandy to Yala, Galle, Bentota and the cultural triangle.",
 };
 
-export default function DestinationsPage() {
+export default async function DestinationsPage() {
+  const destinations = await getPublishedDestinations();
+
   return (
     <SiteShell>
       <main>

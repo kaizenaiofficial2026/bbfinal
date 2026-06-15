@@ -53,6 +53,15 @@ export default function SiteEffects() {
       document.getElementById("preloader")?.classList.add("is-hidden");
     };
 
+    // Motion's `animate(selector, …)` throws "No valid elements provided" when a
+    // selector matches nothing. The hero/preloader selectors below only exist on
+    // some pages (e.g. the home hero), so guard them — otherwise the intro throws
+    // on sub-pages like /booking/[slug] and the work after it (smooth scroll,
+    // reveals, parallax) never runs.
+    const ifPresent = (selector: string, fn: () => void) => {
+      if (document.querySelector(selector)) fn();
+    };
+
     const cleanupLoading = () => {
       html.classList.remove("has-motion");
       html.classList.remove("reveal-ready");
@@ -159,18 +168,13 @@ export default function SiteEffects() {
 
       try {
         if (preloaderRule) preloaderRule.style.transform = "scaleX(0)";
-        const preloaderChars = document.querySelectorAll(".preloader-word .ch");
-        if (preloaderChars.length) {
+        ifPresent(".preloader-word .ch", () =>
           animate(
-            preloaderChars,
+            ".preloader-word .ch",
             { y: ["120%", "0%"] },
-            {
-              duration: 0.85,
-              delay: stagger(0.028),
-              ease: [0.22, 1, 0.36, 1],
-            },
-          );
-        }
+            { duration: 0.85, delay: stagger(0.028), ease: [0.22, 1, 0.36, 1] },
+          ),
+        );
 
         await waitForPageAssets((progress) => {
           const value = Math.min(100, Math.max(0, Math.round(progress)));
@@ -210,31 +214,28 @@ export default function SiteEffects() {
           { duration: 1.8, ease: [0.22, 1, 0.36, 1] },
         );
       }
-      const heroTitleWords = document.querySelectorAll(".hero-title-word");
-      if (heroTitleWords.length) {
+      ifPresent(".hero-title-word", () =>
         animate(
-          heroTitleWords,
+          ".hero-title-word",
           { y: [18, 0] },
           {
             duration: 1.08,
             delay: stagger(0.13, { startDelay: 0.12 }),
             ease: [0.22, 1, 0.36, 1],
           },
-        );
-      }
-
-      const heroFades = document.querySelectorAll(".hero-fade");
-      if (heroFades.length) {
+        ),
+      );
+      ifPresent(".hero-fade", () =>
         animate(
-          heroFades,
+          ".hero-fade",
           { y: [18, 0] },
           {
             duration: 0.9,
             delay: stagger(0.12, { startDelay: 0.62 }),
             ease: [0.22, 1, 0.36, 1],
           },
-        );
-      }
+        ),
+      );
     }
 
     async function waitForPageAssets(onProgress: (progress: number) => void) {
