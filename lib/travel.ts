@@ -23,7 +23,7 @@ export type TourPackage = {
   itinerary: Array<{
     day: string;
     title: string;
-    description: string;
+    items: string[];
   }>;
 };
 
@@ -261,36 +261,54 @@ export const tourPackages: TourPackage[] = [
     duration: "4 days / 3 nights",
     image: "/assets/images/destinations/bentota.jpg",
     summary:
-      "A relaxed Colombo-to-Bentota escape with ocean time, river scenery and five-star leisure by the sea.",
+      "A luxury Colombo & Bentota experience. Nightlife at Bellagio, water sports, riverboat rides, turtle hatchery, and pristine beaches - all wrapped in 5-star comfort.",
     inclusions: [
-      "Airport transfer",
-      "Daily breakfast",
-      "Dedicated Beyond Borders assistant",
+      "Luxury vehicle airport transfer",
+      "5-star hotel in Colombo",
+      "Evening nightlife at Bellagio with free coupons",
+      "Madu riverboat ride and turtle hatchery",
+      "Water sports at Bentota",
+      "5-star beach resort in Bentota",
     ],
     itinerary: [
       {
         day: "Day 1",
-        title: "Arrive in Colombo",
-        description:
-          "Meet your Beyond Borders assistant, settle in and enjoy an easy introduction to the capital.",
+        title: "BIA -> Colombo",
+        items: [
+          "Arrive from the airport and meet and greet by Beyond Borders travel assistant.",
+          "Proceed to Colombo in a luxury vehicle.",
+          "Check in at hotel for lunch.",
+          "Evening nightlife at Bellagio Entertainment with free coupons, food and beverages.",
+          "Overnight stay at Colombo 5-star hotel.",
+        ],
       },
       {
         day: "Day 2",
-        title: "Travel to Bentota",
-        description:
-          "Move south to the coast with time for Bentota Beach, the Madu River or a turtle hatchery visit.",
+        title: "Colombo -> Bentota",
+        items: [
+          "Breakfast from the hotel and proceed to Bentota.",
+          "Lunch at a 5-star restaurant.",
+          "Route visit including Madu riverboat ride, turtle hatchery, fish farm and water sports activities.",
+          "Evening relaxation at the beach.",
+          "Dinner and overnight stay at 5-star hotel.",
+        ],
       },
       {
         day: "Day 3",
-        title: "Coastal leisure",
-        description:
-          "Keep the day relaxed with beach time, water sports or a private add-on shaped around your pace.",
+        title: "Bentota -> Colombo",
+        items: [
+          "Breakfast from the hotel and proceed to Colombo with luxury transport.",
+          "Shopping at local markets.",
+          "Overnight stay at Colombo 5-star hotel.",
+        ],
       },
       {
         day: "Day 4",
-        title: "Departure",
-        description:
-          "Return to Colombo or the airport with transfers arranged around your flight.",
+        title: "Colombo -> BIA",
+        items: [
+          "Breakfast from the hotel.",
+          "Check out and proceed to Bandaranaike International Airport.",
+        ],
       },
     ],
   },
@@ -300,39 +318,51 @@ export const tourPackages: TourPackage[] = [
     tier: "Luxury",
     hotels: "5-star",
     destinations: "Colombo",
-    duration: "4 days / 3 nights",
+    duration: "3 days / 2 nights",
     image: "/assets/images/destinations/colombo-city.jpg",
     summary:
-      "Colombo at its most polished, with five-star living, curated dining and an elegant capital-city rhythm.",
+      "An exclusive Colombo city experience with 5-star accommodation, curated excursions, and premium personal service throughout your stay.",
     inclusions: [
-      "Airport transfer",
-      "Daily breakfast",
-      "Dedicated Beyond Borders assistant",
+      "Meet & greet airport service",
+      "5-star hotel accommodation",
+      "Colombo city tour",
+      "Day leisure option",
+      "All breakfasts included",
     ],
     itinerary: [
       {
         day: "Day 1",
-        title: "Arrival and five-star check-in",
-        description:
-          "Begin with a private airport transfer, hotel arrival and time to settle into Colombo.",
+        title: "BIA -> Colombo",
+        items: [
+          "Arrive from the airport and meet and greet by Beyond Borders travel assistant.",
+          "Proceed to Colombo and check in at a 5-star hotel.",
+        ],
       },
       {
         day: "Day 2",
-        title: "Capital highlights",
-        description:
-          "Explore Gangaramaya Temple, Galle Face and curated city landmarks with a private rhythm.",
+        title: "Colombo City",
+        items: [
+          "Breakfast from the hotel.",
+          "Proceed on a Colombo city tour.",
+          "Overnight stay at a 5-star hotel.",
+        ],
       },
       {
         day: "Day 3",
-        title: "Dining and city style",
-        description:
-          "Keep the day flexible for shopping, galleries, spa time or a polished evening dining plan.",
+        title: "Colombo City",
+        items: [
+          "Breakfast from the hotel.",
+          "Day at leisure.",
+          "Overnight stay at a 5-star hotel.",
+        ],
       },
       {
         day: "Day 4",
-        title: "Departure",
-        description:
-          "Enjoy breakfast and a private transfer for your onward flight or next Sri Lanka chapter.",
+        title: "Colombo -> BIA",
+        items: [
+          "Breakfast from the hotel.",
+          "Check out and proceed to Bandaranaike International Airport.",
+        ],
       },
     ],
   },
@@ -345,36 +375,48 @@ export const tourPackages: TourPackage[] = [
     duration: "4 days / 3 nights",
     image: "/assets/images/destinations/colombo.jpg",
     summary:
-      "The essential Colombo stay, balancing colonial quarters, temples, bazaars and comfortable city downtime.",
+      "Explore the best of Colombo over multiple days - a blend of history, culture, cuisine, and modern Sri Lankan city life with quality hotel stays.",
     inclusions: [
-      "Airport transfer",
-      "Daily breakfast",
-      "Dedicated Beyond Borders assistant",
+      "Meet & greet airport service",
+      "Quality hotel accommodation",
+      "Colombo city tour",
+      "All breakfasts included",
+      "Dedicated travel assistant",
     ],
     itinerary: [
       {
         day: "Day 1",
-        title: "Arrive and settle in",
-        description:
-          "Transfer from the airport and take the evening gently in Colombo.",
+        title: "BIA -> Colombo",
+        items: [
+          "Arrive from the airport and meet and greet by Beyond Borders travel assistant.",
+          "Proceed to Colombo.",
+        ],
       },
       {
         day: "Day 2",
-        title: "Classic Colombo",
-        description:
-          "Visit key city sights, markets and temples with time kept unhurried between stops.",
+        title: "Colombo City",
+        items: [
+          "Breakfast from the hotel.",
+          "Proceed on a Colombo city tour.",
+          "Overnight stay at quality hotel.",
+        ],
       },
       {
         day: "Day 3",
-        title: "Neighbourhoods and free time",
-        description:
-          "Add shopping, cafes or a coastal walk, with optional private additions if you want more structure.",
+        title: "Colombo City",
+        items: [
+          "Breakfast from the hotel.",
+          "Continued city exploration.",
+          "Overnight stay at quality hotel.",
+        ],
       },
       {
         day: "Day 4",
-        title: "Departure",
-        description:
-          "Close the stay with breakfast and a timed transfer to the airport.",
+        title: "Colombo -> BIA",
+        items: [
+          "Breakfast from the hotel.",
+          "Check out and proceed to Bandaranaike International Airport.",
+        ],
       },
     ],
   },
@@ -387,30 +429,48 @@ export const tourPackages: TourPackage[] = [
     duration: "3 days / 2 nights",
     image: "/assets/images/destinations/colombo-2.jpg",
     summary:
-      "A compact Colombo break that covers the city essentials with transfers, breakfast and simple comfort handled.",
+      "A comfortable value-for-money Colombo city experience with 3-star hotel stays and a dedicated Beyond Borders assistant throughout.",
     inclusions: [
-      "Airport transfer",
-      "Daily breakfast",
-      "Dedicated Beyond Borders assistant",
+      "Meet & greet airport service",
+      "3-star hotel accommodation",
+      "Colombo city tour",
+      "All breakfasts included",
+      "Dedicated travel assistant",
     ],
     itinerary: [
       {
         day: "Day 1",
-        title: "Arrival in Colombo",
-        description:
-          "Meet your assistant, transfer to your hotel and enjoy an easy first evening.",
+        title: "BIA -> Colombo",
+        items: [
+          "Arrive from the airport and meet and greet by Beyond Borders travel assistant.",
+          "Proceed to Colombo.",
+        ],
       },
       {
         day: "Day 2",
-        title: "City highlights",
-        description:
-          "Spend the day around Colombo's temples, markets and oceanfront landmarks.",
+        title: "Colombo City",
+        items: [
+          "Breakfast from the hotel.",
+          "Proceed on a Colombo city tour.",
+          "Overnight stay at 3-star hotel.",
+        ],
       },
       {
         day: "Day 3",
-        title: "Departure",
-        description:
-          "Enjoy breakfast before your private transfer to the airport or onward route.",
+        title: "Colombo City",
+        items: [
+          "Breakfast from the hotel.",
+          "Day at leisure.",
+          "Overnight stay at 3-star hotel.",
+        ],
+      },
+      {
+        day: "Day 4",
+        title: "Colombo -> BIA",
+        items: [
+          "Breakfast from the hotel.",
+          "Check out and proceed to BIA.",
+        ],
       },
     ],
   },

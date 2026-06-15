@@ -16,6 +16,7 @@ export default function ContactsPage() {
         <PageHero
           title="Contact Us"
           label="Get in touch"
+          showBreadcrumbs={false}
           image="/assets/images/heroes/contact-header.jpg"
           summary="Share your dates, preferred pace and must-see places. A Beyond Borders planner will shape the first route."
         />

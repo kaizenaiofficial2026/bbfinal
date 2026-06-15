@@ -16,10 +16,10 @@ export default function ToursPage() {
     <SiteShell>
       <main className="tours-page">
         <PageHero
-          title="Tours"
+          title="Tour Packages"
           label="Signature journeys"
           image="/assets/images/heroes/pricing-header.jpg"
-          summary="Four concise Sri Lanka tour styles, each with airport transfer, daily breakfast and Beyond Borders assistance."
+          summary="Curated Sri Lanka journeys, tailored around your pace and preferences."
           showBreadcrumbs={false}
           showLabel={false}
         />
@@ -31,8 +31,8 @@ export default function ToursPage() {
                 Choose the structure, then let us shape the details.
               </h1>
               <p className="lead">
-                These packages are starting points: a beach break, a polished
-                capital stay, a classic city visit or a compact Colombo escape.
+                Each journey begins with a carefully crafted framework, then
+                evolves around your interests, travel style and preferred pace.
               </p>
             </div>
             <TourPackageList packages={tourPackages} />

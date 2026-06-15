@@ -98,7 +98,11 @@ export default async function BookingPage({ params }: BookingPageProps) {
                         <span>{item.day}</span>
                         <div>
                           <h3>{item.title}</h3>
-                          <p>{item.description}</p>
+                          <ul>
+                            {item.items.map((itineraryItem) => (
+                              <li key={itineraryItem}>{itineraryItem}</li>
+                            ))}
+                          </ul>
                         </div>
                       </div>
                     ))}

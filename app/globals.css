@@ -2946,12 +2946,22 @@ body.menu-open .menu-toggle span::after {
   line-height: 1.1;
 }
 
-.tour-itinerary-item p {
+.tour-itinerary-item ul {
   margin-top: 7px;
+  padding-left: 18px;
+  list-style: disc;
   color: var(--body);
   font-size: 16px;
   font-weight: 500;
   line-height: 1.58;
+}
+
+.tour-itinerary-item li + li {
+  margin-top: 5px;
+}
+
+.tour-itinerary-item li::marker {
+  color: var(--gold-deep);
 }
 
 .tour-inclusions {
