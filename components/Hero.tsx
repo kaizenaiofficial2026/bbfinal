@@ -1,21 +1,11 @@
 import Link from "next/link";
+import HeroVideo from "@/components/HeroVideo";
 
 export default function Hero() {
   return (
     <section className="hero" id="hero">
       <div className="hero-media">
-        <video
-          id="heroImage"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          poster="/assets/images/heroes/hero-poster.jpg"
-          aria-hidden="true"
-        >
-          <source src="/assets/hero-bg.mp4" type="video/mp4" />
-        </video>
+        <HeroVideo />
       </div>
 
       <div className="container hero-inner">

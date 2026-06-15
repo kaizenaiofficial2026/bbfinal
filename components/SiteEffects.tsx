@@ -85,8 +85,23 @@ export default function SiteEffects() {
     const run = async () => {
       try {
         if (reduced) {
-          window.clearTimeout(failSafe);
-          cleanupLoading();
+          // Reduce-motion users still get the preloader as a static loading gate
+          // (no character/hero motion) so content doesn't pop in — we just wait
+          // for assets, update the % readout, then hide it instantly.
+          try {
+            await waitForPageAssets((progress) => {
+              const value = Math.min(100, Math.max(0, Math.round(progress)));
+              const num = document.getElementById("preloaderNum");
+              if (num) num.textContent = String(value);
+              const rule = document.getElementById("preloaderRule");
+              if (rule) rule.style.transform = `scaleX(${value / 100})`;
+            });
+          } finally {
+            if (!cancelled) {
+              window.clearTimeout(failSafe);
+              cleanupLoading();
+            }
+          }
           return;
         }
 
@@ -328,12 +343,9 @@ export default function SiteEffects() {
         video.addEventListener("loadeddata", finish, { once: true });
         video.addEventListener("canplay", finish, { once: true });
         video.addEventListener("error", finish, { once: true });
-        // Nudge buffering for browsers that defer until interaction.
-        try {
-          video.load();
-        } catch {
-          // Some browsers throw if load() races teardown; the cap still resolves.
-        }
+        // Note: we intentionally don't call video.load() here — preload="auto"
+        // plus the hero's own play() already buffer the first frame, and load()
+        // would interrupt that playback attempt.
       });
     }
 
