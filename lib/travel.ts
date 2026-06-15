@@ -7,7 +7,10 @@ export type Destination = {
   heroImage: string;
   summary: string;
   highlights: string[];
-  bestFor: string;
+  quickFacts: Array<{
+    label: string;
+    value: string;
+  }>;
 };
 
 export type TourPackage = {
@@ -36,14 +39,24 @@ export const destinations: Destination[] = [
     image: "/assets/images/destinations/colombo.jpg",
     heroImage: "/assets/images/heroes/colombo-sri-lanka.jpg",
     summary:
-      "Colombo is the island's lively first chapter, blending oceanfront walks, markets, temples, colonial buildings and skyline dining into a polished city stay.",
+      "Colombo, the capital of Sri Lanka, has a long history as a port on ancient east-west trade routes, ruled successively by the Portuguese, Dutch and British. That heritage is reflected in its architecture, mixing colonial buildings with high-rises and shopping malls. Galle Face Green sits in the heart of the city along the Indian Ocean, a favourite promenade for locals and visitors alike, while Pettah is a lively bazaar district full of colour, sounds and street food. The city's National Museum traces Sri Lanka's history through royal regalia and ancient artefacts, and Gangaramaya Temple brings together Sri Lankan, Thai, Indian and Chinese architectural influences.",
     highlights: [
-      "Walk Galle Face Green at sunset",
-      "Explore Pettah's layered market streets",
-      "Visit Gangaramaya Temple and city landmarks",
-      "Ease into the journey with curated dining and transfers",
+      "Galle Face Green promenade along the Indian Ocean",
+      "Pettah bazaar - vibrant street markets and street food",
+      "Gangaramaya Buddhist Temple",
+      "National Museum of Sri Lanka",
+      "Colombo Fort - colonial-era architecture",
+      "Viharamahadevi Park - the city's largest public park",
+      "World Trade Centre and modern skyline",
+      "Kelaniya Raja Maha Vihara Temple",
     ],
-    bestFor: "City arrivals, short stays and first-time Sri Lanka travellers",
+    quickFacts: [
+      { label: "Region", value: "Western Province" },
+      { label: "Climate", value: "Tropical, warm year-round" },
+      { label: "Best Time", value: "December - April" },
+      { label: "Distance from BIA", value: "~35 km" },
+      { label: "Language", value: "Sinhala, Tamil, English" },
+    ],
   },
   {
     slug: "kandy",
@@ -53,48 +66,77 @@ export const destinations: Destination[] = [
     image: "/assets/images/destinations/kandy.jpg",
     heroImage: "/assets/images/destinations/kandy.jpg",
     summary:
-      "Kandy brings sacred history, lake views and hill-country calm together around the Temple of the Tooth Relic and the gardens of Peradeniya.",
+      "Kandy is a major city in Sri Lanka located in the Central Province. It was the last capital of the ancient kings' era of Sri Lanka. The city lies in the midst of hills in the Kandy plateau, which crosses an area of tropical plantations, mainly tea. Kandy is both an administrative and religious city and is also the capital of Central Province. It is the home of the Temple of the Tooth Relic, Sri Dalada Maligawa, one of the most sacred places of worship in the Buddhist world. The annual Esala Perahera, a grand procession featuring elaborately decorated elephants, traditional dancers and drummers, is one of the grandest Buddhist festivals in Asia, drawing visitors from around the world every July/August.",
     highlights: [
-      "Visit Sri Dalada Maligawa",
-      "Stroll Peradeniya Royal Botanical Gardens",
-      "Spend an evening by Kandy Lake",
-      "Connect onward to tea country or Sigiriya",
+      "Temple of the Sacred Tooth Relic, Sri Dalada Maligawa",
+      "Kandy Lake - the scenic man-made lake in the city centre",
+      "Royal Botanical Gardens, Peradeniya",
+      "Bahirawakanda Vihara, giant white Buddha statue",
+      "Esala Perahera - grand annual Buddhist procession",
+      "Kandy Arts and Crafts Association",
+      "Udawatta Kele Sanctuary - forest reserve in the city",
+      "Tea plantation visits in the surrounding hills",
     ],
-    bestFor: "Sacred culture, gardens and gentle hill-country pacing",
+    quickFacts: [
+      { label: "Region", value: "Central Province" },
+      { label: "Altitude", value: "~500 m above sea level" },
+      { label: "Best Time", value: "Jan - Apr, Jul - Aug" },
+      { label: "From Colombo", value: "~115 km (3 hrs)" },
+      { label: "UNESCO", value: "World Heritage Site" },
+    ],
   },
   {
     slug: "sigiriya",
     title: "Sigiriya",
-    tagline: "Eighth wonder of the world",
-    keyAttraction: "Rock fortress, frescoes, water gardens - UNESCO WHS",
+    tagline: "Eighth Wonder of the World",
+    keyAttraction: "Sigiriya Rock Fortress - UNESCO World Heritage Site",
     image: "/assets/images/destinations/sigiriya.jpg",
     heroImage: "/assets/images/destinations/sigiriya.jpg",
     summary:
-      "Sigiriya rises from the forest with frescoes, water gardens and a stone climb that rewards travellers with one of Sri Lanka's most memorable views.",
+      "Sigiriya or Sinhagiri is an ancient rock fortress located in the northern Matale District near the town of Dambulla in the Central Province, Sri Lanka. The name refers to a site of historical and archaeological significance that is dominated by a massive column of rock nearly 200 metres high. According to the ancient Sri Lankan chronicle the Culavamsa, this site was selected by King Kashyapa (477-495 AD) for his new capital. He built his palace on the top of this rock and decorated its sides with colourful frescoes. On a small plateau about halfway up the side of this rock he built a gateway in the form of an enormous lion, giving the site its name (Sinha = lion, Giri = rock). The site is a UNESCO World Heritage Site and is Sri Lanka's single most visited tourist destination. It is one of the best-preserved examples of ancient urban planning in the world.",
     highlights: [
-      "Climb the ancient rock fortress",
-      "See frescoes and landscaped water gardens",
-      "Pair the visit with nearby cultural triangle sites",
-      "Plan the climb around cooler morning light",
+      "The Lion's Paw entrance gateway carved into the rock",
+      "Ancient frescoes (Sigiriya Damsels paintings)",
+      "Mirror Wall polished to reflect the rock face",
+      "Summit palace ruins with panoramic views",
+      "Water gardens - one of the oldest landscaped gardens in the world",
+      "Cobra Hood Cave with ancient graffiti",
+      "Pidurangala Rock - alternative viewpoint",
     ],
-    bestFor: "UNESCO history, iconic views and cultural triangle routes",
+    quickFacts: [
+      { label: "Region", value: "North Central Province" },
+      { label: "Height", value: "~200 m rock column" },
+      { label: "Best Time", value: "Dec - Apr" },
+      { label: "From Colombo", value: "~170 km (4 hrs)" },
+      { label: "UNESCO", value: "World Heritage Site" },
+    ],
   },
   {
     slug: "galle",
     title: "Galle",
-    tagline: "Largest remaining fortress in Asia",
-    keyAttraction: "Dutch Fort, lighthouse, boutique lanes - UNESCO WHS",
+    tagline: "The Largest Remaining Fortress in Asia",
+    keyAttraction: "Galle Fort, Galle Lighthouse, Dutch Reformed Church",
     image: "/assets/images/destinations/galle.jpg",
     heroImage: "/assets/images/destinations/galle-fort.jpg",
     summary:
-      "Galle Fort is a coastal world of ramparts, courtyards, lighthouse views and boutique lanes, best explored slowly between sea breezes and sunset walks.",
+      "Galle is a city on the southwest coast of Sri Lanka. It's known for Galle Fort, the fortified old city founded by Portuguese colonists in the 16th century. Stone sea walls, expanded by the Dutch, encircle car-free streets with architecture reflecting Portuguese, Dutch and British rule. Notable buildings include the 18th-century Dutch Reformed Church and the Groote Kerk. The fort area contains the National Maritime Museum, and the Galle Lighthouse, the oldest in Sri Lanka, stands at its southern tip overlooking the Indian Ocean. Today the fort is a living city, its lanes lined with boutique hotels, art galleries, jewellery shops, and cafes that blend colonial heritage with contemporary Sri Lankan style. It is a UNESCO World Heritage Site.",
     highlights: [
-      "Walk the Dutch Fort ramparts",
-      "Visit the lighthouse and boutique lanes",
-      "Build in time for cafes and coastal dining",
-      "Combine with Bentota or the south coast",
+      "Galle Fort walls - walk the full rampart at sunset",
+      "Dutch Reformed Church, Groote Kerk",
+      "Galle Lighthouse at the southern tip of the fort",
+      "National Maritime Museum",
+      "Boutique shopping along Pedlar Street",
+      "Unawatuna Beach - a short drive from the fort",
+      "Jungle Beach and Dalawella Beach nearby",
+      "Stilt fishermen at Koggala and Weligama",
     ],
-    bestFor: "Coastal heritage, design stays and slow afternoons",
+    quickFacts: [
+      { label: "Region", value: "Southern Province" },
+      { label: "Coast", value: "Southwest Sri Lanka" },
+      { label: "Best Time", value: "Nov - Apr" },
+      { label: "From Colombo", value: "~120 km (2.5 hrs)" },
+      { label: "UNESCO", value: "World Heritage Site" },
+    ],
   },
   {
     slug: "nuwara-eliya",
@@ -111,7 +153,13 @@ export const destinations: Destination[] = [
       "Plan a day toward Horton Plains",
       "Slow the pace with cool mornings and garden walks",
     ],
-    bestFor: "Tea landscapes, cool weather and scenic train moments",
+    quickFacts: [
+      { label: "Region", value: "Central Province" },
+      { label: "Climate", value: "Cool highland climate" },
+      { label: "Best Time", value: "February - April" },
+      { label: "Distance from BIA", value: "~165 km" },
+      { label: "Language", value: "Sinhala, Tamil, English" },
+    ],
   },
   {
     slug: "yala",
@@ -128,7 +176,13 @@ export const destinations: Destination[] = [
       "Stay close to the park for an easier start",
       "Balance safari time with south-coast rest",
     ],
-    bestFor: "Safari, wildlife photography and nature-led journeys",
+    quickFacts: [
+      { label: "Region", value: "Southern Province" },
+      { label: "Climate", value: "Dry zone, hot and seasonal" },
+      { label: "Best Time", value: "February - June" },
+      { label: "Distance from BIA", value: "~285 km" },
+      { label: "Language", value: "Sinhala, Tamil, English" },
+    ],
   },
   {
     slug: "trincomalee",
@@ -145,7 +199,13 @@ export const destinations: Destination[] = [
       "Consider whale watching in season",
       "Add calm beach days after the cultural triangle",
     ],
-    bestFor: "East-coast beaches, temple views and seasonal marine life",
+    quickFacts: [
+      { label: "Region", value: "Eastern Province" },
+      { label: "Climate", value: "Tropical coastal, warm and dry in season" },
+      { label: "Best Time", value: "May - September" },
+      { label: "Distance from BIA", value: "~240 km" },
+      { label: "Language", value: "Tamil, Sinhala, English" },
+    ],
   },
   {
     slug: "jaffna",
@@ -162,7 +222,13 @@ export const destinations: Destination[] = [
       "Taste northern Sri Lankan cooking",
       "Build in enough time for the long northern journey",
     ],
-    bestFor: "Culture seekers, food-led trips and returning visitors",
+    quickFacts: [
+      { label: "Region", value: "Northern Province" },
+      { label: "Climate", value: "Dry zone, warm and breezy" },
+      { label: "Best Time", value: "January - September" },
+      { label: "Distance from BIA", value: "~350 km" },
+      { label: "Language", value: "Tamil, Sinhala, English" },
+    ],
   },
   {
     slug: "anuradhapura",
@@ -179,7 +245,13 @@ export const destinations: Destination[] = [
       "Travel with a guide for context and pacing",
       "Pair with Sigiriya and Polonnaruwa",
     ],
-    bestFor: "Ancient history, sacred sites and cultural triangle depth",
+    quickFacts: [
+      { label: "Region", value: "North Central Province" },
+      { label: "Climate", value: "Dry zone, warm and sunny" },
+      { label: "Best Time", value: "May - September" },
+      { label: "Distance from BIA", value: "~170 km" },
+      { label: "Language", value: "Sinhala, Tamil, English" },
+    ],
   },
   {
     slug: "polonnaruwa",
@@ -196,7 +268,13 @@ export const destinations: Destination[] = [
       "Travel by car or bicycle between key sites",
       "Combine with Sigiriya for a strong cultural day",
     ],
-    bestFor: "UNESCO history, archaeology and cultural triangle routing",
+    quickFacts: [
+      { label: "Region", value: "North Central Province" },
+      { label: "Climate", value: "Dry zone, warm and sunny" },
+      { label: "Best Time", value: "January - September" },
+      { label: "Distance from BIA", value: "~200 km" },
+      { label: "Language", value: "Sinhala, Tamil, English" },
+    ],
   },
   {
     slug: "arugam-bay",
@@ -213,7 +291,13 @@ export const destinations: Destination[] = [
       "Keep days open and unhurried",
       "Connect with Yala or the east coast",
     ],
-    bestFor: "Surf, casual beach stays and relaxed east-coast travel",
+    quickFacts: [
+      { label: "Region", value: "Eastern Province" },
+      { label: "Climate", value: "Tropical coastal, warm and seasonal" },
+      { label: "Best Time", value: "May - September" },
+      { label: "Distance from BIA", value: "~320 km" },
+      { label: "Language", value: "Tamil, Sinhala, English" },
+    ],
   },
   {
     slug: "bentota",
@@ -230,7 +314,13 @@ export const destinations: Destination[] = [
       "Visit a turtle hatchery",
       "Use it as a soft landing or final beach stay",
     ],
-    bestFor: "Beach leisure, short coastal breaks and family-friendly pacing",
+    quickFacts: [
+      { label: "Region", value: "Southern Province" },
+      { label: "Climate", value: "Tropical coastal, warm year-round" },
+      { label: "Best Time", value: "December - April" },
+      { label: "Distance from BIA", value: "~110 km" },
+      { label: "Language", value: "Sinhala, Tamil, English" },
+    ],
   },
   {
     slug: "pinnawala",
@@ -247,7 +337,13 @@ export const destinations: Destination[] = [
       "Keep the stop concise and well timed",
       "Pair with nearby hill-country routes",
     ],
-    bestFor: "Short scenic stops and family travel days",
+    quickFacts: [
+      { label: "Region", value: "Sabaragamuwa Province" },
+      { label: "Climate", value: "Tropical inland, warm and humid" },
+      { label: "Best Time", value: "December - April" },
+      { label: "Distance from BIA", value: "~75 km" },
+      { label: "Language", value: "Sinhala, Tamil, English" },
+    ],
   },
 ];
 

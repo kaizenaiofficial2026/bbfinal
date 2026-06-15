@@ -93,16 +93,15 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
 
             <aside className="destination-sidebar" data-reveal>
               <div className="destination-fact-card">
-                <span>Best for</span>
-                <strong>{destination.bestFor}</strong>
-              </div>
-              <div className="destination-fact-card">
-                <span>Route style</span>
-                <strong>Private, tailor-made travel</strong>
-              </div>
-              <div className="destination-fact-card">
-                <span>Planning from</span>
-                <strong>Colombo office</strong>
+                <span>Quick Facts</span>
+                <dl className="destination-quick-facts">
+                  {destination.quickFacts.map((fact) => (
+                    <div key={fact.label}>
+                      <dt>{fact.label}</dt>
+                      <dd>{fact.value}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
               <Link className="btn btn-primary" href="/contacts">
                 Plan this route
