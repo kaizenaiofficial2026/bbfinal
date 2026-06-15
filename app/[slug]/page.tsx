@@ -31,9 +31,12 @@ export async function generateMetadata({
     };
   }
 
+  const pageTitle = destination.detailTitle ?? destination.title;
+  const pageTagline = destination.detailTagline ?? destination.tagline;
+
   return {
-    title: destination.title,
-    description: `${destination.title} travel with Beyond Borders: ${destination.tagline}. ${destination.keyAttraction}.`,
+    title: pageTitle,
+    description: `${pageTitle} travel with Beyond Borders: ${pageTagline}. ${destination.keyAttraction}.`,
   };
 }
 
@@ -43,18 +46,28 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
 
   if (!destination) notFound();
 
-  const related = destinations
-    .filter((item) => item.slug !== destination.slug)
-    .slice(0, 3);
+  const pageTitle = destination.detailTitle ?? destination.title;
+  const pageTagline = destination.detailTagline ?? destination.tagline;
+  const description = destination.description ?? [destination.summary];
+  const related =
+    destination.relatedPlaces ??
+    destinations
+      .filter((item) => item.slug !== destination.slug)
+      .slice(0, 3)
+      .map((item) => ({
+        title: item.title,
+        tagline: item.tagline,
+        href: `/${item.slug}`,
+      }));
 
   return (
     <SiteShell>
       <main>
         <PageHero
-          title={destination.title}
+          title={pageTitle}
           label="Destination"
           image={destination.heroImage}
-          summary={destination.tagline}
+          summary={pageTagline}
           showBreadcrumbs={false}
           showLabel={false}
           backHref="/destinations"
@@ -64,13 +77,17 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
           <div className="container destination-detail-layout">
             <article className="destination-detail-main" data-reveal>
               <span className="section-kicker">Travel notes</span>
-              <h1 className="display display-lg">{destination.tagline}</h1>
-              <p className="lead">{destination.summary}</p>
+              <h1 className="display display-lg">{pageTagline}</h1>
+              {description.map((paragraph) => (
+                <p className="lead" key={paragraph}>
+                  {paragraph}
+                </p>
+              ))}
 
               <div className="destination-detail-image">
                 <Image
                   src={destination.image}
-                  alt={destination.title}
+                  alt={pageTitle}
                   fill
                   sizes="(max-width: 980px) 100vw, 62vw"
                 />
@@ -78,7 +95,15 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
 
               <div className="destination-copy-block">
                 <h2>Key attraction</h2>
-                <p>{destination.keyAttraction}</p>
+                {destination.keyAttractionItems ? (
+                  <ul className="destination-highlight-list">
+                    {destination.keyAttractionItems.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>{destination.keyAttraction}</p>
+                )}
               </div>
 
               <div className="destination-copy-block">
@@ -118,9 +143,9 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
               <div className="related-destinations">
                 <h2>Explore more</h2>
                 {related.map((item) => (
-                  <Link href={`/${item.slug}`} key={item.slug}>
+                  <Link href={item.href} key={item.title}>
                     {item.title}
-                    <span>{item.tagline}</span>
+                    {item.tagline ? <span>{item.tagline}</span> : null}
                   </Link>
                 ))}
               </div>
@@ -128,7 +153,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
           </div>
         </section>
         <CTASection
-          title={`Build ${destination.title} into a private journey.`}
+          title={`Build ${pageTitle} into a private journey.`}
           text="Share your travel dates and preferred pace, and we will connect this destination with the right hotels, guides and transfers."
           action="Start planning"
         />

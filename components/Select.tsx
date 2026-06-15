@@ -2,11 +2,17 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
+export type SelectOption = {
+  label: string;
+  value: string;
+};
+
 type SelectProps = {
   name: string;
   label: string;
-  options: string[];
+  options: Array<string | SelectOption>;
   defaultValue?: string;
+  className?: string;
 };
 
 export default function Select({
@@ -14,15 +20,25 @@ export default function Select({
   label,
   options,
   defaultValue,
+  className,
 }: SelectProps) {
+  const normalizedOptions = options.map((option) =>
+    typeof option === "string" ? { label: option, value: option } : option,
+  );
   const labelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(defaultValue ?? options[0]);
+  const [selected, setSelected] = useState(
+    () =>
+      normalizedOptions.find((option) => option.value === defaultValue) ??
+      normalizedOptions[0],
+  );
   const [active, setActive] = useState(() => {
-    const i = options.indexOf(defaultValue ?? options[0]);
+    const i = normalizedOptions.findIndex(
+      (option) => option.value === (defaultValue ?? normalizedOptions[0].value),
+    );
     return i < 0 ? 0 : i;
   });
 
@@ -36,7 +52,7 @@ export default function Select({
   }, []);
 
   const choose = (i: number) => {
-    setSelected(options[i]);
+    setSelected(normalizedOptions[i]);
     setActive(i);
     setOpen(false);
     triggerRef.current?.focus();
@@ -47,12 +63,15 @@ export default function Select({
       case "ArrowDown":
         event.preventDefault();
         if (!open) setOpen(true);
-        else setActive((a) => (a + 1) % options.length);
+        else setActive((a) => (a + 1) % normalizedOptions.length);
         break;
       case "ArrowUp":
         event.preventDefault();
         if (!open) setOpen(true);
-        else setActive((a) => (a - 1 + options.length) % options.length);
+        else
+          setActive(
+            (a) => (a - 1 + normalizedOptions.length) % normalizedOptions.length,
+          );
         break;
       case "Enter":
       case " ":
@@ -82,7 +101,7 @@ export default function Select({
   };
 
   return (
-    <div className="form-field">
+    <div className={`form-field${className ? ` ${className}` : ""}`}>
       <label id={labelId}>{label}</label>
       <div
         className={`select${open ? " is-open" : ""}`}
@@ -98,7 +117,7 @@ export default function Select({
           ref={triggerRef}
           onClick={() => setOpen((o) => !o)}
         >
-          <span className="select-value">{selected}</span>
+          <span className="select-value">{selected.label}</span>
         </button>
         <ul
           className="select-menu"
@@ -106,20 +125,20 @@ export default function Select({
           aria-labelledby={labelId}
           tabIndex={-1}
         >
-          {options.map((opt, i) => (
+          {normalizedOptions.map((opt, i) => (
             <li
-              key={opt}
+              key={opt.value || opt.label}
               className={`select-option${i === active ? " is-active" : ""}`}
               role="option"
-              aria-selected={opt === selected}
+              aria-selected={opt.value === selected.value}
               onClick={() => choose(i)}
               onMouseMove={() => setActive(i)}
             >
-              {opt}
+              {opt.label}
             </li>
           ))}
         </ul>
-        <input type="hidden" name={name} value={selected} readOnly />
+        <input type="hidden" name={name} value={selected.value} readOnly />
       </div>
     </div>
   );

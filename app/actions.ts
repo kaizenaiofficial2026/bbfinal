@@ -25,6 +25,17 @@ export async function submitEnquiry(
   formData: FormData,
 ): Promise<EnquiryState> {
   const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const country = String(formData.get("country") ?? "").trim();
+  const message = String(formData.get("message") ?? "").trim();
+
+  if (!name || !email || !phone || !country || !message) {
+    return {
+      ok: false,
+      note: "Please complete your name, email, phone, country and travel notes.",
+    };
+  }
 
   return {
     ok: true,
