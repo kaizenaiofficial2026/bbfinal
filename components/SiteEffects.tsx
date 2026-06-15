@@ -77,7 +77,9 @@ export default function SiteEffects() {
       });
     };
 
-    const failSafe = window.setTimeout(cleanupLoading, 3200);
+    // Safety net only: must sit above loadVideo()'s 6s cap so a genuinely
+    // stalled asset can't trap the visitor, without cutting the real wait short.
+    const failSafe = window.setTimeout(cleanupLoading, 8000);
     disposers.push(() => window.clearTimeout(failSafe));
 
     const run = async () => {
@@ -239,14 +241,26 @@ export default function SiteEffects() {
     }
 
     async function waitForPageAssets(onProgress: (progress: number) => void) {
-      const imageUrls = Array.from(document.images)
-        .map((img) => img.currentSrc || img.getAttribute("src"))
+      const videos = Array.from(document.querySelectorAll("video"));
+      // Video posters aren't part of document.images, so collect them too and
+      // load them alongside the regular images.
+      const posterUrls = videos
+        .map((video) => video.getAttribute("poster"))
+        .filter((src): src is string => Boolean(src));
+
+      const imageUrls = [
+        ...Array.from(document.images).map(
+          (img) => img.currentSrc || img.getAttribute("src"),
+        ),
+        ...posterUrls,
+      ]
         .filter((src): src is string => Boolean(src))
         .map((src) => new URL(src, document.baseURI).href);
 
       const uniqueImageUrls = Array.from(new Set(imageUrls));
       const tasks = [
         ...uniqueImageUrls.map((src) => loadImage(src)),
+        ...videos.map((video) => loadVideo(video)),
         waitForFonts(),
         waitForDocumentLoad(),
       ];
@@ -286,6 +300,40 @@ export default function SiteEffects() {
         img.src = src;
 
         if (img.complete) finish();
+      });
+    }
+
+    // Resolve once the video has its first frame decoded (readyState >= 2) so the
+    // hero no longer pops from poster to footage after the preloader lifts. A
+    // hard cap keeps a stalled/buffering stream from holding the intro hostage.
+    function loadVideo(video: HTMLVideoElement) {
+      return new Promise<void>((resolve) => {
+        if (video.readyState >= 2) {
+          resolve();
+          return;
+        }
+
+        let settled = false;
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          video.removeEventListener("loadeddata", finish);
+          video.removeEventListener("canplay", finish);
+          video.removeEventListener("error", finish);
+          window.clearTimeout(cap);
+          resolve();
+        };
+
+        const cap = window.setTimeout(finish, 6000);
+        video.addEventListener("loadeddata", finish, { once: true });
+        video.addEventListener("canplay", finish, { once: true });
+        video.addEventListener("error", finish, { once: true });
+        // Nudge buffering for browsers that defer until interaction.
+        try {
+          video.load();
+        } catch {
+          // Some browsers throw if load() races teardown; the cap still resolves.
+        }
       });
     }
 

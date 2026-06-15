@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type HeroSlideshowProps = {
@@ -61,11 +62,15 @@ export default function HeroSlideshow({
           .join(" ");
 
         return (
-          <img
+          <Image
             className={className}
             src={image}
             alt=""
             key={image}
+            fill
+            sizes="100vw"
+            quality={80}
+            priority={index === 0}
             draggable={false}
           />
         );

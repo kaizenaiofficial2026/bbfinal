@@ -11,7 +11,7 @@ export default function Hero() {
           loop
           playsInline
           preload="auto"
-          poster="/assets/images/heroes/hero-airplane-coast.png"
+          poster="/assets/images/heroes/hero-poster.jpg"
           aria-hidden="true"
         >
           <source src="/assets/hero-bg.mp4" type="video/mp4" />
