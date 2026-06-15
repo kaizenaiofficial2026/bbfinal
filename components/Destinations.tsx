@@ -94,12 +94,13 @@ export default function Destinations() {
   const [activePage, setActivePage] = useState(0);
 
   useEffect(() => {
-    const outer = outerRef.current;
-    const track = trackRef.current;
-    const viewport = viewportRef.current;
-    if (!outer || !track || !viewport) return;
+    let disposed = false;
 
     const sizeCards = () => {
+      const track = trackRef.current;
+      const viewport = viewportRef.current;
+      if (!track || !viewport) return;
+
       const vw = viewport.clientWidth;
       const cardsInView =
         window.innerWidth <= 720 ? 1 : window.innerWidth <= 980 ? 1.25 : 1.62;
@@ -116,6 +117,11 @@ export default function Destinations() {
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
+        const outer = outerRef.current;
+        const track = trackRef.current;
+        const viewport = viewportRef.current;
+        if (disposed || !outer || !track || !viewport) return;
+
         const rect = outer.getBoundingClientRect();
         const scrolledIn = -rect.top;
         const scrollSpace = rect.height - window.innerHeight;
@@ -148,6 +154,7 @@ export default function Destinations() {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => {
+      disposed = true;
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", sizeCards);
       cancelAnimationFrame(raf);

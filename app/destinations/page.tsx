@@ -18,6 +18,8 @@ export default function DestinationsPage() {
         <PageHero
           title="Destinations"
           label="Destinations"
+          showBreadcrumbs={false}
+          showLabel={false}
           image="/assets/images/heroes/colombo-sri-lanka.jpg"
           summary="A full island grid of ancient capitals, tea country, coastal forts, national parks, surf beaches and city arrivals."
         />

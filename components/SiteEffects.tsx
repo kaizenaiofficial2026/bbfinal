@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
+import { usePathname } from "next/navigation";
 import { animate, inView, scroll, stagger } from "motion";
 import Lenis from "lenis";
 
+let introHasPlayed = false;
+
 export default function SiteEffects() {
-  useEffect(() => {
+  const pathname = usePathname();
+
+  useLayoutEffect(() => {
     const html = document.documentElement;
     const body = document.body;
     const reduced = window.matchMedia(
@@ -16,19 +21,39 @@ export default function SiteEffects() {
     // cleanly on unmount (and re-runs safely under React Strict Mode).
     let cancelled = false;
     const disposers: Array<() => void> = [];
+    const animatedSelector =
+      "[data-reveal], [data-reveal-group] > *, [data-about-media] > *, .hero-fade, .hero-title-word";
+
+    html.classList.remove("reveal-ready");
+    document
+      .querySelectorAll<HTMLElement>('[data-reveal-group="package-cards"]')
+      .forEach((group) => {
+        group.classList.remove("package-cards-ready", "is-visible");
+      });
+    document
+      .querySelectorAll(".reveal-pending, .reveal-armed, .is-revealed")
+      .forEach((el) => {
+        el.classList.remove("reveal-pending", "reveal-armed", "is-revealed");
+      });
+
+    const hidePreloader = () => {
+      body.classList.remove("is-loading");
+      document.getElementById("preloader")?.classList.add("is-hidden");
+    };
 
     const cleanupLoading = () => {
       html.classList.remove("has-motion");
-      body.classList.remove("is-loading");
-      document.getElementById("preloader")?.classList.add("is-hidden");
+      html.classList.remove("reveal-ready");
+      hidePreloader();
       document
-        .querySelectorAll(
-          "[data-reveal], [data-reveal-group] > *, .hero-fade, .hero-title-word",
-        )
+        .querySelectorAll(".reveal-pending, .reveal-armed, .is-revealed")
         .forEach((el) => {
-          (el as HTMLElement).style.opacity = "";
-          (el as HTMLElement).style.transform = "";
+          el.classList.remove("reveal-pending", "reveal-armed", "is-revealed");
         });
+      document.querySelectorAll(animatedSelector).forEach((el) => {
+        (el as HTMLElement).style.opacity = "";
+        (el as HTMLElement).style.transform = "";
+      });
     };
 
     const failSafe = window.setTimeout(cleanupLoading, 3200);
@@ -36,20 +61,28 @@ export default function SiteEffects() {
 
     const run = async () => {
       try {
-        window.clearTimeout(failSafe);
-
         if (reduced) {
+          window.clearTimeout(failSafe);
           cleanupLoading();
           return;
         }
 
         html.classList.add("has-motion");
-        await runIntro();
+        if (!introHasPlayed && body.classList.contains("is-loading")) {
+          await runIntro();
+          if (cancelled) return;
+          introHasPlayed = true;
+        } else {
+          hidePreloader();
+          introHasPlayed = true;
+        }
         if (cancelled) return;
+        html.classList.add("has-motion");
         initSmoothScroll();
         initReveals();
         initCounters();
         initParallax();
+        window.clearTimeout(failSafe);
       } catch (error) {
         console.warn("Motion failed to load:", error);
         cleanupLoading();
@@ -114,11 +147,18 @@ export default function SiteEffects() {
 
       try {
         if (preloaderRule) preloaderRule.style.transform = "scaleX(0)";
-        animate(
-          ".preloader-word .ch",
-          { y: ["120%", "0%"] },
-          { duration: 0.85, delay: stagger(0.028), ease: [0.22, 1, 0.36, 1] },
-        );
+        const preloaderChars = document.querySelectorAll(".preloader-word .ch");
+        if (preloaderChars.length) {
+          animate(
+            preloaderChars,
+            { y: ["120%", "0%"] },
+            {
+              duration: 0.85,
+              delay: stagger(0.028),
+              ease: [0.22, 1, 0.36, 1],
+            },
+          );
+        }
 
         await waitForPageAssets((progress) => {
           const value = Math.min(100, Math.max(0, Math.round(progress)));
@@ -133,14 +173,16 @@ export default function SiteEffects() {
         });
 
         await delay(260);
-        await Promise.race([
-          animate(
-            preloader as HTMLElement,
-            { y: ["0%", "-100%"] },
-            { duration: 0.78, ease: [0.76, 0, 0.24, 1] },
-          ),
-          delay(950),
-        ]);
+        if (preloader) {
+          await Promise.race([
+            animate(
+              preloader,
+              { y: ["0%", "-100%"] },
+              { duration: 0.78, ease: [0.76, 0, 0.24, 1] },
+            ),
+            delay(950),
+          ]);
+        }
       } finally {
         preloader?.classList.add("is-hidden");
         body.classList.remove("is-loading");
@@ -156,24 +198,31 @@ export default function SiteEffects() {
           { duration: 1.8, ease: [0.22, 1, 0.36, 1] },
         );
       }
-      animate(
-        ".hero-title-word",
-        { y: [18, 0] },
-        {
-          duration: 1.08,
-          delay: stagger(0.13, { startDelay: 0.12 }),
-          ease: [0.22, 1, 0.36, 1],
-        },
-      );
-      animate(
-        ".hero-fade",
-        { y: [18, 0] },
-        {
-          duration: 0.9,
-          delay: stagger(0.12, { startDelay: 0.62 }),
-          ease: [0.22, 1, 0.36, 1],
-        },
-      );
+      const heroTitleWords = document.querySelectorAll(".hero-title-word");
+      if (heroTitleWords.length) {
+        animate(
+          heroTitleWords,
+          { y: [18, 0] },
+          {
+            duration: 1.08,
+            delay: stagger(0.13, { startDelay: 0.12 }),
+            ease: [0.22, 1, 0.36, 1],
+          },
+        );
+      }
+
+      const heroFades = document.querySelectorAll(".hero-fade");
+      if (heroFades.length) {
+        animate(
+          heroFades,
+          { y: [18, 0] },
+          {
+            duration: 0.9,
+            delay: stagger(0.12, { startDelay: 0.62 }),
+            ease: [0.22, 1, 0.36, 1],
+          },
+        );
+      }
     }
 
     async function waitForPageAssets(onProgress: (progress: number) => void) {
@@ -243,39 +292,275 @@ export default function SiteEffects() {
       return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
     }
 
+    function markRevealed(el: Element) {
+      if (cancelled) return;
+      el.classList.add("is-revealed");
+      getRevealItems(el).forEach((item) => {
+        item.style.opacity = "1";
+        item.style.transform = "translateY(0) scale(1) rotate(0)";
+      });
+
+      window.setTimeout(() => {
+        if (cancelled) return;
+        getRevealItems(el).forEach((item) => {
+          item.style.transition = "none";
+          item.style.opacity = "1";
+          item.style.transform = "translateY(0) scale(1) rotate(0)";
+          item.style.willChange = "";
+        });
+      }, 1280);
+    }
+
+    function armReveal(
+      el: Element,
+      onReveal: () => void,
+      options: {
+        amount: number;
+        margin: "0px 0px -10% 0px" | "0px 0px -12% 0px";
+      },
+    ) {
+      el.classList.add("reveal-pending");
+      prepareRevealStyles(el);
+      el.classList.add("reveal-armed");
+      const stop = watchInView(el, onReveal, options);
+
+      return () => {
+        stop();
+        clearRevealStyles(el);
+        el.classList.remove("reveal-pending", "reveal-armed", "is-revealed");
+      };
+    }
+
+    function prepareRevealStyles(el: Element) {
+      const transform = getRevealTransform(el);
+      const items = getRevealItems(el);
+
+      items.forEach((item) => {
+        item.style.transition = "none";
+        item.style.opacity = "0";
+        item.style.transform = transform;
+        item.style.willChange = "opacity, transform";
+      });
+
+      el.getBoundingClientRect();
+
+      items.forEach((item, index) => {
+        const delayMs = items.length > 1 ? Math.min(index * 80, 400) : 0;
+        item.style.transition = [
+          `opacity 680ms var(--ease) ${delayMs}ms`,
+          `transform 860ms var(--ease) ${delayMs}ms`,
+        ].join(", ");
+      });
+    }
+
+    function clearRevealStyles(el: Element) {
+      getRevealItems(el).forEach((item) => {
+        item.style.opacity = "";
+        item.style.transform = "";
+        item.style.transition = "";
+        item.style.willChange = "";
+      });
+    }
+
+    function getRevealItems(el: Element) {
+      if (el.hasAttribute("data-reveal")) return [el as HTMLElement];
+      return Array.from(el.children).filter(
+        (child): child is HTMLElement => child instanceof HTMLElement,
+      );
+    }
+
+    function getRevealTransform(el: Element) {
+      if (el.hasAttribute("data-about-media")) {
+        return "translateY(54px) scale(0.95) rotate(-2.5deg)";
+      }
+
+      const variant = (el as HTMLElement).dataset.revealGroup;
+      if (variant === "copy") return "translateY(24px)";
+      if (variant === "cards") return "translateY(46px) scale(0.96)";
+      return "translateY(28px)";
+    }
+
+    function watchInView(
+      el: Element,
+      onReveal: () => void,
+      options: {
+        amount: number;
+        margin: "0px 0px -10% 0px" | "0px 0px -12% 0px";
+      },
+    ) {
+      let fallbackFrame = 0;
+      let revealed = false;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) reveal();
+        },
+        { threshold: options.amount, rootMargin: options.margin },
+      );
+
+      const reveal = () => {
+        if (revealed) return;
+        revealed = true;
+        stop();
+        onReveal();
+      };
+
+      const check = () => {
+        fallbackFrame = 0;
+        if (isInRevealRange(el, options.amount, options.margin)) reveal();
+      };
+
+      const scheduleCheck = () => {
+        if (fallbackFrame) cancelAnimationFrame(fallbackFrame);
+        fallbackFrame = requestAnimationFrame(check);
+      };
+
+      const poll = window.setInterval(check, 120);
+      const pollTimeout = window.setTimeout(() => {
+        window.clearInterval(poll);
+      }, 1800);
+
+      const stop = () => {
+        observer.disconnect();
+        window.clearInterval(poll);
+        window.clearTimeout(pollTimeout);
+        window.removeEventListener("scroll", scheduleCheck);
+        window.removeEventListener("resize", scheduleCheck);
+        if (fallbackFrame) cancelAnimationFrame(fallbackFrame);
+      };
+
+      observer.observe(el);
+      window.addEventListener("scroll", scheduleCheck, { passive: true });
+      window.addEventListener("resize", scheduleCheck);
+      scheduleCheck();
+
+      return stop;
+    }
+
+    function isInRevealRange(el: Element, amount: number, margin: string) {
+      const rect = el.getBoundingClientRect();
+      if (rect.height <= 0 || rect.width <= 0) return false;
+
+      const marginParts = margin.trim().split(/\s+/);
+      const topMargin = marginParts[0] || "0px";
+      const bottomMargin = marginParts[2] || marginParts[0] || "0px";
+      const rootTop = -resolveRootMargin(topMargin, window.innerHeight);
+      const rootBottom =
+        window.innerHeight + resolveRootMargin(bottomMargin, window.innerHeight);
+      const visibleHeight =
+        Math.min(rect.bottom, rootBottom) - Math.max(rect.top, rootTop);
+
+      return Math.max(0, visibleHeight) / rect.height >= amount;
+    }
+
+    function resolveRootMargin(value: string, size: number) {
+      const numeric = Number.parseFloat(value);
+      if (Number.isNaN(numeric)) return 0;
+      return value.endsWith("%") ? (numeric / 100) * size : numeric;
+    }
+
     function initReveals() {
-      document.querySelectorAll("[data-reveal]").forEach((el) => {
-        const stop = inView(
+      html.classList.add("reveal-ready");
+      disposers.push(() => html.classList.remove("reveal-ready"));
+
+      const revealEls = new WeakSet<Element>();
+      const packageGroups = new WeakSet<HTMLElement>();
+      const revealGroups = new WeakSet<Element>();
+      const aboutMediaGroups = new WeakSet<Element>();
+
+      const watchReveal = (el: Element) => {
+        if (revealEls.has(el)) return;
+        revealEls.add(el);
+
+        const stop = armReveal(
           el,
           () => {
-            animate(
-              el,
-              { opacity: [0, 1], y: [28, 0] },
-              { duration: 0.84, ease: [0.22, 1, 0.36, 1] },
-            );
+            markRevealed(el);
           },
           { amount: 0.18, margin: "0px 0px -10% 0px" },
         );
         disposers.push(stop);
-      });
+      };
 
-      document.querySelectorAll("[data-reveal-group]").forEach((group) => {
-        const stop = inView(
+      const watchPackageGroup = (group: HTMLElement) => {
+        if (packageGroups.has(group)) return;
+        packageGroups.add(group);
+        group.classList.add("package-cards-ready");
+
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            if (!entry?.isIntersecting) return;
+            group.classList.add("is-visible");
+            observer.disconnect();
+          },
+          { threshold: 0.18, rootMargin: "0px 0px -10% 0px" },
+        );
+
+        observer.observe(group);
+        disposers.push(() => {
+          observer.disconnect();
+          group.classList.remove("package-cards-ready", "is-visible");
+        });
+      };
+
+      const watchRevealGroup = (group: Element) => {
+        if (revealGroups.has(group)) return;
+        revealGroups.add(group);
+
+        const variant = (group as HTMLElement).dataset.revealGroup;
+        if (variant === "package-cards") return;
+
+        const stop = armReveal(
           group,
           () => {
-            animate(
-              Array.from(group.children),
-              { opacity: [0, 1], y: [28, 0] },
-              {
-                duration: 0.84,
-                delay: stagger(0.08),
-                ease: [0.22, 1, 0.36, 1],
-              },
-            );
+            markRevealed(group);
           },
           { amount: 0.14, margin: "0px 0px -10% 0px" },
         );
         disposers.push(stop);
+      };
+
+      const watchAboutMedia = (group: Element) => {
+        if (aboutMediaGroups.has(group)) return;
+        aboutMediaGroups.add(group);
+
+        const stop = armReveal(
+          group,
+          () => {
+            markRevealed(group);
+          },
+          { amount: 0.2, margin: "0px 0px -12% 0px" },
+        );
+        disposers.push(stop);
+      };
+
+      const scan = () => {
+        document.querySelectorAll("[data-reveal]").forEach(watchReveal);
+        document
+          .querySelectorAll<HTMLElement>('[data-reveal-group="package-cards"]')
+          .forEach(watchPackageGroup);
+        document
+          .querySelectorAll("[data-reveal-group]")
+          .forEach(watchRevealGroup);
+        document
+          .querySelectorAll("[data-about-media]")
+          .forEach(watchAboutMedia);
+      };
+
+      let scanFrame = 0;
+      const scheduleScan = () => {
+        if (scanFrame) cancelAnimationFrame(scanFrame);
+        scanFrame = requestAnimationFrame(() => {
+          scanFrame = 0;
+          scan();
+        });
+      };
+
+      scan();
+      const observer = new MutationObserver(scheduleScan);
+      observer.observe(document.body, { childList: true, subtree: true });
+      disposers.push(() => {
+        observer.disconnect();
+        if (scanFrame) cancelAnimationFrame(scanFrame);
       });
     }
 
@@ -323,53 +608,65 @@ export default function SiteEffects() {
       }
 
       if (aboutImage) {
-        disposers.push(
-          scroll(
-            (progress: number) => {
-              aboutImage.style.setProperty("translate", `0 ${-progress * 9}%`);
-            },
-            {
-              target: aboutImage.closest(".about-composition") as HTMLElement,
-              offset: ["start end", "end start"],
-            },
-          ),
-        );
+        const aboutTarget = aboutImage.closest(".about-composition");
+        if (aboutTarget) {
+          disposers.push(
+            scroll(
+              (progress: number) => {
+                aboutImage.style.setProperty(
+                  "translate",
+                  `0 ${-progress * 9}%`,
+                );
+              },
+              {
+                target: aboutTarget,
+                offset: ["start end", "end start"],
+              },
+            ),
+          );
+        }
       }
 
       if (experienceImage) {
-        disposers.push(
-          scroll(
-            (progress: number) => {
-              experienceImage.style.setProperty(
-                "translate",
-                `0 ${(progress - 0.5) * 11}%`,
-              );
-            },
-            {
-              target: experienceImage.closest(
-                ".experience-composition",
-              ) as HTMLElement,
-              offset: ["start end", "end start"],
-            },
-          ),
+        const experienceTarget = experienceImage.closest(
+          ".experience-composition",
         );
+        if (experienceTarget) {
+          disposers.push(
+            scroll(
+              (progress: number) => {
+                experienceImage.style.setProperty(
+                  "translate",
+                  `0 ${(progress - 0.5) * 11}%`,
+                );
+              },
+              {
+                target: experienceTarget,
+                offset: ["start end", "end start"],
+              },
+            ),
+          );
+        }
       }
 
       if (contactImage) {
-        disposers.push(
-          scroll(
-            (progress: number) => {
-              contactImage.style.setProperty(
-                "translate",
-                `0 ${(progress - 0.5) * 8}%`,
-              );
-            },
-            {
-              target: document.querySelector(".contact") as HTMLElement,
-              offset: ["start end", "end start"],
-            },
-          ),
-        );
+        const contactTarget = document.querySelector(".contact");
+        if (contactTarget) {
+          disposers.push(
+            scroll(
+              (progress: number) => {
+                contactImage.style.setProperty(
+                  "translate",
+                  `0 ${(progress - 0.5) * 8}%`,
+                );
+              },
+              {
+                target: contactTarget,
+                offset: ["start end", "end start"],
+              },
+            ),
+          );
+        }
       }
     }
 
@@ -379,7 +676,7 @@ export default function SiteEffects() {
       cancelled = true;
       disposers.forEach((dispose) => dispose());
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

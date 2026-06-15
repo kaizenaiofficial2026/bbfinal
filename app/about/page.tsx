@@ -6,20 +6,20 @@ import SiteShell from "@/components/SiteShell";
 
 const FEATURES = [
   {
-    title: "Tailor-made routes",
-    text: "Every itinerary is shaped around your pace, taste and reason for travelling.",
+    title: "Tailor-Made Trips",
+    text: "Every trip is uniquely designed around your needs, pace, interests, and travel style.",
   },
   {
-    title: "Colombo-based planning",
-    text: "Local planners coordinate routes, hotels, guides and transfers across the island.",
+    title: "Local Expertise",
+    text: "Our Colombo-based planners bring deep knowledge of Sri Lanka’s landscapes, culture, routes, and hidden gems.",
   },
   {
-    title: "Private movement",
-    text: "Airport pickup and private transfers keep each travel day calm and comfortable.",
+    title: "Unbeatable Value",
+    text: "We curate premium travel experiences with trusted partners while keeping your journey practical and worthwhile.",
   },
   {
-    title: "On-trip assistance",
-    text: "A dedicated Beyond Borders assistant stays reachable throughout your journey.",
+    title: "End-to-End Support",
+    text: "From planning to final departure, our team stays reachable and supportive throughout your journey.",
   },
 ];
 
@@ -34,23 +34,23 @@ export default function AboutPage() {
     <SiteShell>
       <main>
         <PageHero
-          title="About"
+          title="About Us"
           label="The Travel Partner"
           image="/assets/images/heroes/about-header.jpg"
           summary="A Colombo-based travel house crafting private Sri Lanka journeys with polish, care and local fluency."
+          showBreadcrumbs={false}
+          showLabel={false}
         />
         <About />
-        <section className="section section-paper feature-section">
+        <section className="section section-paper about-offer-section">
           <div className="container">
-            <div className="route-section-head" data-reveal>
-              <span className="section-kicker">Why travel with us</span>
-              <h2 className="display display-lg">
-                The quiet details that make a journey feel held.
-              </h2>
+            <div className="about-offer-head" data-reveal>
+              <span className="section-kicker">What We Offer</span>
+              <h2 className="display display-lg">Why Travel With Us</h2>
             </div>
-            <div className="feature-grid" data-reveal-group>
+            <div className="about-offer-grid" data-reveal-group="cards">
               {FEATURES.map((feature, index) => (
-                <article className="feature-card" key={feature.title}>
+                <article className="about-offer-item" key={feature.title}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
                   <h3>{feature.title}</h3>
                   <p>{feature.text}</p>

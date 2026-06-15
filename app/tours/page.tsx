@@ -14,16 +14,18 @@ export const metadata: Metadata = {
 export default function ToursPage() {
   return (
     <SiteShell>
-      <main>
+      <main className="tours-page">
         <PageHero
           title="Tours"
           label="Signature journeys"
           image="/assets/images/heroes/pricing-header.jpg"
           summary="Four concise Sri Lanka tour styles, each with airport transfer, daily breakfast and Beyond Borders assistance."
+          showBreadcrumbs={false}
+          showLabel={false}
         />
         <section className="section section-paper route-tours">
           <div className="container">
-            <div className="route-section-head" data-reveal>
+            <div className="route-section-head">
               <span className="section-kicker">Tour packages</span>
               <h1 className="display display-lg">
                 Choose the structure, then let us shape the details.

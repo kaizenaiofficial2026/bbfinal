@@ -26,7 +26,7 @@ export default function Tours() {
           <h2 className="display display-lg">Our Tour Packages</h2>
         </div>
 
-        <div className="luxury-package-grid">
+        <div className="luxury-package-grid" data-reveal-group="package-cards">
           {packages.map((tour) => (
             <article className="luxury-package-card" key={tour.slug}>
               <Link

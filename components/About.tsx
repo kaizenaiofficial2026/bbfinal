@@ -1,54 +1,58 @@
 import Image from "next/image";
+import Link from "next/link";
+
+const ABOUT_STATS = [
+  { value: "500+", label: "Happy Travellers" },
+  { value: "10+", label: "Destinations" },
+  { value: "5★", label: "Rated Service" },
+  { value: "4+", label: "Tour Packages" },
+];
 
 export default function About() {
   return (
     <section className="section section-ivory about" id="about">
       <div className="container about-grid">
-        <div className="about-copy" data-reveal>
-          <span className="section-kicker">The Travel Partner</span>
+        <div className="about-copy" data-reveal-group="copy">
+          <span className="section-kicker">Learn More</span>
           <h2 className="display display-lg">
-            An island small enough to cross in a day, deep enough to explore for
-            a lifetime.
+            Traveling. Tours. Adventure.
           </h2>
           <p className="lead">
-            Beyond Borders is a Colombo-based travel house crafting private
-            journeys through Sri Lanka with polish, care and local fluency.
+            Beyond Borders is a leading travel and tourism company in Sri Lanka,
+            offering tailor-made travel packages to suit your passions, time,
+            and budget.
           </p>
           <p>
-            From the eighth wonder of the world at Sigiriya to leopard country
-            in Yala and the cool tea estates of Nuwara Eliya, every itinerary is
-            shaped around you: your pace, your taste and your story.
+            We understand the stress of planning that perfect holiday… whether
+            you are looking for an idyllic break or a fun-filled adventure for
+            the whole family. At Beyond Borders, our experts take care to listen
+            to your needs and interests, and design a trip just for you.
+          </p>
+          <p>
+            With wide experiences in the travel and tourism sector, our packages
+            come at unbeatable value, as we help you make lasting memories.
           </p>
 
-          <div className="about-stats" data-reveal-group>
-            <div className="about-stat">
-              <strong>
-                <span data-count="12">0</span>+
-              </strong>
-              <span>Destinations curated across the island</span>
-            </div>
-            <div className="about-stat">
-              <strong>
-                <span data-count="4">0</span>
-              </strong>
-              <span>Signature tour collections</span>
-            </div>
-            <div className="about-stat">
-              <strong>
-                <span data-count="24">0</span>/7
-              </strong>
-              <span>On-trip support from landing to departure</span>
-            </div>
-            <div className="about-stat">
-              <strong>
-                <span data-count="100">0</span>%
-              </strong>
-              <span>Private and tailor-made by design</span>
-            </div>
+          <div className="about-actions">
+            <Link className="btn about-action-primary" href="/contacts">
+              GET IN TOUCH
+            </Link>
+            <Link className="btn about-action-dark" href="/destinations">
+              VIEW ATTRACTIONS
+            </Link>
+          </div>
+
+          <div className="about-stats" data-reveal-group="cards">
+            {ABOUT_STATS.map((stat) => (
+              <div className="about-stat" key={stat.label}>
+                <strong>{stat.value}</strong>
+                <span>{stat.label}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="about-composition" data-reveal>
+        <div className="about-composition" data-about-media>
           <figure className="about-image-main">
             <Image
               id="aboutImage"

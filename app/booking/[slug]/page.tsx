@@ -55,27 +55,30 @@ export default async function BookingPage({ params }: BookingPageProps) {
     <SiteShell>
       <main>
         <PageHero
-          title="Booking"
+          title={tourPackage.title}
           label="Journey checkout"
           image={tourPackage.image}
-          summary={`Prepare a booking request for ${tourPackage.title}. The final package amount is confirmed by a Beyond Borders planner.`}
+          summary={`Begin your request for ${tourPackage.title}. Our travel planners will refine every detail before confirmation.`}
+          showBreadcrumbs={false}
+          showLabel={false}
+          backHref="/tours"
+          backLabel="← Back to Tours"
         />
 
         <section className="section section-paper booking-page">
           <div className="container booking-layout">
             <article className="booking-main" data-reveal>
               <div className="booking-package-panel">
-                <div className="booking-package-image">
-                  <Image
-                    src={tourPackage.image}
-                    alt={tourPackage.title}
-                    fill
-                    sizes="(max-width: 980px) 100vw, 44vw"
-                  />
-                  <span className="tour-badge">{tourPackage.tier}</span>
-                </div>
+                <Image
+                  src={tourPackage.image}
+                  alt={tourPackage.title}
+                  fill
+                  sizes="(max-width: 980px) 100vw, 58vw"
+                  className="booking-package-bg"
+                />
+                <div className="booking-package-overlay" aria-hidden="true" />
                 <div className="booking-package-copy">
-                  <span className="section-kicker">Selected package</span>
+                  <span className="tour-badge">{tourPackage.tier}</span>
                   <h1 className="display display-md">{tourPackage.title}</h1>
                   <p>{tourPackage.summary}</p>
                   <div className="tour-meta">

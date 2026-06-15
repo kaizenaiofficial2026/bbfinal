@@ -55,6 +55,10 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
           label="Destination"
           image={destination.heroImage}
           summary={destination.tagline}
+          showBreadcrumbs={false}
+          showLabel={false}
+          backHref="/destinations"
+          backLabel="← Back to Destinations"
         />
         <section className="section section-paper destination-detail-section">
           <div className="container destination-detail-layout">
