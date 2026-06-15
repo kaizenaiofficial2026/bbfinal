@@ -52,6 +52,18 @@ export default function Tours() {
             </article>
           ))}
         </div>
+        <div className="luxury-swipe-cue" aria-hidden="true">
+          <span>Swipe</span>
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M5 12h14M13 6l6 6-6 6"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+            />
+          </svg>
+        </div>
 
         <div className="luxury-packages-more">
           <Link className="luxury-more-btn" href="/tours">

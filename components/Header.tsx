@@ -17,11 +17,13 @@ export default function Header() {
   const headerRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const backdropRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const header = headerRef.current;
     const nav = navRef.current;
     const toggle = toggleRef.current;
+    const backdrop = backdropRef.current;
     let lastY = window.scrollY;
 
     const setMenu = (open: boolean) => {
@@ -36,6 +38,10 @@ export default function Header() {
 
     const onNavClick = (event: MouseEvent) => {
       if ((event.target as HTMLElement).closest("a")) setMenu(false);
+    };
+
+    const onBackdropClick = () => {
+      setMenu(false);
     };
 
     const onScroll = () => {
@@ -57,12 +63,14 @@ export default function Header() {
 
     toggle?.addEventListener("click", onToggle);
     nav?.addEventListener("click", onNavClick);
+    backdrop?.addEventListener("click", onBackdropClick);
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
 
     return () => {
       toggle?.removeEventListener("click", onToggle);
       nav?.removeEventListener("click", onNavClick);
+      backdrop?.removeEventListener("click", onBackdropClick);
       window.removeEventListener("scroll", onScroll);
       document.body.classList.remove("menu-open");
     };
@@ -71,7 +79,7 @@ export default function Header() {
   return (
     <header className="site-header" id="siteHeader" ref={headerRef}>
       <div className="container header-inner">
-        <Link className="brand" href="/" aria-label="Beyond Borders home">
+        <Link className="brand" href="/#hero" aria-label="Beyond Borders home">
           <Image
             src="/assets/images/brand/logo.png"
             alt="Beyond Borders"
@@ -101,7 +109,25 @@ export default function Header() {
               </Link>
             );
           })}
+          <Link className="mobile-nav-contact btn btn-line" href="/contacts">
+            Contact Us
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
         </nav>
+        <button
+          className="mobile-nav-backdrop"
+          type="button"
+          aria-label="Close menu"
+          ref={backdropRef}
+        />
 
         <div className="header-actions">
           <Link className="btn btn-line" href="/contacts">

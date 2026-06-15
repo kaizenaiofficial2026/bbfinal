@@ -16,6 +16,18 @@ export default function SiteEffects() {
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    const navigationEntry = performance.getEntriesByType(
+      "navigation",
+    )[0] as PerformanceNavigationTiming | undefined;
+
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    if (navigationEntry?.type === "reload") {
+      window.scrollTo(0, 0);
+      requestAnimationFrame(() => window.scrollTo(0, 0));
+    }
 
     // Everything created below registers a disposer so the effect tears down
     // cleanly on unmount (and re-runs safely under React Strict Mode).
