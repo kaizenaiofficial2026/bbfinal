@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
 import CTASection from "@/components/CTASection";
 import DestinationGrid from "@/components/DestinationGrid";
-import PageHero from "@/components/PageHero";
+import HeroSlideshow from "@/components/HeroSlideshow";
 import SiteShell from "@/components/SiteShell";
 import { destinations } from "@/lib/travel";
+
+const DESTINATION_HERO_IMAGES = [
+  "/assets/images/heroes/destinationpage/dest1.jpg",
+  "/assets/images/heroes/destinationpage/dest2.jpg",
+  "/assets/images/heroes/destinationpage/dest3.jpg",
+  "/assets/images/heroes/destinationpage/dest4.jpg",
+  "/assets/images/heroes/destinationpage/dest5.jpg",
+];
 
 export const metadata: Metadata = {
   title: "Destinations",
@@ -15,14 +23,16 @@ export default function DestinationsPage() {
   return (
     <SiteShell>
       <main>
-        <PageHero
-          title="Destinations"
-          label="Destinations"
-          showBreadcrumbs={false}
-          showLabel={false}
-          image="/assets/images/heroes/colombo-sri-lanka.jpg"
-          summary="A full island grid of ancient capitals, tea country, coastal forts, national parks, surf beaches and city arrivals."
-        />
+        <section className="page-hero">
+          <HeroSlideshow images={DESTINATION_HERO_IMAGES} />
+          <div className="container page-hero-inner">
+            <h1 className="display page-hero-title">Destinations</h1>
+            <p>
+              A full island grid of ancient capitals, tea country, coastal
+              forts, national parks, surf beaches and city arrivals.
+            </p>
+          </div>
+        </section>
         <section className="section section-sand route-destinations">
           <div className="container">
             <div className="route-section-head" data-reveal>

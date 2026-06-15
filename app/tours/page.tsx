@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import CTASection from "@/components/CTASection";
-import PageHero from "@/components/PageHero";
+import HeroSlideshow from "@/components/HeroSlideshow";
 import SiteShell from "@/components/SiteShell";
 import TourPackageList from "@/components/TourPackageList";
 import { tourPackages } from "@/lib/travel";
+
+const TOUR_HERO_IMAGES = [
+  "/assets/images/heroes/tourpage/tour1.jpg",
+  "/assets/images/heroes/tourpage/tour2.jpg",
+  "/assets/images/heroes/tourpage/tour3.jpg",
+  "/assets/images/heroes/tourpage/tour4.jpg",
+];
 
 export const metadata: Metadata = {
   title: "Tours",
@@ -15,14 +22,16 @@ export default function ToursPage() {
   return (
     <SiteShell>
       <main className="tours-page">
-        <PageHero
-          title="Tour Packages"
-          label="Signature journeys"
-          image="/assets/images/heroes/pricing-header.jpg"
-          summary="Curated Sri Lanka journeys, tailored around your pace and preferences."
-          showBreadcrumbs={false}
-          showLabel={false}
-        />
+        <section className="page-hero">
+          <HeroSlideshow images={TOUR_HERO_IMAGES} />
+          <div className="container page-hero-inner">
+            <h1 className="display page-hero-title">Tour Packages</h1>
+            <p>
+              Curated Sri Lanka journeys, tailored around your pace and
+              preferences.
+            </p>
+          </div>
+        </section>
         <section className="section section-paper route-tours">
           <div className="container">
             <div className="route-section-head">

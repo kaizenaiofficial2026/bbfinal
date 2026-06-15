@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import About from "@/components/About";
 import CTASection from "@/components/CTASection";
-import PageHero from "@/components/PageHero";
+import HeroSlideshow from "@/components/HeroSlideshow";
 import SiteShell from "@/components/SiteShell";
 
 const FEATURES = [
@@ -23,6 +23,14 @@ const FEATURES = [
   },
 ];
 
+const ABOUT_HERO_IMAGES = [
+  "/assets/images/heroes/aboutpage/hero1.jpg",
+  "/assets/images/heroes/aboutpage/hero2.jpg",
+  "/assets/images/heroes/aboutpage/hero3.jpg",
+  "/assets/images/heroes/aboutpage/hero4.jpg",
+  "/assets/images/heroes/aboutpage/hero5.jpg",
+];
+
 export const metadata: Metadata = {
   title: "About Beyond Borders",
   description:
@@ -33,14 +41,16 @@ export default function AboutPage() {
   return (
     <SiteShell>
       <main>
-        <PageHero
-          title="About Us"
-          label="The Travel Partner"
-          image="/assets/images/heroes/about-header.jpg"
-          summary="A Colombo-based travel house crafting private Sri Lanka journeys with polish, care and local fluency."
-          showBreadcrumbs={false}
-          showLabel={false}
-        />
+        <section className="page-hero">
+          <HeroSlideshow images={ABOUT_HERO_IMAGES} />
+          <div className="container page-hero-inner">
+            <h1 className="display page-hero-title">About Us</h1>
+            <p>
+              A Colombo-based travel house crafting private Sri Lanka journeys
+              with polish, care and local fluency.
+            </p>
+          </div>
+        </section>
         <About />
         <section className="section section-paper about-offer-section">
           <div className="container">
