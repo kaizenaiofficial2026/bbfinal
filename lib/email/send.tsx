@@ -84,9 +84,18 @@ export async function sendCustomInquiryEmails(input: {
   passportNumber?: string | null;
   lines: InquiryLine[];
 }) {
+  // Notify the team inbox AND the SMTP mailbox (reservations@), de-duplicated.
+  const staffRecipients = Array.from(
+    new Set(
+      [env.emailTeamInbox, env.smtpUser].filter(
+        (address): address is string => Boolean(address),
+      ),
+    ),
+  );
+
   await Promise.all([
     sendEmail({
-      to: env.emailTeamInbox,
+      to: staffRecipients,
       subject: `New ${input.inquiryType} inquiry from ${input.fullName}`,
       react: (
         <CustomInquiryStaffNotification

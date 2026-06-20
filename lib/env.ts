@@ -14,8 +14,9 @@ export const env = {
   smtpUser: process.env.SMTP_USER,
   smtpPassword: process.env.SMTP_PASSWORD,
   emailFrom:
-    process.env.EMAIL_FROM ?? "Beyond Borders <bookings@beyondborders.lk>",
-  emailTeamInbox: process.env.EMAIL_TEAM_INBOX ?? "bookings@beyondborders.lk",
+    process.env.EMAIL_FROM ?? "Beyond Borders <reservations@beyondborders.lk>",
+  emailTeamInbox:
+    process.env.EMAIL_TEAM_INBOX ?? "reservations@beyondborders.lk",
   paymentsEnabled: bool(process.env.PAYMENTS_ENABLED),
   mpgsBaseUrl:
     process.env.MPGS_BASE_URL ??
