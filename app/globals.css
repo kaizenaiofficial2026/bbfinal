@@ -2858,6 +2858,18 @@ body.menu-open .menu-toggle span::after {
   gap: 28px;
 }
 
+/* The bespoke/custom-quote card stretches across the full grid width. */
+.tour-package-card-custom {
+  grid-column: 1 / -1;
+}
+
+/* Custom inquiry form: inquiry-type selector. */
+.inquiry-type-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .tour-package-card {
   min-width: 0;
   scroll-margin-top: calc(var(--header) + 28px);

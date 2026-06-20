@@ -10,6 +10,11 @@ import {
   RegistrationReceived,
 } from "./templates/account";
 import { EnquiryAck, EnquiryStaffNotification } from "./templates/enquiry";
+import {
+  CustomInquiryAck,
+  CustomInquiryStaffNotification,
+  type InquiryLine,
+} from "./templates/custom-inquiry";
 
 type SendResult = {
   skipped: boolean;
@@ -64,6 +69,46 @@ export async function sendEnquiryEmails(input: {
       to: input.email,
       subject: "We received your Beyond Borders enquiry",
       react: <EnquiryAck name={input.name} />,
+    }),
+  ]);
+}
+
+/** Custom inquiry (Package/Hotel/Air ticket/Transport): notify staff + ack the customer. */
+export async function sendCustomInquiryEmails(input: {
+  inquiryType: string;
+  firstName: string;
+  fullName: string;
+  email: string;
+  mobile: string;
+  countryCity?: string | null;
+  passportNumber?: string | null;
+  lines: InquiryLine[];
+}) {
+  await Promise.all([
+    sendEmail({
+      to: env.emailTeamInbox,
+      subject: `New ${input.inquiryType} inquiry from ${input.fullName}`,
+      react: (
+        <CustomInquiryStaffNotification
+          inquiryType={input.inquiryType}
+          fullName={input.fullName}
+          email={input.email}
+          mobile={input.mobile}
+          countryCity={input.countryCity}
+          passportNumber={input.passportNumber}
+          lines={input.lines}
+        />
+      ),
+    }),
+    sendEmail({
+      to: input.email,
+      subject: "We received your inquiry",
+      react: (
+        <CustomInquiryAck
+          firstName={input.firstName}
+          inquiryType={input.inquiryType}
+        />
+      ),
     }),
   ]);
 }

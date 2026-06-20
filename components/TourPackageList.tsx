@@ -34,6 +34,23 @@ export default function TourPackageList({ packages }: TourPackageListProps) {
           </div>
         </article>
       ))}
+      <article
+        className="tour-package-card tour-package-card-custom"
+        key="custom-quote"
+      >
+        <div className="tour-package-body">
+          <span className="section-kicker">Bespoke</span>
+          <h2>Need something different?</h2>
+          <p>
+            Tell us your dates, group size and the places you can&apos;t miss,
+            and our planners will craft a fully custom journey and quote just
+            for you.
+          </p>
+          <Link className="tour-package-button" href="/custom-quote">
+            Request a custom quote
+          </Link>
+        </div>
+      </article>
     </div>
   );
 }

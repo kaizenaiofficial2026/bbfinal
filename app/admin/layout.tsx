@@ -20,6 +20,7 @@ export default function AdminLayout({
           <Link href="/admin/packages">Packages</Link>
           <Link href="/admin/destinations">Destinations</Link>
           <Link href="/admin/enquiries">Enquiries</Link>
+          <Link href="/admin/custom-inquiries">Custom inquiries</Link>
           <Link href="/admin/bookings">Bookings</Link>
           <Link href="/admin/users">Customers</Link>
           <Link href="/admin/settings">Settings</Link>

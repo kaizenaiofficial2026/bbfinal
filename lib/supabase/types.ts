@@ -20,6 +20,11 @@ export type PaymentStatus =
   | "captured"
   | "failed"
   | "refunded";
+export type CustomInquiryType =
+  | "package"
+  | "hotel"
+  | "airticket"
+  | "transport";
 
 export type Database = {
   public: {
@@ -168,6 +173,29 @@ export type Database = {
           >;
         Update: Partial<Database["public"]["Tables"]["payments"]["Row"]>;
       };
+      custom_inquiries: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          inquiry_type: CustomInquiryType;
+          first_name: string;
+          last_name: string;
+          country_city: string | null;
+          passport_number: string | null;
+          email: string;
+          mobile: string;
+          details: Json;
+          status: EnquiryStatus;
+          ip_hash: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["custom_inquiries"]["Row"]> &
+          Pick<
+            Database["public"]["Tables"]["custom_inquiries"]["Row"],
+            "inquiry_type" | "first_name" | "last_name" | "email" | "mobile"
+          >;
+        Update: Partial<Database["public"]["Tables"]["custom_inquiries"]["Row"]>;
+      };
       customers: {
         Row: {
           id: string;
@@ -218,6 +246,7 @@ export type Database = {
       enquiry_status: EnquiryStatus;
       booking_status: BookingStatus;
       payment_status: PaymentStatus;
+      custom_inquiry_type: CustomInquiryType;
       staff_role: "admin";
     };
     CompositeTypes: Record<string, never>;
