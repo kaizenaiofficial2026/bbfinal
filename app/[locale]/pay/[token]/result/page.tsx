@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
 import { getPaymentByToken } from "@/lib/data/payments";

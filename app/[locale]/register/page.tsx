@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
-import { registerAction } from "@/app/account/actions";
+import { registerAction } from "../account/actions";
 
 export const metadata: Metadata = {
   title: "Create an account",

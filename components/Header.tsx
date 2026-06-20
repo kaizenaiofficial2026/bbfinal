@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -130,6 +130,7 @@ export default function Header() {
         />
 
         <div className="header-actions">
+          <LocaleSwitcher />
           <Link className="btn btn-line" href="/contacts">
             Contact Us
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">

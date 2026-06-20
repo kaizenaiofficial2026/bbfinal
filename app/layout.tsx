@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Inter, Lora } from "next/font/google";
+import { getLocale } from "next-intl/server";
 import CookieConsent from "@/components/CookieConsent";
+import { isRtl } from "@/i18n/routing";
 import "./globals.css";
 
 const bodoniModa = Bodoni_Moda({
@@ -36,14 +38,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
+      dir={isRtl(locale) ? "rtl" : "ltr"}
       className={`${bodoniModa.variable} ${lora.variable} ${inter.variable}`}
     >
       <body className="is-loading">

@@ -1,20 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import createMiddleware from "next-intl/middleware";
+import { routing } from "./i18n/routing";
 
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+const intlMiddleware = createMiddleware(routing);
 
-  // Areas that require a signed-in user. /booking is intentionally NOT here:
-  // its page shows package details to everyone and gates only the form, so
-  // anonymous visitors still see the "register to reserve" call to action.
-  const isAdmin =
-    pathname.startsWith("/admin") && !pathname.startsWith("/admin/login");
-  const isAccount = pathname.startsWith("/account");
-
-  if (!isAdmin && !isAccount) {
-    return NextResponse.next();
-  }
-
+// Staff gate for /admin/* (admin is English-only, not under [locale]).
+async function requireStaffSession(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -43,18 +35,32 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     const url = request.nextUrl.clone();
-    if (isAdmin) {
-      url.pathname = "/admin/login";
-    } else {
-      url.pathname = "/login";
-      url.searchParams.set("next", pathname);
-    }
+    url.pathname = "/admin/login";
     return NextResponse.redirect(url);
   }
 
   return response;
 }
 
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // /admin/* is not localized. Gate everything except the login page; never
+  // hand admin routes to the i18n middleware.
+  if (pathname.startsWith("/admin")) {
+    if (pathname.startsWith("/admin/login")) {
+      return NextResponse.next();
+    }
+    return requireStaffSession(request);
+  }
+
+  // Public + customer routes: i18n handles locale detection and routing. The
+  // customer-area auth gate lives in the pages themselves (requireCustomer /
+  // requireVerifiedCustomer), which redirect when there's no verified session.
+  return intlMiddleware(request);
+}
+
 export const config = {
-  matcher: ["/admin/:path*", "/account/:path*"],
+  // Run on everything except API routes, Next internals, and static files.
+  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };

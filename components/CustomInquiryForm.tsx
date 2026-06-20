@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { submitCustomInquiry } from "@/app/custom-quote/actions";
-import { initialInquiryState } from "@/app/custom-quote/inquiry-state";
+import { submitCustomInquiry } from "@/app/[locale]/custom-quote/actions";
+import { initialInquiryState } from "@/app/[locale]/custom-quote/inquiry-state";
 import {
   CAR_TYPES,
   FLIGHT_CLASSES,
