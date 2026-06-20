@@ -21,6 +21,7 @@ export default function AdminLayout({
           <Link href="/admin/destinations">Destinations</Link>
           <Link href="/admin/enquiries">Enquiries</Link>
           <Link href="/admin/bookings">Bookings</Link>
+          <Link href="/admin/users">Customers</Link>
           <Link href="/admin/settings">Settings</Link>
         </nav>
         <form action={signOutAction}>

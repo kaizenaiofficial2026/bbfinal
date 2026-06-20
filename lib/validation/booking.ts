@@ -1,11 +1,9 @@
 import { z } from "zod";
 
+// Traveller name/email now come from the signed-in customer account, not the
+// form, so they are no longer collected or validated here.
 export const bookingSchema = z.object({
   tourPackageId: z.uuid("Invalid package."),
-  packageTitle: z.string().trim().min(1).max(180),
-  travellerName: z.string().trim().min(2, "Please enter your name.").max(120),
-  email: z.email("Please enter a valid email address.").max(180),
-  phone: z.string().trim().max(60).optional().or(z.literal("")),
   travelDates: z
     .string()
     .trim()

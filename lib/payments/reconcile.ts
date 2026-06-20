@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { PaymentWithBooking } from "@/lib/data/payments";
-import { sendPaymentReceipt } from "@/lib/email/send";
+import { sendInvoiceEmails } from "@/lib/email/send";
 import { retrieveOrder } from "@/lib/payments/mpgs";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
@@ -54,12 +54,14 @@ export async function reconcilePayment(
       .from("bookings")
       .update({ status: "paid" })
       .eq("id", payment.booking_id);
-    await sendPaymentReceipt({
+    await sendInvoiceEmails({
       travellerName: payment.bookings.traveller_name,
       email: payment.bookings.email,
       reference: payment.bookings.reference,
+      packageTitle: payment.bookings.tour_packages?.title ?? "Beyond Borders journey",
       amount: payment.amount,
       currency: payment.currency,
+      transactionId: order.transaction?.[0]?.transaction?.id ?? null,
     });
   }
 

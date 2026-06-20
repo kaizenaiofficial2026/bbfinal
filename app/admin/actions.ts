@@ -3,15 +3,13 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getAdminUser, requireAdmin } from "@/lib/admin/auth";
-import { sendPayLinkEmail } from "@/lib/email/send";
+import { sendAccountVerifiedEmail } from "@/lib/email/send";
 import { env } from "@/lib/env";
-import { createMpgsOrderId, createPayToken, createPayTokenExpiry } from "@/lib/payments/tokens";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   destinationAdminSchema,
   lines,
   packageAdminSchema,
-  quoteSchema,
   settingsSchema,
   statusUpdateSchema,
 } from "@/lib/validation/admin";
@@ -262,75 +260,34 @@ export async function updateBookingStatusAction(formData: FormData) {
   revalidatePath("/admin/bookings");
 }
 
-export async function generatePayLinkAction(formData: FormData) {
+export async function verifyCustomerAction(formData: FormData) {
   await requireAdmin();
-  const parsed = quoteSchema.parse({
-    bookingId: formString(formData, "bookingId"),
-    amount: formString(formData, "amount"),
-    currency: formString(formData, "currency") || env.mpgsCurrency,
-  });
+  const customerId = formString(formData, "customerId");
+
+  if (!customerId) {
+    throw new Error("Missing customer id.");
+  }
+
   const supabase = await createSupabaseServerClient();
-  const { data: booking, error: bookingError } = await supabase
-    .from("bookings")
-    .select("*, tour_packages(title)")
-    .eq("id", parsed.bookingId)
-    .single();
+  const { data: customer, error } = await supabase
+    .from("customers")
+    .update({ verified: true, verified_at: new Date().toISOString() })
+    .eq("id", customerId)
+    .select("full_name, email")
+    .maybeSingle();
 
-  if (bookingError) {
-    throw new Error(bookingError.message);
+  if (error) {
+    throw new Error(error.message);
   }
 
-  // Keep one active pay link per booking: expire any previously issued links
-  // that have not been captured so regenerating cannot leave multiple live
-  // tokens valid at once.
-  const { error: invalidateError } = await supabase
-    .from("payments")
-    .update({ pay_token_expires_at: new Date().toISOString() })
-    .eq("booking_id", booking.id)
-    .in("status", ["initiated", "pending"]);
-
-  if (invalidateError) {
-    throw new Error(invalidateError.message);
+  if (customer) {
+    await sendAccountVerifiedEmail({
+      fullName: customer.full_name,
+      email: customer.email,
+    });
   }
 
-  const token = createPayToken();
-  const { error: paymentError } = await supabase.from("payments").insert({
-    booking_id: booking.id,
-    mpgs_order_id: createMpgsOrderId(booking.reference),
-    amount: parsed.amount,
-    currency: parsed.currency,
-    status: "initiated",
-    pay_token: token,
-    pay_token_expires_at: createPayTokenExpiry(),
-  });
-
-  if (paymentError) {
-    throw new Error(paymentError.message);
-  }
-
-  const { error: updateError } = await supabase
-    .from("bookings")
-    .update({
-      quoted_amount: parsed.amount,
-      currency: parsed.currency,
-      status: "awaiting_payment",
-    })
-    .eq("id", booking.id);
-
-  if (updateError) {
-    throw new Error(updateError.message);
-  }
-
-  await sendPayLinkEmail({
-    travellerName: booking.traveller_name,
-    email: booking.email,
-    reference: booking.reference,
-    amount: parsed.amount,
-    currency: parsed.currency,
-    token,
-  });
-
-  revalidatePath(`/admin/bookings/${booking.id}`);
+  revalidatePath("/admin/users");
 }
 
 export async function saveSettingsAction(formData: FormData) {

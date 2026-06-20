@@ -1,12 +1,8 @@
 import { notFound } from "next/navigation";
-import {
-  generatePayLinkAction,
-  updateBookingStatusAction,
-} from "../../actions";
+import { updateBookingStatusAction } from "../../actions";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getBooking } from "@/lib/data/bookings";
 import { listPaymentsForBooking } from "@/lib/data/payments";
-import { env } from "@/lib/env";
 
 type BookingPageProps = {
   params: Promise<{ id: string }>;
@@ -47,16 +43,6 @@ export default async function BookingPage({ params }: BookingPageProps) {
           </select>
         </label>
         <button className="btn btn-primary" type="submit">Update status</button>
-      </form>
-      <form className="admin-card admin-inline-form" action={generatePayLinkAction}>
-        <input type="hidden" name="bookingId" value={booking.id} />
-        <label>Quoted amount
-          <input name="amount" type="number" min="1" step="0.01" defaultValue={booking.quoted_amount ?? ""} required />
-        </label>
-        <label>Currency
-          <input name="currency" maxLength={3} defaultValue={booking.currency || env.mpgsCurrency} required />
-        </label>
-        <button className="btn btn-primary" type="submit">Generate pay link</button>
       </form>
       <section className="admin-card">
         <h2>Payments</h2>

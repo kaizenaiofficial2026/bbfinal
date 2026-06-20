@@ -2,10 +2,16 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function proxy(request: NextRequest) {
-  if (
-    !request.nextUrl.pathname.startsWith("/admin") ||
-    request.nextUrl.pathname.startsWith("/admin/login")
-  ) {
+  const { pathname } = request.nextUrl;
+
+  // Areas that require a signed-in user. /booking is intentionally NOT here:
+  // its page shows package details to everyone and gates only the form, so
+  // anonymous visitors still see the "register to reserve" call to action.
+  const isAdmin =
+    pathname.startsWith("/admin") && !pathname.startsWith("/admin/login");
+  const isAccount = pathname.startsWith("/account");
+
+  if (!isAdmin && !isAccount) {
     return NextResponse.next();
   }
 
@@ -37,7 +43,12 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/admin/login";
+    if (isAdmin) {
+      url.pathname = "/admin/login";
+    } else {
+      url.pathname = "/login";
+      url.searchParams.set("next", pathname);
+    }
     return NextResponse.redirect(url);
   }
 
@@ -45,5 +56,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/account/:path*"],
 };

@@ -3,7 +3,6 @@ import {
   destinationAdminSchema,
   lines,
   packageAdminSchema,
-  quoteSchema,
 } from "@/lib/validation/admin";
 
 describe("admin validation", () => {
@@ -41,26 +40,6 @@ describe("admin validation", () => {
     });
 
     expect(result.success).toBe(false);
-  });
-
-  it("requires a valid uuid and positive amount for a quote", () => {
-    expect(
-      quoteSchema.safeParse({
-        bookingId: "11111111-1111-4111-8111-111111111111",
-        amount: "2500",
-      }).success,
-    ).toBe(true);
-
-    expect(
-      quoteSchema.safeParse({ bookingId: "not-a-uuid", amount: "2500" }).success,
-    ).toBe(false);
-
-    expect(
-      quoteSchema.safeParse({
-        bookingId: "11111111-1111-4111-8111-111111111111",
-        amount: "0",
-      }).success,
-    ).toBe(false);
   });
 
   it("accepts a destination and parses highlights into lines", () => {

@@ -131,6 +131,7 @@ export type Database = {
           quoted_amount: number | null;
           currency: string;
           ip_hash: string | null;
+          user_id: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["bookings"]["Row"]> &
           Pick<
@@ -166,6 +167,24 @@ export type Database = {
             "booking_id" | "mpgs_order_id" | "amount" | "currency" | "pay_token" | "pay_token_expires_at"
           >;
         Update: Partial<Database["public"]["Tables"]["payments"]["Row"]>;
+      };
+      customers: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          full_name: string;
+          email: string;
+          phone: string | null;
+          verified: boolean;
+          verified_at: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["customers"]["Row"]> &
+          Pick<
+            Database["public"]["Tables"]["customers"]["Row"],
+            "id" | "full_name" | "email"
+          >;
+        Update: Partial<Database["public"]["Tables"]["customers"]["Row"]>;
       };
       profiles: {
         Row: {

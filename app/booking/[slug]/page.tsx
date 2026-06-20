@@ -10,6 +10,7 @@ import {
   getPackageSlugs,
   getPublishedPackages,
 } from "@/lib/data/packages";
+import { getCustomerUser } from "@/lib/customer/auth";
 import { tourPackages as editorialPackages } from "@/scripts/seed-data";
 
 type BookingPageProps = {
@@ -49,6 +50,59 @@ export default async function BookingPage({ params }: BookingPageProps) {
   const tourPackage = await getPackageBySlug(slug);
 
   if (!tourPackage) notFound();
+
+  const session = await getCustomerUser();
+  const nextPath = `/booking/${tourPackage.slug}`;
+
+  let bookingSection: React.ReactNode;
+  if (!session) {
+    bookingSection = (
+      <div className="booking-form-section">
+        <span className="booking-form-label">Reserve this journey</span>
+        <p className="form-note">
+          Please sign in or create an account to make a reservation.
+        </p>
+        <div className="booking-submit-row">
+          <Link className="btn btn-primary" href={`/register?next=${encodeURIComponent(nextPath)}`}>
+            Register to reserve
+          </Link>
+          <Link className="btn btn-secondary" href={`/login?next=${encodeURIComponent(nextPath)}`}>
+            Sign in
+          </Link>
+        </div>
+      </div>
+    );
+  } else if (!session.customer.verified) {
+    bookingSection = (
+      <div className="booking-form-section">
+        <span className="booking-form-label">Reserve this journey</span>
+        <p className="form-note">
+          Your account is awaiting verification. We&apos;ll email you as soon as
+          it&apos;s approved — then you can book and pay online.
+        </p>
+        <Link className="btn btn-secondary" href="/account">View account</Link>
+      </div>
+    );
+  } else if (tourPackage.priceAmount == null) {
+    bookingSection = (
+      <div className="booking-form-section">
+        <span className="booking-form-label">Reserve this journey</span>
+        <p className="form-note">
+          This journey isn&apos;t available for instant checkout yet. Please{" "}
+          <Link href="/contacts">contact our team</Link>.
+        </p>
+      </div>
+    );
+  } else {
+    bookingSection = (
+      <BookingRequestForm
+        packageId={tourPackage.id}
+        packageTitle={tourPackage.title}
+        amount={tourPackage.priceAmount}
+        currency={tourPackage.currency ?? "LKR"}
+      />
+    );
+  }
 
   const relatedPackages = (await getPublishedPackages())
     .filter((item) => item.slug !== tourPackage.slug)
@@ -142,10 +196,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
                 </section>
               </div>
 
-              <BookingRequestForm
-                packageId={tourPackage.id}
-                packageTitle={tourPackage.title}
-              />
+              {bookingSection}
             </article>
 
             <aside className="booking-sidebar" data-reveal>

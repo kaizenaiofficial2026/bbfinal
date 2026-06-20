@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const retrieveOrder = vi.fn();
-const sendPaymentReceipt = vi.fn();
+const sendInvoiceEmails = vi.fn();
 const maybeSingle = vi.fn();
 const bookingsUpdateEq = vi.fn(async () => ({ data: null, error: null }));
 
@@ -10,7 +10,7 @@ vi.mock("@/lib/payments/mpgs", () => ({
 }));
 
 vi.mock("@/lib/email/send", () => ({
-  sendPaymentReceipt: (...args: unknown[]) => sendPaymentReceipt(...args),
+  sendInvoiceEmails: (...args: unknown[]) => sendInvoiceEmails(...args),
 }));
 
 vi.mock("@/lib/supabase/service", () => ({
@@ -63,7 +63,7 @@ function makePayment(overrides: Partial<TestPayment> = {}): TestPayment {
 describe("reconcilePayment", () => {
   beforeEach(() => {
     retrieveOrder.mockReset();
-    sendPaymentReceipt.mockReset();
+    sendInvoiceEmails.mockReset();
     maybeSingle.mockReset();
     bookingsUpdateEq.mockClear();
   });
@@ -73,7 +73,7 @@ describe("reconcilePayment", () => {
 
     expect(result).toEqual({ captured: true, alreadyFinalized: true });
     expect(retrieveOrder).not.toHaveBeenCalled();
-    expect(sendPaymentReceipt).not.toHaveBeenCalled();
+    expect(sendInvoiceEmails).not.toHaveBeenCalled();
   });
 
   it("captures and sends exactly one receipt when the gateway confirms", async () => {
@@ -88,7 +88,7 @@ describe("reconcilePayment", () => {
 
     expect(result.captured).toBe(true);
     expect(result.alreadyFinalized).toBe(false);
-    expect(sendPaymentReceipt).toHaveBeenCalledTimes(1);
+    expect(sendInvoiceEmails).toHaveBeenCalledTimes(1);
     expect(bookingsUpdateEq).toHaveBeenCalledTimes(1);
   });
 
@@ -100,7 +100,7 @@ describe("reconcilePayment", () => {
     const result = await reconcilePayment(makePayment());
 
     expect(result.captured).toBe(true);
-    expect(sendPaymentReceipt).not.toHaveBeenCalled();
+    expect(sendInvoiceEmails).not.toHaveBeenCalled();
   });
 
   it("marks failed and sends nothing when the gateway does not confirm", async () => {
@@ -110,6 +110,6 @@ describe("reconcilePayment", () => {
     const result = await reconcilePayment(makePayment());
 
     expect(result.captured).toBe(false);
-    expect(sendPaymentReceipt).not.toHaveBeenCalled();
+    expect(sendInvoiceEmails).not.toHaveBeenCalled();
   });
 });

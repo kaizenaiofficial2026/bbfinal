@@ -14,33 +14,33 @@ import BookingRequestForm from "@/components/BookingRequestForm";
 describe("BookingRequestForm", () => {
   it("carries the package context in hidden fields", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
     );
 
     expect(
       container.querySelector('input[name="tourPackageId"]'),
     ).toHaveValue("pkg-1");
     expect(
-      container.querySelector('input[name="packageTitle"]'),
+      container.querySelector('input[name="package"]'),
     ).toHaveValue("Glamour of Sri Lanka");
     expect(container.querySelector('input[name="startedAt"]')).not.toBeNull();
   });
 
-  it("collects no card details (payment happens later via pay link)", () => {
+  it("collects no card details (payment happens on the hosted checkout)", () => {
     render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
     );
 
     expect(screen.queryByLabelText(/card number/i)).toBeNull();
     expect(screen.queryByLabelText(/cvc/i)).toBeNull();
     expect(
-      screen.getByRole("button", { name: /send booking request/i }),
+      screen.getByRole("button", { name: /reserve & pay/i }),
     ).toBeInTheDocument();
   });
 
   it("includes a concealed honeypot field", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
     );
 
     const honeypot = container.querySelector('input[name="company"]');

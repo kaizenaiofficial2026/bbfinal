@@ -3,7 +3,12 @@ import "server-only";
 import { render } from "@react-email/render";
 import { env } from "@/lib/env";
 import { getMailTransport } from "./client";
-import { BookingAck, BookingStaffNotification, PaymentReceiptEmail, PayLinkEmail } from "./templates/booking";
+import {
+  AccountVerified,
+  InvoiceEmail,
+  NewCustomerStaffNotification,
+  RegistrationReceived,
+} from "./templates/account";
 import { EnquiryAck, EnquiryStaffNotification } from "./templates/enquiry";
 
 type SendResult = {
@@ -63,55 +68,64 @@ export async function sendEnquiryEmails(input: {
   ]);
 }
 
-export async function sendBookingEmails(input: {
-  reference: string;
-  travellerName: string;
+export async function sendRegistrationEmails(input: {
+  fullName: string;
   email: string;
   phone?: string | null;
-  packageTitle: string;
-  travelDates: string;
-  travellers: number;
-  notes?: string | null;
 }) {
   await Promise.all([
     sendEmail({
-      to: env.emailTeamInbox,
-      subject: `New booking request ${input.reference}`,
-      react: <BookingStaffNotification {...input} />,
+      to: input.email,
+      subject: "Your Beyond Borders account is being reviewed",
+      react: <RegistrationReceived fullName={input.fullName} />,
     }),
     sendEmail({
-      to: input.email,
-      subject: `Booking request ${input.reference} received`,
-      react: <BookingAck {...input} />,
+      to: env.emailTeamInbox,
+      subject: `New customer to verify: ${input.fullName}`,
+      react: (
+        <NewCustomerStaffNotification
+          fullName={input.fullName}
+          email={input.email}
+          phone={input.phone}
+        />
+      ),
     }),
   ]);
 }
 
-export async function sendPayLinkEmail(input: {
-  travellerName: string;
+export async function sendAccountVerifiedEmail(input: {
+  fullName: string;
   email: string;
-  reference: string;
-  amount: number;
-  currency: string;
-  token: string;
 }) {
   await sendEmail({
     to: input.email,
-    subject: `Secure payment link for ${input.reference}`,
-    react: <PayLinkEmail {...input} />,
+    subject: "Your Beyond Borders account is verified",
+    react: <AccountVerified fullName={input.fullName} />,
   });
 }
 
-export async function sendPaymentReceipt(input: {
+/** Invoice on successful payment — sent to the customer AND the reservations inbox. */
+export async function sendInvoiceEmails(input: {
   travellerName: string;
   email: string;
   reference: string;
+  packageTitle: string;
   amount: number;
   currency: string;
+  transactionId?: string | null;
 }) {
-  await sendEmail({
-    to: input.email,
-    subject: `Payment received for ${input.reference}`,
-    react: <PaymentReceiptEmail {...input} />,
-  });
+  const invoice = <InvoiceEmail {...input} />;
+
+  await Promise.all([
+    sendEmail({
+      to: input.email,
+      subject: `Invoice for booking ${input.reference}`,
+      react: invoice,
+    }),
+    sendEmail({
+      to: env.emailTeamInbox,
+      subject: `Payment received — booking ${input.reference}`,
+      react: invoice,
+    }),
+  ]);
 }

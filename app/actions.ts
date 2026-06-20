@@ -1,9 +1,19 @@
 "use server";
 
-import { createBooking, countRecentBookingsByIp } from "@/lib/data/bookings";
+import { redirect } from "next/navigation";
+import { createBooking } from "@/lib/data/bookings";
 import { createEnquiry, countRecentEnquiriesByIp } from "@/lib/data/enquiries";
-import { canUseSupabaseService } from "@/lib/supabase/service";
-import { sendBookingEmails, sendEnquiryEmails } from "@/lib/email/send";
+import { requireVerifiedCustomer } from "@/lib/customer/auth";
+import {
+  canUseSupabaseService,
+  createSupabaseServiceClient,
+} from "@/lib/supabase/service";
+import { sendEnquiryEmails } from "@/lib/email/send";
+import {
+  createMpgsOrderId,
+  createPayToken,
+  createPayTokenExpiry,
+} from "@/lib/payments/tokens";
 import { generateBookingReference, getRequestIpHash } from "@/lib/security/request";
 import { bookingSchema } from "@/lib/validation/booking";
 import { enquirySchema } from "@/lib/validation/enquiry";
@@ -104,12 +114,12 @@ export async function submitBooking(
   _prevState: BookingState,
   formData: FormData,
 ): Promise<BookingState> {
+  // Only signed-in, admin-verified customers can book (defense in depth — the
+  // form is only rendered for them). Redirects otherwise.
+  const session = await requireVerifiedCustomer();
+
   const parsed = bookingSchema.safeParse({
     tourPackageId: formString(formData, "tourPackageId"),
-    packageTitle: formString(formData, "packageTitle"),
-    travellerName: formString(formData, "name"),
-    email: formString(formData, "email"),
-    phone: formString(formData, "phone"),
     travelDates: formString(formData, "dates"),
     travellers: formString(formData, "travellers"),
     notes: formString(formData, "notes"),
@@ -138,54 +148,68 @@ export async function submitBooking(
     };
   }
 
+  const service = createSupabaseServiceClient();
+
+  // The payable amount is the package's flat price, read server-side — never
+  // trust a client-supplied amount.
+  const { data: pkg, error: pkgError } = await service
+    .from("tour_packages")
+    .select("id, title, price_amount, currency, status")
+    .eq("id", parsed.data.tourPackageId)
+    .maybeSingle();
+
+  if (pkgError || !pkg || pkg.status !== "published") {
+    return { ok: false, note: "This journey is not available for booking." };
+  }
+
+  if (pkg.price_amount == null) {
+    return {
+      ok: false,
+      note: "This journey isn't available for instant checkout. Please contact our team.",
+    };
+  }
+
+  const reference = generateBookingReference();
+  const token = createPayToken();
+
   try {
-    const ipHash = await getRequestIpHash();
-    const recent = await countRecentBookingsByIp(ipHash);
-
-    if (recent >= 3) {
-      return {
-        ok: false,
-        note: "Too many recent booking requests from this connection. Please try again later.",
-      };
-    }
-
-    const reference = generateBookingReference();
-    await createBooking({
+    const booking = await createBooking({
       reference,
-      tour_package_id: parsed.data.tourPackageId,
-      traveller_name: parsed.data.travellerName,
-      email: parsed.data.email,
-      phone: parsed.data.phone || null,
+      tour_package_id: pkg.id,
+      user_id: session.user.id,
+      traveller_name: session.customer.full_name,
+      email: session.customer.email,
+      phone: session.customer.phone,
       travel_dates: parsed.data.travelDates,
       travellers: parsed.data.travellers,
       notes: parsed.data.notes || null,
-      status: "new",
-      currency: "LKR",
-      ip_hash: ipHash,
+      status: "awaiting_payment",
+      quoted_amount: pkg.price_amount,
+      currency: pkg.currency,
     });
 
-    await sendBookingEmails({
-      reference,
-      travellerName: parsed.data.travellerName,
-      email: parsed.data.email,
-      phone: parsed.data.phone || null,
-      packageTitle: parsed.data.packageTitle,
-      travelDates: parsed.data.travelDates,
-      travellers: parsed.data.travellers,
-      notes: parsed.data.notes || null,
+    const { error: paymentError } = await service.from("payments").insert({
+      booking_id: booking.id,
+      mpgs_order_id: createMpgsOrderId(reference),
+      amount: pkg.price_amount,
+      currency: pkg.currency,
+      status: "initiated",
+      pay_token: token,
+      pay_token_expires_at: createPayTokenExpiry(),
     });
 
-    return {
-      ok: true,
-      reference,
-      note: `Booking request ${reference} received. A planner will confirm your total and secure payment link.`,
-    };
+    if (paymentError) {
+      throw new Error(paymentError.message);
+    }
   } catch (error) {
     console.error(error);
 
     return {
       ok: false,
-      note: "We could not submit the booking request. Please try again or contact the team directly.",
+      note: "We could not start your booking. Please try again or contact the team directly.",
     };
   }
+
+  // Send the verified customer straight into the hosted MPGS checkout.
+  redirect(`/pay/${token}`);
 }
