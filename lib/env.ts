@@ -9,7 +9,10 @@ export const env = {
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean),
-  resendApiKey: process.env.RESEND_API_KEY,
+  smtpHost: process.env.SMTP_HOST ?? "smtp.zoho.com",
+  smtpPort: Number(process.env.SMTP_PORT ?? 465),
+  smtpUser: process.env.SMTP_USER,
+  smtpPassword: process.env.SMTP_PASSWORD,
   emailFrom:
     process.env.EMAIL_FROM ?? "Beyond Borders <bookings@beyondborders.lk>",
   emailTeamInbox: process.env.EMAIL_TEAM_INBOX ?? "bookings@beyondborders.lk",

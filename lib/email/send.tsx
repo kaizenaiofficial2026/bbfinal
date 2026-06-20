@@ -1,7 +1,8 @@
 import "server-only";
 
+import { render } from "@react-email/render";
 import { env } from "@/lib/env";
-import { getResendClient } from "./client";
+import { getMailTransport } from "./client";
 import { BookingAck, BookingStaffNotification, PaymentReceiptEmail, PayLinkEmail } from "./templates/booking";
 import { EnquiryAck, EnquiryStaffNotification } from "./templates/enquiry";
 
@@ -18,23 +19,25 @@ async function sendEmail({
   subject: string;
   react: React.ReactElement;
 }): Promise<SendResult> {
-  const resend = getResendClient();
+  const transport = getMailTransport();
 
-  if (!resend) {
+  if (!transport) {
     console.info(`[email skipped] ${subject}`);
     return { skipped: true };
   }
 
-  const { error } = await resend.emails.send({
+  const [html, text] = await Promise.all([
+    render(react),
+    render(react, { plainText: true }),
+  ]);
+
+  await transport.sendMail({
     from: env.emailFrom,
     to,
     subject,
-    react,
+    html,
+    text,
   });
-
-  if (error) {
-    throw new Error(error.message);
-  }
 
   return { skipped: false };
 }
