@@ -1,6 +1,34 @@
 {
-  "common": {
-    "language": "Language",
-    "skipToContent": "Skip to content"
+  "common": { "language": "Language", "skipToContent": "Skip to content", "contactUs": "Contact Us" },
+  "nav": { "home": "Home", "about": "About", "tours": "Tours", "destinations": "Destinations" },
+  "hero": {
+    "subtitle": "Handcrafted journeys through ancient kingdoms, misty tea country, leopard trails and warm Indian Ocean shores — designed in Colombo by people who know the island by heart.",
+    "exploreTours": "Explore tours", "viewDestinations": "View destinations", "scroll": "Scroll"
+  },
+  "footer": {
+    "blurb": "Handcrafted private journeys across Sri Lanka, designed in Colombo and remembered long after the flight home.",
+    "explore": "Explore", "destinations": "Destinations", "contact": "Contact",
+    "rights": "© 2026 Beyond Borders. All rights reserved.", "tagline": "The Travel Partner"
+  },
+  "home": {
+    "destinations": {
+      "heading": "Cinematic chapters of Sri Lanka.",
+      "lead": "From ancient rock fortresses to pristine beaches – discover why Sri Lanka is called the pearl of the Indian Ocean.",
+      "viewMore": "View more destinations"
+    },
+    "tours": { "heading": "Our Tour Packages", "explore": "Explore", "swipe": "Swipe", "viewMore": "Click to view more" },
+    "experience": {
+      "heading": "What changes when the island is planned around you.",
+      "lead": "Beyond Borders combines local planning, private movement and personal assistance so every day feels held, but never overmanaged.",
+      "cardBadge": "5-star",
+      "cardText": "Partner hotels, private transfers and attentive on-trip support.",
+      "steps": [
+        { "title": "Tailor-made itineraries", "desc": "No fixed routes. Every journey is drawn around your pace, taste and curiosity." },
+        { "title": "Local expertise", "desc": "Planned in Colombo by people who know the island's stories, roads and quiet details first-hand." },
+        { "title": "24/7 dedicated assistant", "desc": "One person, always reachable, from the moment you land until you fly home." },
+        { "title": "Seamless transfers", "desc": "Private, air-conditioned travel door to door, with airport pickup included, always." }
+      ]
+    },
+    "cta": { "heading": "Begin Your Private Journey", "sub": "Tell us where your heart wants to go. We'll shape the rest with care." }
   }
 }

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { TourPackage } from "@/lib/data/types";
 
@@ -13,11 +14,13 @@ type ToursProps = {
 };
 
 export default function Tours({ packages }: ToursProps) {
+  const t = useTranslations("home.tours");
+
   return (
     <section className="luxury-packages-section" id="tours">
       <div className="container">
         <div className="luxury-packages-header">
-          <h2 className="display display-lg">Our Tour Packages</h2>
+          <h2 className="display display-lg">{t("heading")}</h2>
         </div>
 
         <div className="luxury-package-grid" data-reveal-group="package-cards">
@@ -40,14 +43,14 @@ export default function Tours({ packages }: ToursProps) {
                 <div className="luxury-card-content">
                   <h3>{tour.title}</h3>
                   <p>{tour.summary}</p>
-                  <span className="luxury-explore-btn">Explore</span>
+                  <span className="luxury-explore-btn">{t("explore")}</span>
                 </div>
               </Link>
             </article>
           ))}
         </div>
         <div className="luxury-swipe-cue" aria-hidden="true">
-          <span>Swipe</span>
+          <span>{t("swipe")}</span>
           <svg viewBox="0 0 24 24" fill="none">
             <path
               d="M5 12h14M13 6l6 6-6 6"
@@ -61,7 +64,7 @@ export default function Tours({ packages }: ToursProps) {
 
         <div className="luxury-packages-more">
           <Link className="luxury-more-btn" href="/tours">
-            Click to view more
+            {t("viewMore")}
           </Link>
         </div>
       </div>

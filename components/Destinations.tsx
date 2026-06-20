@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Destination } from "@/lib/data/types";
@@ -17,6 +18,7 @@ type DestinationsProps = {
 };
 
 export default function Destinations({ destinations }: DestinationsProps) {
+  const t = useTranslations("home.destinations");
   const outerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -111,13 +113,8 @@ export default function Destinations({ destinations }: DestinationsProps) {
           <div className="container">
             <div className="dest-head">
               <div>
-                <h2 className="display display-lg">
-                  Cinematic chapters of Sri Lanka.
-                </h2>
-                <p className="lead">
-                  From ancient rock fortresses to pristine beaches – discover
-                  why Sri Lanka is called the pearl of the Indian Ocean.
-                </p>
+                <h2 className="display display-lg">{t("heading")}</h2>
+                <p className="lead">{t("lead")}</p>
               </div>
             </div>
           </div>
@@ -164,7 +161,7 @@ export default function Destinations({ destinations }: DestinationsProps) {
 
             <div className="dest-footer">
               <Link className="btn btn-line" href="/destinations">
-                View more destinations
+                {t("viewMore")}
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M7 17 17 7M9 7h8v8"

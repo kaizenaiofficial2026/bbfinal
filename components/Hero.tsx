@@ -1,7 +1,10 @@
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import HeroVideo from "@/components/HeroVideo";
 
 export default function Hero() {
+  const t = useTranslations("hero");
+
   return (
     <section className="hero" id="hero">
       <div className="hero-media">
@@ -21,14 +24,10 @@ export default function Hero() {
                 </span>
               </span>
             </h1>
-            <p className="hero-subtitle hero-fade">
-              Handcrafted journeys through ancient kingdoms, misty tea country,
-              leopard trails and warm Indian Ocean shores — designed in Colombo
-              by people who know the island by heart.
-            </p>
+            <p className="hero-subtitle hero-fade">{t("subtitle")}</p>
             <div className="hero-actions hero-fade">
               <Link className="btn btn-primary" href="/tours">
-                Explore tours
+                {t("exploreTours")}
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M5 12h14M13 6l6 6-6 6"
@@ -40,7 +39,7 @@ export default function Hero() {
                 </svg>
               </Link>
               <Link className="btn btn-light" href="/destinations">
-                View destinations
+                {t("viewDestinations")}
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M7 17 17 7M9 7h8v8"
@@ -57,7 +56,7 @@ export default function Hero() {
 
       </div>
       <a className="scroll-cue" href="#about">
-        Scroll
+        {t("scroll")}
       </a>
     </section>
   );

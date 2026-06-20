@@ -1,39 +1,19 @@
 import Image from "next/image";
-
-const STEPS = [
-  {
-    title: "Tailor-made itineraries",
-    desc: "No fixed routes. Every journey is drawn around your pace, taste and curiosity.",
-  },
-  {
-    title: "Local expertise",
-    desc: "Planned in Colombo by people who know the island's stories, roads and quiet details first-hand.",
-  },
-  {
-    title: "24/7 dedicated assistant",
-    desc: "One person, always reachable, from the moment you land until you fly home.",
-  },
-  {
-    title: "Seamless transfers",
-    desc: "Private, air-conditioned travel door to door, with airport pickup included, always.",
-  },
-];
+import { useTranslations } from "next-intl";
 
 export default function Experience() {
+  const t = useTranslations("home.experience");
+  const steps = t.raw("steps") as { title: string; desc: string }[];
+
   return (
     <section className="section section-sand experience" id="experience">
       <div className="container experience-grid">
         <div className="experience-copy">
-          <h2 className="display display-lg">
-            What changes when the island is planned around you.
-          </h2>
-          <p className="lead">
-            Beyond Borders combines local planning, private movement and
-            personal assistance so every day feels held, but never overmanaged.
-          </p>
+          <h2 className="display display-lg">{t("heading")}</h2>
+          <p className="lead">{t("lead")}</p>
 
           <div className="timeline">
-            {STEPS.map((s) => (
+            {steps.map((s) => (
               <div className="timeline-item" key={s.title}>
                 <span className="timeline-dot" />
                 <h3>{s.title}</h3>
@@ -70,10 +50,8 @@ export default function Experience() {
             />
           </figure>
           <div className="experience-card">
-            <strong>5-star</strong>
-            <span>
-              Partner hotels, private transfers and attentive on-trip support.
-            </span>
+            <strong>{t("cardBadge")}</strong>
+            <span>{t("cardText")}</span>
           </div>
         </div>
       </div>

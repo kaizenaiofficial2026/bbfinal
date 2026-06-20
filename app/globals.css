@@ -32,6 +32,39 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Per-locale script fonts. All type flows through the three semantic vars, so
+   overriding them here re-fonts the whole site for non-Latin languages. */
+html[lang="ar"],
+html[lang="ur"] {
+  --font-display: var(--font-noto-arabic), "Segoe UI", Tahoma, sans-serif;
+  --font-body: var(--font-noto-arabic), "Segoe UI", Tahoma, sans-serif;
+  --font-label: var(--font-noto-arabic), "Segoe UI", Tahoma, sans-serif;
+}
+
+html[lang="hi"] {
+  --font-display: var(--font-noto-devanagari), "Nirmala UI", sans-serif;
+  --font-body: var(--font-noto-devanagari), "Nirmala UI", sans-serif;
+  --font-label: var(--font-noto-devanagari), "Nirmala UI", sans-serif;
+}
+
+html[lang="kn"] {
+  --font-display: var(--font-noto-kannada), "Tunga", sans-serif;
+  --font-body: var(--font-noto-kannada), "Tunga", sans-serif;
+  --font-label: var(--font-noto-kannada), "Tunga", sans-serif;
+}
+
+html[lang="te"] {
+  --font-display: var(--font-noto-telugu), "Gautami", sans-serif;
+  --font-body: var(--font-noto-telugu), "Gautami", sans-serif;
+  --font-label: var(--font-noto-telugu), "Gautami", sans-serif;
+}
+
+html[lang="zh"] {
+  --font-display: var(--font-noto-sc), "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-body: var(--font-noto-sc), "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-label: var(--font-noto-sc), "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
 *,
 *::before,
 *::after {

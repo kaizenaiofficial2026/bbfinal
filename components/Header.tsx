@@ -2,18 +2,21 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 
 const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/tours", label: "Tours" },
-  { href: "/destinations", label: "Destinations" },
-];
+  { href: "/", key: "home" },
+  { href: "/about", key: "about" },
+  { href: "/tours", key: "tours" },
+  { href: "/destinations", key: "destinations" },
+] as const;
 
 export default function Header() {
   const pathname = usePathname();
+  const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const headerRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -96,7 +99,7 @@ export default function Header() {
           aria-label="Primary navigation"
           ref={navRef}
         >
-          {NAV_LINKS.map(({ href, label }) => {
+          {NAV_LINKS.map(({ href, key }) => {
             const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
             return (
               <Link
@@ -105,12 +108,12 @@ export default function Header() {
                 className={isActive ? "nav-active" : undefined}
                 aria-current={isActive ? "page" : undefined}
               >
-                {label}
+                {t(key)}
               </Link>
             );
           })}
           <Link className="mobile-nav-contact btn btn-line" href="/contacts">
-            Contact Us
+            {tCommon("contactUs")}
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
               <path
                 d="M5 12h14M13 6l6 6-6 6"
@@ -132,7 +135,7 @@ export default function Header() {
         <div className="header-actions">
           <LocaleSwitcher />
           <Link className="btn btn-line" href="/contacts">
-            Contact Us
+            {tCommon("contactUs")}
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
               <path
                 d="M5 12h14M13 6l6 6-6 6"

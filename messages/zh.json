@@ -1,6 +1,34 @@
 {
-  "common": {
-    "language": "Language",
-    "skipToContent": "Skip to content"
+  "common": { "language": "语言", "skipToContent": "跳至内容", "contactUs": "联系我们" },
+  "nav": { "home": "首页", "about": "关于我们", "tours": "行程", "destinations": "目的地" },
+  "hero": {
+    "subtitle": "穿越古老王国、云雾缭绕的茶乡、猎豹小径与温暖的印度洋海岸，由真正了解这座岛屿的人在科伦坡精心打造的旅程。",
+    "exploreTours": "探索行程", "viewDestinations": "查看目的地", "scroll": "向下滚动"
+  },
+  "footer": {
+    "blurb": "遍及斯里兰卡的纯手工定制私人旅程，于科伦坡精心设计，归途之后仍令人久久难忘。",
+    "explore": "探索", "destinations": "目的地", "contact": "联系",
+    "rights": "© 2026 Beyond Borders. 版权所有。", "tagline": "您的旅行伙伴"
+  },
+  "home": {
+    "destinations": {
+      "heading": "斯里兰卡的电影篇章。",
+      "lead": "从古老的岩石要塞到原始海滩——探寻斯里兰卡为何被誉为印度洋上的明珠。",
+      "viewMore": "查看更多目的地"
+    },
+    "tours": { "heading": "我们的旅游套餐", "explore": "探索", "swipe": "滑动", "viewMore": "点击查看更多" },
+    "experience": {
+      "heading": "当整座岛屿为你而规划，会有什么不同。",
+      "lead": "Beyond Borders 将本地规划、私人出行与贴身协助融为一体，让每一天都被妥善照料，却从不过度安排。",
+      "cardBadge": "五星",
+      "cardText": "合作酒店、私人接送，以及旅途中的细心支持。",
+      "steps": [
+        { "title": "量身定制的行程", "desc": "没有固定路线。每一段旅程都围绕你的节奏、品味与好奇心而设计。" },
+        { "title": "本地专长", "desc": "由真正了解岛屿故事、道路与静谧细节的人在科伦坡规划。" },
+        { "title": "24/7 专属助理", "desc": "一位专人，随时联系，从你落地到返程始终相伴。" },
+        { "title": "无缝接送", "desc": "门到门的私人空调出行，始终包含机场接机。" }
+      ]
+    },
+    "cta": { "heading": "开启你的私人旅程", "sub": "告诉我们你心之所向，其余的交给我们用心安排。" }
   }
 }

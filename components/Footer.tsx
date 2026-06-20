@@ -1,7 +1,12 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
 export default function Footer() {
+  const t = useTranslations("footer");
+  const tNav = useTranslations("nav");
+  const tCommon = useTranslations("common");
+
   return (
     <footer className="footer">
       <div className="container">
@@ -14,10 +19,7 @@ export default function Footer() {
               width={154}
               height={75}
             />
-            <p>
-              Handcrafted private journeys across Sri Lanka, designed in Colombo
-              and remembered long after the flight home.
-            </p>
+            <p>{t("blurb")}</p>
             <div className="socials" aria-label="Social links">
               <a href="#" aria-label="Facebook">
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
@@ -68,18 +70,18 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3>Explore</h3>
+            <h3>{t("explore")}</h3>
             <ul>
-              <li><Link href="/">Home</Link></li>
-              <li><Link href="/about">About</Link></li>
-              <li><Link href="/tours">Tours</Link></li>
-              <li><Link href="/destinations">Destinations</Link></li>
-              <li><Link href="/contacts">Contact Us</Link></li>
+              <li><Link href="/">{tNav("home")}</Link></li>
+              <li><Link href="/about">{tNav("about")}</Link></li>
+              <li><Link href="/tours">{tNav("tours")}</Link></li>
+              <li><Link href="/destinations">{tNav("destinations")}</Link></li>
+              <li><Link href="/contacts">{tCommon("contactUs")}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3>Destinations</h3>
+            <h3>{t("destinations")}</h3>
             <ul>
               <li><Link href="/sigiriya">Sigiriya</Link></li>
               <li><Link href="/kandy">Kandy</Link></li>
@@ -90,7 +92,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3>Contact</h3>
+            <h3>{t("contact")}</h3>
             <ul>
               <li><a href="mailto:info@beyondborders.lk">info@beyondborders.lk</a></li>
               <li><a href="tel:+94112425087">+94 11 242 5087</a></li>
@@ -100,8 +102,8 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <span>&copy; 2026 Beyond Borders. All rights reserved.</span>
-          <span>The Travel Partner</span>
+          <span>{t("rights")}</span>
+          <span>{t("tagline")}</span>
         </div>
       </div>
     </footer>

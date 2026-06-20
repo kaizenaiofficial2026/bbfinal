@@ -1,7 +1,11 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
 export default function HomeCTA() {
+  const t = useTranslations("home.cta");
+  const tCommon = useTranslations("common");
+
   return (
     <section className="contact-cta" id="contact">
       <div className="contact-cta-bg" aria-hidden="true">
@@ -18,14 +22,10 @@ export default function HomeCTA() {
       <div className="contact-cta-scrim" aria-hidden="true" />
 
       <div className="contact-cta-body">
-        <h2 className="display display-lg contact-cta-heading">
-          Begin Your Private Journey
-        </h2>
-        <p className="contact-cta-sub">
-          Tell us where your heart wants to go. We'll shape the rest with care.
-        </p>
+        <h2 className="display display-lg contact-cta-heading">{t("heading")}</h2>
+        <p className="contact-cta-sub">{t("sub")}</p>
         <Link className="btn btn-primary contact-cta-btn" href="/contacts">
-          Contact Us
+          {tCommon("contactUs")}
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
             <path
               d="M7 17 17 7M9 7h8v8"

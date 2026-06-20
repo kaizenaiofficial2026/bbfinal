@@ -1,5 +1,14 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, Inter, Lora } from "next/font/google";
+import {
+  Bodoni_Moda,
+  Inter,
+  Lora,
+  Noto_Sans_Arabic,
+  Noto_Sans_Devanagari,
+  Noto_Sans_Kannada,
+  Noto_Sans_SC,
+  Noto_Sans_Telugu,
+} from "next/font/google";
 import { getLocale } from "next-intl/server";
 import CookieConsent from "@/components/CookieConsent";
 import { isRtl } from "@/i18n/routing";
@@ -26,6 +35,58 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+// Script fonts for non-Latin locales. Applied per-locale via [lang] rules in
+// globals.css. preload:false keeps them off pages that don't need them.
+const notoArabic = Noto_Sans_Arabic({
+  subsets: ["arabic"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-noto-arabic",
+  preload: false,
+});
+
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-noto-devanagari",
+  preload: false,
+});
+
+const notoKannada = Noto_Sans_Kannada({
+  subsets: ["kannada"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-noto-kannada",
+  preload: false,
+});
+
+const notoTelugu = Noto_Sans_Telugu({
+  subsets: ["telugu"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-noto-telugu",
+  preload: false,
+});
+
+const notoSC = Noto_Sans_SC({
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-noto-sc",
+  preload: false,
+});
+
+const fontVariables = [
+  bodoniModa.variable,
+  lora.variable,
+  inter.variable,
+  notoArabic.variable,
+  notoDevanagari.variable,
+  notoKannada.variable,
+  notoTelugu.variable,
+  notoSC.variable,
+].join(" ");
+
 export const metadata: Metadata = {
   title: {
     default: "Beyond Borders | The Travel Partner",
@@ -49,7 +110,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={isRtl(locale) ? "rtl" : "ltr"}
-      className={`${bodoniModa.variable} ${lora.variable} ${inter.variable}`}
+      className={fontVariables}
     >
       <body className="is-loading">
         {children}
