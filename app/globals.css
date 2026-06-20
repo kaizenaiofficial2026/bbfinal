@@ -1950,6 +1950,53 @@ body.menu-open .menu-toggle span::after {
   background: var(--paper);
 }
 
+/* Native <select> styled to match the themed text inputs, with a custom chevron. */
+.form-field select {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background-color: var(--ivory);
+  color: var(--ink);
+  padding: 13px 42px 13px 14px;
+  font: inherit;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239d7936' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  transition:
+    border-color 220ms var(--ease),
+    background-color 220ms var(--ease),
+    box-shadow 220ms var(--ease);
+}
+
+.form-field select:hover {
+  border-color: var(--gold);
+}
+
+.form-field select:focus {
+  border-color: var(--gold);
+  background-color: var(--paper);
+  box-shadow: 0 0 0 3px rgba(157, 121, 54, 0.14);
+}
+
+/* Show the disabled placeholder option in muted text until a real choice is made. */
+.form-field select:required:invalid {
+  color: var(--muted);
+}
+
+.form-field select option {
+  color: var(--ink);
+}
+
+.form-field select option[disabled] {
+  color: var(--muted);
+}
+
 .form-actions {
   display: flex;
   flex-wrap: wrap;
