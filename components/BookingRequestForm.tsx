@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { initialBookingState, submitBooking } from "@/app/actions";
+import { submitBooking } from "@/app/actions";
+import { initialBookingState } from "@/app/action-state";
 
 type BookingRequestFormProps = {
   packageId: string;

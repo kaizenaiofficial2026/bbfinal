@@ -5,11 +5,9 @@ import { reconcilePayment } from "@/lib/payments/reconcile";
 
 export async function POST(request: Request) {
   const body = await request.text();
-  const signature =
-    request.headers.get("x-notification-signature") ??
-    request.headers.get("x-mpgs-signature");
+  const receivedSecret = request.headers.get("x-notification-secret");
 
-  if (!verifyWebhook(body, signature)) {
+  if (!verifyWebhook(receivedSecret)) {
     return NextResponse.json({ error: "Invalid signature." }, { status: 401 });
   }
 

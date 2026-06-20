@@ -3,6 +3,9 @@ import { render, screen } from "@testing-library/react";
 
 vi.mock("@/app/actions", () => ({
   submitEnquiry: vi.fn(async () => ({ ok: true, note: "ok" })),
+}));
+
+vi.mock("@/app/action-state", () => ({
   initialEnquiryState: { note: "Share your dates and travel notes.", ok: false },
 }));
 

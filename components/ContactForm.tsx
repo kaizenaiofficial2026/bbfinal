@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 import Select, { type SelectOption } from "./Select";
-import { submitEnquiry, initialEnquiryState } from "@/app/actions";
+import { submitEnquiry } from "@/app/actions";
+import { initialEnquiryState } from "@/app/action-state";
 
 const COUNTRY_OPTIONS: SelectOption[] = [
   { label: "Select your country", value: "" },

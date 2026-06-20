@@ -7,27 +7,7 @@ import { sendBookingEmails, sendEnquiryEmails } from "@/lib/email/send";
 import { generateBookingReference, getRequestIpHash } from "@/lib/security/request";
 import { bookingSchema } from "@/lib/validation/booking";
 import { enquirySchema } from "@/lib/validation/enquiry";
-
-export type EnquiryState = {
-  note: string;
-  ok: boolean;
-};
-
-export type BookingState = {
-  note: string;
-  ok: boolean;
-  reference?: string;
-};
-
-export const initialEnquiryState: EnquiryState = {
-  note: "Share your dates and travel notes. Our planners will reply by email.",
-  ok: false,
-};
-
-export const initialBookingState: BookingState = {
-  note: "Submit this request and our planners will confirm availability, amount and secure payment instructions.",
-  ok: false,
-};
+import type { BookingState, EnquiryState } from "@/app/action-state";
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");

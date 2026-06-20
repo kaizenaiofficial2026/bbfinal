@@ -3,6 +3,9 @@ import { render, screen } from "@testing-library/react";
 
 vi.mock("@/app/actions", () => ({
   submitBooking: vi.fn(async () => ({ ok: true, note: "ok", reference: "BB-TEST" })),
+}));
+
+vi.mock("@/app/action-state", () => ({
   initialBookingState: { note: "Submit this request.", ok: false },
 }));
 

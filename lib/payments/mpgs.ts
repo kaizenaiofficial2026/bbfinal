@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHmac, timingSafeEqual } from "crypto";
+import { timingSafeEqual } from "crypto";
 import { env } from "@/lib/env";
 
 export type CheckoutOrder = {
@@ -94,39 +94,24 @@ export async function retrieveOrder(orderId: string) {
 }
 
 /**
- * Verify an MPGS webhook ("Online Notification") signature.
+ * Verify an MPGS webhook ("Online Notification").
  *
- * IMPORTANT: the exact signing scheme is gateway-specific and MUST be confirmed
- * against Seylan's MPGS Merchant Administration configuration before go-live.
- * This implements the common pattern — HMAC-SHA256 of the raw request body
- * keyed with the configured Notification Secret, compared in constant time.
- * If Seylan uses a different header or algorithm, only this function and the
- * header lookup in the webhook route need to change.
+ * Per Seylan's MPGS Merchant Administration, for HTTPS notification URLs the
+ * gateway sends the configured Notification Secret verbatim in the custom
+ * header `X-Notification-Secret`. The sender is authenticated by comparing that
+ * header against our stored secret in constant time — there is no HMAC.
  *
- * Fails closed: returns false (→ 401) whenever the secret is unset, the
- * signature header is missing, or the digests do not match, so an unverified
- * notification can never finalize a payment.
+ * Fails closed: returns false (→ 401) whenever the secret is unset, the header
+ * is missing, or the values differ, so an unverified notification can never
+ * finalize a payment.
  */
-export function verifyWebhook(payload: string, signature: string | null) {
-  if (!env.mpgsWebhookSecret) {
+export function verifyWebhook(receivedSecret: string | null) {
+  if (!env.mpgsWebhookSecret || !receivedSecret) {
     return false;
   }
 
-  if (!signature) {
-    return false;
-  }
-
-  const digest = createHmac("sha256", env.mpgsWebhookSecret)
-    .update(payload)
-    .digest("hex");
-  const expected = Buffer.from(digest, "hex");
-
-  let received: Buffer;
-  try {
-    received = Buffer.from(signature.replace(/^sha256=/, ""), "hex");
-  } catch {
-    return false;
-  }
+  const expected = Buffer.from(env.mpgsWebhookSecret);
+  const received = Buffer.from(receivedSecret);
 
   if (expected.length === 0 || expected.length !== received.length) {
     return false;
