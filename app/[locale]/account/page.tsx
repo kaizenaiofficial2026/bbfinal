@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { redirect } from "next/navigation";
 import PageHero from "@/components/PageHero";
@@ -35,6 +36,7 @@ export default async function AccountPage() {
   }
 
   const { customer } = session;
+  const t = await getTranslations("auth");
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("bookings")
@@ -50,37 +52,34 @@ export default async function AccountPage() {
     <SiteShell>
       <main>
         <PageHero
-          title={`Hi, ${customer.full_name}`}
-          label="My account"
+          title={t("greeting", { name: customer.full_name })}
+          label={t("accountLabel")}
           image="/assets/images/heroes/pricing-header.jpg"
           summary={
             customer.verified
-              ? "Your account is verified. Reserve a journey and pay securely online."
-              : "Your account is awaiting verification by our team."
+              ? t("verifiedSummary")
+              : t("unverifiedSummary")
           }
         />
         <section className="section section-paper">
           <div className="container admin-stack">
             <article className="booking-summary-card">
-              <span className="booking-form-label">Account status</span>
+              <span className="booking-form-label">{t("accountStatus")}</span>
               <div className="booking-total-row">
-                <span>Status</span>
-                <strong>{customer.verified ? "Verified" : "Awaiting verification"}</strong>
+                <span>{t("status")}</span>
+                <strong>{customer.verified ? t("verified") : t("awaiting")}</strong>
               </div>
               {customer.verified ? (
-                <Link className="btn btn-primary" href="/tours">Browse journeys</Link>
+                <Link className="btn btn-primary" href="/tours">{t("browseJourneys")}</Link>
               ) : (
-                <p className="form-note">
-                  We&apos;ll email you as soon as your account is approved. You can then
-                  reserve a journey and pay online.
-                </p>
+                <p className="form-note">{t("approvalNote")}</p>
               )}
             </article>
 
             <article className="booking-summary-card">
-              <span className="booking-form-label">Your bookings</span>
+              <span className="booking-form-label">{t("yourBookings")}</span>
               {bookings.length === 0 ? (
-                <p className="form-note">You have no bookings yet.</p>
+                <p className="form-note">{t("noBookings")}</p>
               ) : (
                 bookings.map((booking) => {
                   const payment = booking.payments?.[0];
@@ -92,7 +91,7 @@ export default async function AccountPage() {
                   return (
                     <div className="booking-total-row" key={booking.id}>
                       <span>
-                        {booking.tour_packages?.title ?? "Journey"} · {booking.reference}
+                        {booking.tour_packages?.title ?? t("journey")} · {booking.reference}
                         <br />
                         <small>{booking.travel_dates}</small>
                       </span>
@@ -101,7 +100,7 @@ export default async function AccountPage() {
                         {payable ? (
                           <>
                             {" "}
-                            <Link href={`/pay/${payment.pay_token}`}>Continue payment</Link>
+                            <Link href={`/pay/${payment.pay_token}`}>{t("continuePayment")}</Link>
                           </>
                         ) : null}
                       </span>
@@ -112,7 +111,7 @@ export default async function AccountPage() {
             </article>
 
             <form action={logoutAction}>
-              <button className="btn btn-secondary" type="submit">Sign out</button>
+              <button className="btn btn-secondary" type="submit">{t("signOut")}</button>
             </form>
           </div>
         </section>

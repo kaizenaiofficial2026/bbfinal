@@ -1,14 +1,28 @@
 {
-  "common": { "language": "Language", "skipToContent": "Skip to content", "contactUs": "Contact Us" },
-  "nav": { "home": "Home", "about": "About", "tours": "Tours", "destinations": "Destinations" },
+  "common": {
+    "language": "Language",
+    "skipToContent": "Skip to content",
+    "contactUs": "Contact Us"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "tours": "Tours",
+    "destinations": "Destinations"
+  },
   "hero": {
     "subtitle": "Handcrafted journeys through ancient kingdoms, misty tea country, leopard trails and warm Indian Ocean shores — designed in Colombo by people who know the island by heart.",
-    "exploreTours": "Explore tours", "viewDestinations": "View destinations", "scroll": "Scroll"
+    "exploreTours": "Explore tours",
+    "viewDestinations": "View destinations",
+    "scroll": "Scroll"
   },
   "footer": {
     "blurb": "Handcrafted private journeys across Sri Lanka, designed in Colombo and remembered long after the flight home.",
-    "explore": "Explore", "destinations": "Destinations", "contact": "Contact",
-    "rights": "© 2026 Beyond Borders. All rights reserved.", "tagline": "The Travel Partner"
+    "explore": "Explore",
+    "destinations": "Destinations",
+    "contact": "Contact",
+    "rights": "© 2026 Beyond Borders. All rights reserved.",
+    "tagline": "The Travel Partner"
   },
   "home": {
     "destinations": {
@@ -16,19 +30,104 @@
       "lead": "From ancient rock fortresses to pristine beaches – discover why Sri Lanka is called the pearl of the Indian Ocean.",
       "viewMore": "View more destinations"
     },
-    "tours": { "heading": "Our Tour Packages", "explore": "Explore", "swipe": "Swipe", "viewMore": "Click to view more" },
+    "tours": {
+      "heading": "Our Tour Packages",
+      "explore": "Explore",
+      "swipe": "Swipe",
+      "viewMore": "Click to view more"
+    },
     "experience": {
       "heading": "What changes when the island is planned around you.",
       "lead": "Beyond Borders combines local planning, private movement and personal assistance so every day feels held, but never overmanaged.",
       "cardBadge": "5-star",
       "cardText": "Partner hotels, private transfers and attentive on-trip support.",
       "steps": [
-        { "title": "Tailor-made itineraries", "desc": "No fixed routes. Every journey is drawn around your pace, taste and curiosity." },
-        { "title": "Local expertise", "desc": "Planned in Colombo by people who know the island's stories, roads and quiet details first-hand." },
-        { "title": "24/7 dedicated assistant", "desc": "One person, always reachable, from the moment you land until you fly home." },
-        { "title": "Seamless transfers", "desc": "Private, air-conditioned travel door to door, with airport pickup included, always." }
+        {
+          "title": "Tailor-made itineraries",
+          "desc": "No fixed routes. Every journey is drawn around your pace, taste and curiosity."
+        },
+        {
+          "title": "Local expertise",
+          "desc": "Planned in Colombo by people who know the island's stories, roads and quiet details first-hand."
+        },
+        {
+          "title": "24/7 dedicated assistant",
+          "desc": "One person, always reachable, from the moment you land until you fly home."
+        },
+        {
+          "title": "Seamless transfers",
+          "desc": "Private, air-conditioned travel door to door, with airport pickup included, always."
+        }
       ]
     },
-    "cta": { "heading": "Begin Your Private Journey", "sub": "Tell us where your heart wants to go. We'll shape the rest with care." }
+    "cta": {
+      "heading": "Begin Your Private Journey",
+      "sub": "Tell us where your heart wants to go. We'll shape the rest with care."
+    }
+  },
+  "toursPage": {
+    "heroTitle": "Tour Packages",
+    "heroLead": "Curated Sri Lanka journeys, tailored around your pace and preferences.",
+    "kicker": "Tour packages",
+    "heading": "Choose the structure, then let us shape the details.",
+    "lead": "Each journey begins with a carefully crafted framework, then evolves around your interests, travel style and preferred pace.",
+    "ctaTitle": "Prefer a custom route?",
+    "ctaText": "Use the tour package that feels closest, then share your dates, comfort level and must-see places.",
+    "ctaAction": "Send an enquiry"
+  },
+  "destinationsPage": {
+    "heroTitle": "Destinations",
+    "heroLead": "A full island grid of ancient capitals, tea country, coastal forts, national parks, surf beaches and city arrivals.",
+    "kicker": "All destinations",
+    "heading": "Every chapter can stand alone, or become part of one held route.",
+    "lead": "Use these destination pages as building blocks. Beyond Borders will connect the timing, transfers and stays into a private journey that feels seamless.",
+    "ctaTitle": "Not sure which regions fit?",
+    "ctaText": "Tell us your travel dates and style, and we will suggest the island rhythm that makes the most sense.",
+    "ctaAction": "Contact us"
+  },
+  "toursList": {
+    "viewDetails": "View Package Details",
+    "customKicker": "Bespoke",
+    "customHeading": "Need something different?",
+    "customText": "Tell us your dates, group size and the places you can't miss, and our planners will craft a fully custom journey and quote just for you.",
+    "customCta": "Request a custom quote"
+  },
+  "notFound": {
+    "kicker": "Error 404",
+    "heading": "This route isn't on our map.",
+    "lead": "The page you were looking for has moved, changed, or never existed. Let's get you back to planning your journey through Sri Lanka.",
+    "backHome": "Back to home",
+    "exploreDestinations": "Explore destinations",
+    "viewTours": "View tours"
+  },
+  "auth": {
+    "registerTitle": "Create your account",
+    "registerSummary": "Register to reserve a journey. Accounts are reviewed by our team before booking.",
+    "fullName": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "createAccount": "Create account",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "loginTitle": "Sign in",
+    "loginSummary": "Sign in to reserve a journey and manage your bookings.",
+    "newHere": "New here?",
+    "createAccountLink": "Create an account",
+    "accountLabel": "My account",
+    "greeting": "Hi, {name}",
+    "verifiedSummary": "Your account is verified. Reserve a journey and pay securely online.",
+    "unverifiedSummary": "Your account is awaiting verification by our team.",
+    "accountStatus": "Account status",
+    "status": "Status",
+    "verified": "Verified",
+    "awaiting": "Awaiting verification",
+    "browseJourneys": "Browse journeys",
+    "approvalNote": "We'll email you as soon as your account is approved. You can then reserve a journey and pay online.",
+    "yourBookings": "Your bookings",
+    "noBookings": "You have no bookings yet.",
+    "journey": "Journey",
+    "continuePayment": "Continue payment",
+    "signOut": "Sign out"
   }
 }

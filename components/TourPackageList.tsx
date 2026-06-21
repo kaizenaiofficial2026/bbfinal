@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { TourPackage } from "@/lib/data/types";
 
@@ -7,6 +8,8 @@ type TourPackageListProps = {
 };
 
 export default function TourPackageList({ packages }: TourPackageListProps) {
+  const t = useTranslations("toursList");
+
   return (
     <div className="tour-package-grid" data-reveal-group="package-cards">
       {packages.map((tour) => (
@@ -29,7 +32,7 @@ export default function TourPackageList({ packages }: TourPackageListProps) {
               <span>{tour.destinations}</span>
             </div>
             <Link className="tour-package-button" href={`/booking/${tour.slug}`}>
-              View Package Details
+              {t("viewDetails")}
             </Link>
           </div>
         </article>
@@ -39,15 +42,11 @@ export default function TourPackageList({ packages }: TourPackageListProps) {
         key="custom-quote"
       >
         <div className="tour-package-body">
-          <span className="section-kicker">Bespoke</span>
-          <h2>Need something different?</h2>
-          <p>
-            Tell us your dates, group size and the places you can&apos;t miss,
-            and our planners will craft a fully custom journey and quote just
-            for you.
-          </p>
+          <span className="section-kicker">{t("customKicker")}</span>
+          <h2>{t("customHeading")}</h2>
+          <p>{t("customText")}</p>
           <Link className="tour-package-button" href="/custom-quote">
-            Request a custom quote
+            {t("customCta")}
           </Link>
         </div>
       </article>

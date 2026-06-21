@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import SiteShell from "@/components/SiteShell";
 
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default function NotFound() {
+  const t = useTranslations("notFound");
+
   return (
     <SiteShell>
       <main>
@@ -25,11 +28,10 @@ export default function NotFound() {
               gap: "1.25rem",
             }}
           >
-            <span className="section-kicker">Error 404</span>
-            <h1 className="display display-lg">This route isn’t on our map.</h1>
+            <span className="section-kicker">{t("kicker")}</span>
+            <h1 className="display display-lg">{t("heading")}</h1>
             <p className="lead" style={{ maxWidth: "52ch" }}>
-              The page you were looking for has moved, changed, or never existed.
-              Let’s get you back to planning your journey through Sri Lanka.
+              {t("lead")}
             </p>
             <div
               style={{
@@ -40,7 +42,7 @@ export default function NotFound() {
               }}
             >
               <Link className="btn btn-primary" href="/">
-                Back to home
+                {t("backHome")}
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M5 12h14M13 6l6 6-6 6"
@@ -52,10 +54,10 @@ export default function NotFound() {
                 </svg>
               </Link>
               <Link className="btn btn-line" href="/destinations">
-                Explore destinations
+                {t("exploreDestinations")}
               </Link>
               <Link className="btn btn-line" href="/tours">
-                View tours
+                {t("viewTours")}
               </Link>
             </div>
           </div>

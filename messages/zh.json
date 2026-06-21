@@ -1,14 +1,28 @@
 {
-  "common": { "language": "语言", "skipToContent": "跳至内容", "contactUs": "联系我们" },
-  "nav": { "home": "首页", "about": "关于我们", "tours": "行程", "destinations": "目的地" },
+  "common": {
+    "language": "语言",
+    "skipToContent": "跳至内容",
+    "contactUs": "联系我们"
+  },
+  "nav": {
+    "home": "首页",
+    "about": "关于我们",
+    "tours": "行程",
+    "destinations": "目的地"
+  },
   "hero": {
     "subtitle": "穿越古老王国、云雾缭绕的茶乡、猎豹小径与温暖的印度洋海岸，由真正了解这座岛屿的人在科伦坡精心打造的旅程。",
-    "exploreTours": "探索行程", "viewDestinations": "查看目的地", "scroll": "向下滚动"
+    "exploreTours": "探索行程",
+    "viewDestinations": "查看目的地",
+    "scroll": "向下滚动"
   },
   "footer": {
     "blurb": "遍及斯里兰卡的纯手工定制私人旅程，于科伦坡精心设计，归途之后仍令人久久难忘。",
-    "explore": "探索", "destinations": "目的地", "contact": "联系",
-    "rights": "© 2026 Beyond Borders. 版权所有。", "tagline": "您的旅行伙伴"
+    "explore": "探索",
+    "destinations": "目的地",
+    "contact": "联系",
+    "rights": "© 2026 Beyond Borders. 版权所有。",
+    "tagline": "您的旅行伙伴"
   },
   "home": {
     "destinations": {
@@ -16,19 +30,104 @@
       "lead": "从古老的岩石要塞到原始海滩——探寻斯里兰卡为何被誉为印度洋上的明珠。",
       "viewMore": "查看更多目的地"
     },
-    "tours": { "heading": "我们的旅游套餐", "explore": "探索", "swipe": "滑动", "viewMore": "点击查看更多" },
+    "tours": {
+      "heading": "我们的旅游套餐",
+      "explore": "探索",
+      "swipe": "滑动",
+      "viewMore": "点击查看更多"
+    },
     "experience": {
       "heading": "当整座岛屿为你而规划，会有什么不同。",
       "lead": "Beyond Borders 将本地规划、私人出行与贴身协助融为一体，让每一天都被妥善照料，却从不过度安排。",
       "cardBadge": "五星",
       "cardText": "合作酒店、私人接送，以及旅途中的细心支持。",
       "steps": [
-        { "title": "量身定制的行程", "desc": "没有固定路线。每一段旅程都围绕你的节奏、品味与好奇心而设计。" },
-        { "title": "本地专长", "desc": "由真正了解岛屿故事、道路与静谧细节的人在科伦坡规划。" },
-        { "title": "24/7 专属助理", "desc": "一位专人，随时联系，从你落地到返程始终相伴。" },
-        { "title": "无缝接送", "desc": "门到门的私人空调出行，始终包含机场接机。" }
+        {
+          "title": "量身定制的行程",
+          "desc": "没有固定路线。每一段旅程都围绕你的节奏、品味与好奇心而设计。"
+        },
+        {
+          "title": "本地专长",
+          "desc": "由真正了解岛屿故事、道路与静谧细节的人在科伦坡规划。"
+        },
+        {
+          "title": "24/7 专属助理",
+          "desc": "一位专人，随时联系，从你落地到返程始终相伴。"
+        },
+        {
+          "title": "无缝接送",
+          "desc": "门到门的私人空调出行，始终包含机场接机。"
+        }
       ]
     },
-    "cta": { "heading": "开启你的私人旅程", "sub": "告诉我们你心之所向，其余的交给我们用心安排。" }
+    "cta": {
+      "heading": "开启你的私人旅程",
+      "sub": "告诉我们你心之所向，其余的交给我们用心安排。"
+    }
+  },
+  "toursPage": {
+    "heroTitle": "旅游套餐",
+    "heroLead": "围绕你的节奏与偏好量身打造的斯里兰卡精选旅程。",
+    "kicker": "旅游套餐",
+    "heading": "选定框架，细节交给我们雕琢。",
+    "lead": "每段旅程都从精心设计的框架开始，再围绕你的兴趣、出行风格与偏好节奏不断演化。",
+    "ctaTitle": "想要定制路线？",
+    "ctaText": "选一个最贴近的套餐，再告诉我们你的日期、舒适标准与必去之地。",
+    "ctaAction": "发送咨询"
+  },
+  "destinationsPage": {
+    "heroTitle": "目的地",
+    "heroLead": "涵盖古都、茶乡、海岸古堡、国家公园、冲浪海滩与都市落脚点的全岛地图。",
+    "kicker": "所有目的地",
+    "heading": "每一章都可独立成篇，也可串联成一条完整旅线。",
+    "lead": "把这些目的地页面当作积木。Beyond Borders 会将时间、接送与住宿衔接成一段无缝的私人旅程。",
+    "ctaTitle": "不确定哪些地区适合你？",
+    "ctaText": "告诉我们你的出行日期与风格，我们将建议最合适的岛屿节奏。",
+    "ctaAction": "联系我们"
+  },
+  "toursList": {
+    "viewDetails": "查看套餐详情",
+    "customKicker": "定制",
+    "customHeading": "需要不一样的安排？",
+    "customText": "告诉我们你的日期、团队人数与不可错过的地方，我们的策划师将为你量身打造完整的定制行程与报价。",
+    "customCta": "申请定制报价"
+  },
+  "notFound": {
+    "kicker": "错误 404",
+    "heading": "这条路线不在我们的地图上。",
+    "lead": "你要找的页面已迁移、更改或从未存在。让我们带你回到规划斯里兰卡之旅。",
+    "backHome": "返回首页",
+    "exploreDestinations": "探索目的地",
+    "viewTours": "查看行程"
+  },
+  "auth": {
+    "registerTitle": "创建你的账户",
+    "registerSummary": "注册以预订旅程。账户在预订前会由我们的团队审核。",
+    "fullName": "全名",
+    "email": "电子邮箱",
+    "phone": "电话",
+    "password": "密码",
+    "createAccount": "创建账户",
+    "haveAccount": "已有账户？",
+    "signIn": "登录",
+    "loginTitle": "登录",
+    "loginSummary": "登录以预订旅程并管理你的预订。",
+    "newHere": "新用户？",
+    "createAccountLink": "创建账户",
+    "accountLabel": "我的账户",
+    "greeting": "你好，{name}",
+    "verifiedSummary": "你的账户已通过验证。预订旅程并在线安全付款。",
+    "unverifiedSummary": "你的账户正在等待我们团队验证。",
+    "accountStatus": "账户状态",
+    "status": "状态",
+    "verified": "已验证",
+    "awaiting": "等待验证",
+    "browseJourneys": "浏览旅程",
+    "approvalNote": "账户通过后我们会立即邮件通知你。届时你即可预订旅程并在线付款。",
+    "yourBookings": "你的预订",
+    "noBookings": "你还没有任何预订。",
+    "journey": "旅程",
+    "continuePayment": "继续付款",
+    "signOut": "退出登录"
   }
 }

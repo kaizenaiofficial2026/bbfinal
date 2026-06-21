@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import CTASection from "@/components/CTASection";
 import HeroSlideshow from "@/components/HeroSlideshow";
 import SiteShell from "@/components/SiteShell";
@@ -19,7 +20,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ToursPage() {
-  const packages = await getPublishedPackages();
+  const [packages, t] = await Promise.all([
+    getPublishedPackages(),
+    getTranslations("toursPage"),
+  ]);
 
   return (
     <SiteShell>
@@ -27,32 +31,24 @@ export default async function ToursPage() {
         <section className="page-hero">
           <HeroSlideshow images={TOUR_HERO_IMAGES} />
           <div className="container page-hero-inner">
-            <h1 className="display page-hero-title">Tour Packages</h1>
-            <p>
-              Curated Sri Lanka journeys, tailored around your pace and
-              preferences.
-            </p>
+            <h1 className="display page-hero-title">{t("heroTitle")}</h1>
+            <p>{t("heroLead")}</p>
           </div>
         </section>
         <section className="section section-paper route-tours">
           <div className="container">
             <div className="route-section-head">
-              <span className="section-kicker">Tour packages</span>
-              <h1 className="display display-lg">
-                Choose the structure, then let us shape the details.
-              </h1>
-              <p className="lead">
-                Each journey begins with a carefully crafted framework, then
-                evolves around your interests, travel style and preferred pace.
-              </p>
+              <span className="section-kicker">{t("kicker")}</span>
+              <h1 className="display display-lg">{t("heading")}</h1>
+              <p className="lead">{t("lead")}</p>
             </div>
             <TourPackageList packages={packages} />
           </div>
         </section>
         <CTASection
-          title="Prefer a custom route?"
-          text="Use the tour package that feels closest, then share your dates, comfort level and must-see places."
-          action="Send an enquiry"
+          title={t("ctaTitle")}
+          text={t("ctaText")}
+          action={t("ctaAction")}
         />
       </main>
     </SiteShell>
