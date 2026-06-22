@@ -1,6 +1,7 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
+import { localeRedirect } from "@/lib/i18n/redirect";
 import { sendRegistrationEmails } from "@/lib/email/send";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
@@ -23,6 +24,8 @@ function withNext(path: string, next: string) {
 }
 
 export async function registerAction(formData: FormData) {
+  const t = await getTranslations("serverActions");
+  const locale = await getLocale();
   const next = safeNext(formString(formData, "next"));
   const parsed = registerSchema.safeParse({
     fullName: formString(formData, "fullName"),
@@ -32,8 +35,8 @@ export async function registerAction(formData: FormData) {
   });
 
   if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "Please check the form.";
-    redirect(withNext(`/register?error=${encodeURIComponent(message)}`, next));
+    const message = parsed.error.issues[0]?.message ?? t("checkForm");
+    localeRedirect(withNext(`/register?error=${encodeURIComponent(message)}`, next), locale);
   }
 
   const { fullName, email, password, phone } = parsed.data;
@@ -46,8 +49,8 @@ export async function registerAction(formData: FormData) {
   });
 
   if (error || !signUp.user) {
-    const message = error?.message ?? "Could not create your account.";
-    redirect(withNext(`/register?error=${encodeURIComponent(message)}`, next));
+    const message = error?.message ?? t("couldNotCreateAccount");
+    localeRedirect(withNext(`/register?error=${encodeURIComponent(message)}`, next), locale);
   }
 
   // Create the customers row (verified=false). Uses the service client, mirroring
@@ -60,18 +63,20 @@ export async function registerAction(formData: FormData) {
     );
 
     if (insertError) {
-      redirect(
+      localeRedirect(
         withNext(`/register?error=${encodeURIComponent(insertError.message)}`, next),
+        locale,
       );
     }
   }
 
   await sendRegistrationEmails({ fullName, email, phone: phone || null });
 
-  redirect(next || "/account");
+  localeRedirect(next || "/account", locale);
 }
 
 export async function loginAction(formData: FormData) {
+  const locale = await getLocale();
   const next = safeNext(formString(formData, "next"));
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({
@@ -80,14 +85,14 @@ export async function loginAction(formData: FormData) {
   });
 
   if (error) {
-    redirect(withNext(`/login?error=${encodeURIComponent(error.message)}`, next));
+    localeRedirect(withNext(`/login?error=${encodeURIComponent(error.message)}`, next), locale);
   }
 
-  redirect(next || "/account");
+  localeRedirect(next || "/account", locale);
 }
 
 export async function logoutAction() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
-  redirect("/");
+  localeRedirect("/", await getLocale());
 }

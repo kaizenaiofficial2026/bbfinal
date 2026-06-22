@@ -1455,7 +1455,7 @@ body.menu-open .menu-toggle span::after {
 .timeline {
   position: relative;
   margin-top: 44px;
-  padding-left: 36px;
+  padding-inline-start: 36px;
 }
 
 .timeline::before {
@@ -1463,7 +1463,7 @@ body.menu-open .menu-toggle span::after {
   position: absolute;
   top: 8px;
   bottom: 8px;
-  left: 9px;
+  inset-inline-start: 9px;
   width: 1px;
   background: linear-gradient(
     180deg,
@@ -1876,7 +1876,7 @@ body.menu-open .menu-toggle span::after {
   background: var(--ivory);
   color: var(--ink);
   font: inherit;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   transition:
     border-color 220ms var(--ease),
@@ -2598,7 +2598,7 @@ body.menu-open .menu-toggle span::after {
   border-radius: inherit;
   background: var(--ink);
   color: var(--paper);
-  text-align: left;
+  text-align: start;
   isolation: isolate;
   transition:
     border-color 320ms var(--ease),
@@ -2821,7 +2821,7 @@ body.menu-open .menu-toggle span::after {
 
 .destination-highlight-list li {
   position: relative;
-  padding-left: 28px;
+  padding-inline-start: 28px;
   color: var(--body);
   font-size: 17px;
   font-weight: 500;
@@ -2831,7 +2831,7 @@ body.menu-open .menu-toggle span::after {
 .destination-highlight-list li::before {
   content: "";
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0.7em;
   width: 9px;
   height: 9px;
@@ -3081,7 +3081,7 @@ body.menu-open .menu-toggle span::after {
 
 .tour-itinerary-item ul {
   margin-top: 7px;
-  padding-left: 18px;
+  padding-inline-start: 18px;
   list-style: disc;
   color: var(--body);
   font-size: 16px;
@@ -3256,7 +3256,7 @@ body.menu-open .menu-toggle span::after {
   display: grid;
   gap: 10px;
   margin: 16px 0 0;
-  padding-left: 22px;
+  padding-inline-start: 22px;
   color: var(--body);
 }
 
@@ -3375,7 +3375,7 @@ body.menu-open .menu-toggle span::after {
 .booking-submit-row .form-note {
   max-width: 420px;
   margin: 0;
-  text-align: right;
+  text-align: end;
 }
 
 .booking-sidebar {
@@ -4172,7 +4172,7 @@ body.menu-open .menu-toggle span::after {
 
   .booking-submit-row .form-note {
     max-width: 100%;
-    text-align: left;
+    text-align: start;
   }
 
   .cta-strip .btn {

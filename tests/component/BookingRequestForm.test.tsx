@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderIntl as render } from "./intl-render";
 
 vi.mock("@/app/actions", () => ({
   submitBooking: vi.fn(async () => ({ ok: true, note: "ok", reference: "BB-TEST" })),

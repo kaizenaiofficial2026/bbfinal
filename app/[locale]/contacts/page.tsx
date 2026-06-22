@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Contact from "@/components/Contact";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
@@ -9,16 +10,18 @@ export const metadata: Metadata = {
     "Contact Beyond Borders in Colombo for private Sri Lanka tour planning.",
 };
 
-export default function ContactsPage() {
+export default async function ContactsPage() {
+  const t = await getTranslations("contactPage");
+
   return (
     <SiteShell>
       <main>
         <PageHero
-          title="Contact Us"
-          label="Get in touch"
+          title={t("heroTitle")}
+          label={t("heroLabel")}
           showBreadcrumbs={false}
           image="/assets/images/heroes/contact-header.jpg"
-          summary="Share your dates, preferred pace and must-see places. A Beyond Borders planner will shape the first route."
+          summary={t("heroSummary")}
         />
         <Contact />
       </main>

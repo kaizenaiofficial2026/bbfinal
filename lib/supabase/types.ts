@@ -45,6 +45,7 @@ export type Database = {
           card_image: string;
           status: DestinationStatus;
           sort_order: number;
+          translations: Json;
         };
         Insert: Partial<Database["public"]["Tables"]["destinations"]["Row"]> &
           Pick<
@@ -72,6 +73,7 @@ export type Database = {
           deposit_amount: number | null;
           status: DestinationStatus;
           sort_order: number;
+          translations: Json;
         };
         Insert: Partial<Database["public"]["Tables"]["tour_packages"]["Row"]> &
           Pick<
@@ -90,6 +92,7 @@ export type Database = {
           title: string;
           description: string;
           sort_order: number;
+          translations: Json;
         };
         Insert: Partial<Database["public"]["Tables"]["itinerary_items"]["Row"]> &
           Pick<

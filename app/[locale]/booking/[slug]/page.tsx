@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import BookingRequestForm from "@/components/BookingRequestForm";
@@ -51,6 +52,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
 
   if (!tourPackage) notFound();
 
+  const t = await getTranslations("bookingPage");
   const session = await getCustomerUser();
   const nextPath = `/booking/${tourPackage.slug}`;
 
@@ -58,16 +60,14 @@ export default async function BookingPage({ params }: BookingPageProps) {
   if (!session) {
     bookingSection = (
       <div className="booking-form-section">
-        <span className="booking-form-label">Reserve this journey</span>
-        <p className="form-note">
-          Please sign in or create an account to make a reservation.
-        </p>
+        <span className="booking-form-label">{t("reserveJourney")}</span>
+        <p className="form-note">{t("signInPrompt")}</p>
         <div className="booking-submit-row">
           <Link className="btn btn-primary" href={`/register?next=${encodeURIComponent(nextPath)}`}>
-            Register to reserve
+            {t("registerToReserve")}
           </Link>
           <Link className="btn btn-secondary" href={`/login?next=${encodeURIComponent(nextPath)}`}>
-            Sign in
+            {t("signIn")}
           </Link>
         </div>
       </div>
@@ -75,21 +75,18 @@ export default async function BookingPage({ params }: BookingPageProps) {
   } else if (!session.customer.verified) {
     bookingSection = (
       <div className="booking-form-section">
-        <span className="booking-form-label">Reserve this journey</span>
-        <p className="form-note">
-          Your account is awaiting verification. We&apos;ll email you as soon as
-          it&apos;s approved — then you can book and pay online.
-        </p>
-        <Link className="btn btn-secondary" href="/account">View account</Link>
+        <span className="booking-form-label">{t("reserveJourney")}</span>
+        <p className="form-note">{t("awaitingVerification")}</p>
+        <Link className="btn btn-secondary" href="/account">{t("viewAccount")}</Link>
       </div>
     );
   } else if (tourPackage.priceAmount == null) {
     bookingSection = (
       <div className="booking-form-section">
-        <span className="booking-form-label">Reserve this journey</span>
+        <span className="booking-form-label">{t("reserveJourney")}</span>
         <p className="form-note">
-          This journey isn&apos;t available for instant checkout yet. Please{" "}
-          <Link href="/contacts">contact our team</Link>.
+          {t("noInstantCheckoutPre")}{" "}
+          <Link href="/contacts">{t("contactTeamLink")}</Link>.
         </p>
       </div>
     );
@@ -125,13 +122,13 @@ export default async function BookingPage({ params }: BookingPageProps) {
       <main>
         <PageHero
           title={tourPackage.title}
-          label="Journey checkout"
+          label={t("heroLabel")}
           image={tourPackage.image}
-          summary={`Begin your request for ${tourPackage.title}. Our travel planners will refine every detail before confirmation.`}
+          summary={t("heroSummary", { title: tourPackage.title })}
           showBreadcrumbs={false}
           showLabel={false}
           backHref="/tours"
-          backLabel="← Back to Tours"
+          backLabel={t("backToTours")}
         />
 
         <section className="section section-paper booking-page">
@@ -160,7 +157,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
 
               <div className="booking-info-grid">
                 <section className="booking-info-card">
-                  <span className="booking-form-label">Itinerary</span>
+                  <span className="booking-form-label">{t("itinerary")}</span>
                   <div className="tour-itinerary">
                     {itinerary.map((item) => (
                       <div className="tour-itinerary-item" key={item.day}>
@@ -179,18 +176,18 @@ export default async function BookingPage({ params }: BookingPageProps) {
                 </section>
 
                 <section className="booking-info-card">
-                  <span className="booking-form-label">Included</span>
+                  <span className="booking-form-label">{t("included")}</span>
                   <div className="tour-inclusions">
                     {tourPackage.inclusions.map((inclusion) => (
                       <span key={inclusion}>{inclusion}</span>
                     ))}
                   </div>
                   <div className="booking-next-steps">
-                    <h2>What happens next</h2>
+                    <h2>{t("whatNext")}</h2>
                     <ol>
-                      <li>Send this frontend booking request.</li>
-                      <li>A planner confirms availability and package total.</li>
-                      <li>Beyond Borders shares secure payment instructions.</li>
+                      <li>{t("step1")}</li>
+                      <li>{t("step2")}</li>
+                      <li>{t("step3")}</li>
                     </ol>
                   </div>
                 </section>
@@ -201,10 +198,10 @@ export default async function BookingPage({ params }: BookingPageProps) {
 
             <aside className="booking-sidebar" data-reveal>
               <div className="booking-summary-card">
-                <span className="booking-form-label">Payment summary</span>
-                <h2>Amount confirmed after planner review</h2>
+                <span className="booking-form-label">{t("paymentSummary")}</span>
+                <h2>{t("amountConfirmed")}</h2>
                 <div className="booking-total-row">
-                  <span>Package total</span>
+                  <span>{t("packageTotal")}</span>
                   <strong>
                     {tourPackage.priceAmount != null
                       ? `${tourPackage.currency} ${Number(
@@ -214,17 +211,14 @@ export default async function BookingPage({ params }: BookingPageProps) {
                   </strong>
                 </div>
                 <div className="booking-total-row">
-                  <span>Payment status</span>
-                  <strong>Not charged</strong>
+                  <span>{t("paymentStatus")}</span>
+                  <strong>{t("notCharged")}</strong>
                 </div>
-                <p>
-                  This page prepares a booking request only. No real payment is
-                  processed here.
-                </p>
+                <p>{t("prepareNote")}</p>
               </div>
 
               <div className="related-destinations">
-                <h2>Other packages</h2>
+                <h2>{t("otherPackages")}</h2>
                 {relatedPackages.map((item) => (
                   <Link href={`/booking/${item.slug}`} key={item.slug}>
                     {item.title}

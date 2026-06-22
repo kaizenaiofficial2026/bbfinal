@@ -5,6 +5,7 @@ import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import type { TourPackage } from "./types";
+import { getActiveLocale, localeFields, tArray, tField } from "./localize";
 
 type PackageRow = Database["public"]["Tables"]["tour_packages"]["Row"];
 type ItineraryRow = Database["public"]["Tables"]["itinerary_items"]["Row"];
@@ -12,25 +13,30 @@ type PackageWithItinerary = PackageRow & {
   itinerary_items?: ItineraryRow[];
 };
 
-function mapPackage(row: PackageWithItinerary): TourPackage {
+function mapPackage(row: PackageWithItinerary, locale: string): TourPackage {
+  const f = localeFields(row.translations, locale);
+
   return {
     id: row.id,
     slug: row.slug,
-    title: row.title,
-    tier: row.tier,
-    hotels: row.hotels,
-    destinations: row.destinations_summary,
-    duration: row.duration,
+    title: tField(f, "title", row.title),
+    tier: tField(f, "tier", row.tier),
+    hotels: tField(f, "hotels", row.hotels),
+    destinations: tField(f, "destinations_summary", row.destinations_summary),
+    duration: tField(f, "duration", row.duration),
     image: row.image,
-    summary: row.summary,
-    inclusions: row.inclusions,
-    itinerary: (row.itinerary_items ?? []).map((item) => ({
-      id: item.id,
-      day: item.day_label,
-      title: item.title,
-      description: item.description,
-      sortOrder: item.sort_order,
-    })),
+    summary: tField(f, "summary", row.summary),
+    inclusions: tArray(f, "inclusions", row.inclusions),
+    itinerary: (row.itinerary_items ?? []).map((item) => {
+      const itf = localeFields(item.translations, locale);
+      return {
+        id: item.id,
+        day: tField(itf, "day_label", item.day_label),
+        title: tField(itf, "title", item.title),
+        description: tField(itf, "description", item.description),
+        sortOrder: item.sort_order,
+      };
+    }),
     priceAmount: row.price_amount,
     depositAmount: row.deposit_amount,
     currency: row.currency,
@@ -39,7 +45,7 @@ function mapPackage(row: PackageWithItinerary): TourPackage {
   };
 }
 
-async function queryPublishedPackages() {
+async function queryPublishedPackages(locale: string) {
   const supabase = createSupabasePublicClient();
 
   if (!supabase) {
@@ -61,16 +67,21 @@ async function queryPublishedPackages() {
     throw new Error(error.message);
   }
 
-  return data.map(mapPackage);
+  return data.map((row) => mapPackage(row, locale));
 }
 
-export const getPublishedPackages = unstable_cache(
-  queryPublishedPackages,
-  ["published-packages"],
-  { tags: ["packages"], revalidate: 3600 },
-);
+// Cached per locale (the locale is part of the cache key); the "packages" tag
+// still invalidates every locale on admin edits.
+export async function getPublishedPackages() {
+  const locale = await getActiveLocale();
+  return unstable_cache(
+    () => queryPublishedPackages(locale),
+    ["published-packages", locale],
+    { tags: ["packages"], revalidate: 3600 },
+  )();
+}
 
-async function queryPackageBySlug(slug: string) {
+async function queryPackageBySlug(slug: string, locale: string) {
   const supabase = createSupabasePublicClient();
 
   if (!supabase) {
@@ -92,23 +103,39 @@ async function queryPackageBySlug(slug: string) {
     throw new Error(error.message);
   }
 
-  return data ? mapPackage(data) : null;
+  return data ? mapPackage(data, locale) : null;
 }
 
 // Tagged with "packages" so admin edits (which call revalidateTag) also
 // revalidate the statically generated /booking/[slug] pages that read this.
 export async function getPackageBySlug(slug: string) {
+  const locale = await getActiveLocale();
   return unstable_cache(
-    () => queryPackageBySlug(slug),
-    ["package-by-slug", slug],
+    () => queryPackageBySlug(slug, locale),
+    ["package-by-slug", slug, locale],
     { tags: ["packages"], revalidate: 3600 },
   )();
 }
 
+// Slugs are not translated, so this avoids the locale dependency (and getLocale)
+// entirely — important because it runs in generateStaticParams.
 export async function getPackageSlugs() {
-  const packages = await getPublishedPackages();
+  const supabase = createSupabasePublicClient();
 
-  return packages.map((tourPackage) => tourPackage.slug);
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("tour_packages")
+    .select("slug")
+    .eq("status", "published");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data.map((row) => row.slug);
 }
 
 export async function listAdminPackages() {
@@ -127,7 +154,7 @@ export async function listAdminPackages() {
     throw new Error(error.message);
   }
 
-  return data.map(mapPackage);
+  return data.map((row) => mapPackage(row, "en"));
 }
 
 export async function getAdminPackage(id: string) {
@@ -146,7 +173,7 @@ export async function getAdminPackage(id: string) {
     throw new Error(error.message);
   }
 
-  return data ? mapPackage(data) : null;
+  return data ? mapPackage(data, "en") : null;
 }
 
 export function revalidatePackages() {

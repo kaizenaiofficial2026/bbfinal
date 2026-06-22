@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
 import { getPaymentByToken } from "@/lib/data/payments";
@@ -17,6 +18,7 @@ export default async function PayPage({ params }: PayPageProps) {
 
   if (!payment?.bookings) notFound();
 
+  const t = await getTranslations("pay");
   const expired = isExpired(payment.pay_token_expires_at);
   const paid = payment.status === "captured" || payment.bookings.status === "paid";
   const canPay = env.paymentsEnabled && !expired && !paid;
@@ -25,36 +27,36 @@ export default async function PayPage({ params }: PayPageProps) {
     <SiteShell>
       <main>
         <PageHero
-          title="Secure payment"
+          title={t("heroTitle")}
           label={payment.bookings.reference}
           image="/assets/images/heroes/pricing-header.jpg"
-          summary="Complete payment through Beyond Borders' hosted bank checkout."
+          summary={t("heroSummary")}
         />
         <section className="section section-paper">
           <div className="container pay-layout">
             <article className="booking-summary-card">
-              <span className="booking-form-label">Payment request</span>
-              <h1>{payment.bookings.tour_packages?.title ?? "Beyond Borders booking"}</h1>
+              <span className="booking-form-label">{t("paymentRequest")}</span>
+              <h1>{payment.bookings.tour_packages?.title ?? t("defaultBooking")}</h1>
               <div className="booking-total-row">
-                <span>Traveller</span>
+                <span>{t("traveller")}</span>
                 <strong>{payment.bookings.traveller_name}</strong>
               </div>
               <div className="booking-total-row">
-                <span>Amount</span>
+                <span>{t("amount")}</span>
                 <strong>{payment.currency} {payment.amount.toFixed(2)}</strong>
               </div>
               <div className="booking-total-row">
-                <span>Status</span>
-                <strong>{paid ? "Paid" : expired ? "Expired" : payment.status}</strong>
+                <span>{t("status")}</span>
+                <strong>{paid ? t("paid") : expired ? t("expired") : payment.status}</strong>
               </div>
               {canPay ? (
                 <PayButton token={token} scriptUrl={getHostedCheckoutScriptUrl()} />
               ) : null}
               {!env.paymentsEnabled ? (
-                <p className="form-note">Payments are not enabled yet. The team can confirm this booking manually.</p>
+                <p className="form-note">{t("notEnabled")}</p>
               ) : null}
-              {expired ? <p className="form-note">This payment link has expired. Please request a fresh link.</p> : null}
-              {paid ? <p className="form-note">This booking is already marked paid.</p> : null}
+              {expired ? <p className="form-note">{t("expiredNote")}</p> : null}
+              {paid ? <p className="form-note">{t("alreadyPaid")}</p> : null}
             </article>
           </div>
         </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 declare global {
   interface Window {
@@ -34,6 +35,7 @@ export default function PayButton({
   token: string;
   scriptUrl: string;
 }) {
+  const t = useTranslations("pay");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
@@ -58,20 +60,20 @@ export default function PayButton({
             const payload = await response.json();
 
             if (!response.ok) {
-              throw new Error(payload.error ?? "Unable to start payment.");
+              throw new Error(payload.error ?? t("unableStart"));
             }
 
             await loadCheckoutScript(scriptUrl);
             window.Checkout?.configure({ session: { id: payload.sessionId } });
             window.Checkout?.showPaymentPage();
           } catch (caught) {
-            setError(caught instanceof Error ? caught.message : "Unable to start payment.");
+            setError(caught instanceof Error ? caught.message : t("unableStart"));
           } finally {
             setPending(false);
           }
         }}
       >
-        {pending ? "Starting…" : "Pay securely"}
+        {pending ? t("starting") : t("payNow")}
       </button>
       {error ? <p className="form-note" aria-live="polite">{error}</p> : null}
     </div>

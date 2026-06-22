@@ -1,6 +1,7 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
+import { localeRedirect } from "@/lib/i18n/redirect";
 import {
   canUseSupabaseServer,
   createSupabaseServerClient,
@@ -56,7 +57,7 @@ export async function requireCustomer(nextPath?: string) {
   const session = await getCustomerUser();
 
   if (!session) {
-    redirect(loginRedirect(nextPath));
+    localeRedirect(loginRedirect(nextPath), await getLocale());
   }
 
   return session;
@@ -70,11 +71,11 @@ export async function requireVerifiedCustomer(nextPath?: string) {
   const session = await getCustomerUser();
 
   if (!session) {
-    redirect(loginRedirect(nextPath));
+    localeRedirect(loginRedirect(nextPath), await getLocale());
   }
 
   if (!session.customer.verified) {
-    redirect("/account");
+    localeRedirect("/account", await getLocale());
   }
 
   return session;

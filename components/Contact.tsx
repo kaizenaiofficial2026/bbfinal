@@ -1,8 +1,10 @@
 import Image from "next/image";
-import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import ContactForm from "./ContactForm";
 
-export default function Contact() {
+export default async function Contact() {
+  const t = await getTranslations("contactPage");
+
   return (
     <section className="section contact" id="contact">
       <div className="contact-bg" aria-hidden="true">
@@ -17,14 +19,9 @@ export default function Contact() {
 
       <div className="container contact-grid">
         <div className="contact-copy" data-reveal>
-          <span className="section-kicker">Get in touch</span>
-          <h2 className="display display-lg">
-            Let us design your private Sri Lanka escape.
-          </h2>
-          <p className="lead">
-            Share a few details and a Beyond Borders travel designer will shape
-            the first version of your route.
-          </p>
+          <span className="section-kicker">{t("kicker")}</span>
+          <h2 className="display display-lg">{t("heading")}</h2>
+          <p className="lead">{t("lead")}</p>
 
           <div className="contact-details">
             <div className="contact-detail">
@@ -43,7 +40,7 @@ export default function Contact() {
                 />
               </svg>
               <div>
-                <strong>Email</strong>
+                <strong>{t("emailLabel")}</strong>
                 <a href="mailto:info@beyondborders.lk">info@beyondborders.lk</a>
               </div>
             </div>
@@ -58,7 +55,7 @@ export default function Contact() {
                 />
               </svg>
               <div>
-                <strong>Phone</strong>
+                <strong>{t("phoneLabel")}</strong>
                 <a href="tel:+94112425087">+94 11 242 5087</a>
               </div>
             </div>
@@ -76,7 +73,7 @@ export default function Contact() {
                 />
               </svg>
               <div>
-                <strong>Colombo office</strong>
+                <strong>{t("officeLabel")}</strong>
                 <span>
                   3rd Floor, No. 430, R A De Mel Mawatha, Colombo 03, Sri Lanka
                 </span>

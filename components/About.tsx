@@ -1,52 +1,37 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
-const ABOUT_STATS = [
-  { value: "500+", label: "Happy Travellers" },
-  { value: "10+", label: "Destinations" },
-  { value: "5★", label: "Rated Service" },
-  { value: "4+", label: "Tour Packages" },
-];
+const ABOUT_STAT_VALUES = ["500+", "10+", "5★", "4+"];
 
-export default function About() {
+export default async function About() {
+  const t = await getTranslations("aboutPage");
+  const statLabels = t.raw("statLabels") as string[];
+
   return (
     <section className="section section-ivory about" id="about">
       <div className="container about-grid">
         <div className="about-copy" data-reveal-group="copy">
-          <span className="section-kicker">Learn More</span>
-          <h2 className="display display-lg">
-            Traveling. Tours. Adventure.
-          </h2>
-          <p className="lead">
-            Beyond Borders is a leading travel and tourism company in Sri Lanka,
-            offering tailor-made travel packages to suit your passions, time,
-            and budget.
-          </p>
-          <p>
-            We understand the stress of planning that perfect holiday… whether
-            you are looking for an idyllic break or a fun-filled adventure for
-            the whole family. At Beyond Borders, our experts take care to listen
-            to your needs and interests, and design a trip just for you.
-          </p>
-          <p>
-            With wide experiences in the travel and tourism sector, our packages
-            come at unbeatable value, as we help you make lasting memories.
-          </p>
+          <span className="section-kicker">{t("kicker")}</span>
+          <h2 className="display display-lg">{t("heading")}</h2>
+          <p className="lead">{t("lead")}</p>
+          <p>{t("para2")}</p>
+          <p>{t("para3")}</p>
 
           <div className="about-actions">
             <Link className="btn about-action-primary" href="/contacts">
-              GET IN TOUCH
+              {t("getInTouch")}
             </Link>
             <Link className="btn about-action-dark" href="/destinations">
-              VIEW ATTRACTIONS
+              {t("viewAttractions")}
             </Link>
           </div>
 
           <div className="about-stats" data-reveal-group="cards">
-            {ABOUT_STATS.map((stat) => (
-              <div className="about-stat" key={stat.label}>
-                <strong>{stat.value}</strong>
-                <span>{stat.label}</span>
+            {ABOUT_STAT_VALUES.map((value, index) => (
+              <div className="about-stat" key={value}>
+                <strong>{value}</strong>
+                <span>{statLabels[index]}</span>
               </div>
             ))}
           </div>
@@ -79,9 +64,8 @@ export default function About() {
             />
           </figure>
           <p className="about-note">
-            <strong>Designed in Colombo</strong>
-            Your journey is shaped by local planners, trusted guides and hotel
-            partners across the island.
+            <strong>{t("noteTitle")}</strong>
+            {t("noteText")}
           </p>
         </div>
       </div>

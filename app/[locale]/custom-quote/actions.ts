@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import {
   countRecentCustomInquiriesByIp,
   createCustomInquiry,
@@ -76,6 +77,7 @@ export async function submitCustomInquiry(
   _prevState: InquiryState,
   formData: FormData,
 ): Promise<InquiryState> {
+  const t = await getTranslations("serverActions");
   const parsed = customInquirySchema.safeParse({
     inquiryType: fs(formData, "inquiryType"),
     firstName: fs(formData, "firstName"),
@@ -112,18 +114,18 @@ export async function submitCustomInquiry(
   if (!parsed.success) {
     return {
       ok: false,
-      note: parsed.error.issues[0]?.message ?? "Please check the form.",
+      note: parsed.error.issues[0]?.message ?? t("checkForm"),
     };
   }
 
   const data = parsed.data;
 
   if (data.startedAt && Date.now() - data.startedAt < 2500) {
-    return { ok: false, note: "Please wait a moment before submitting." };
+    return { ok: false, note: t("waitMoment") };
   }
 
   if (!canUseSupabaseService()) {
-    return { ok: false, note: "Inquiries are not configured yet." };
+    return { ok: false, note: t("inquiriesNotConfigured") };
   }
 
   try {
@@ -133,7 +135,7 @@ export async function submitCustomInquiry(
     if (recent >= 8) {
       return {
         ok: false,
-        note: "Too many recent inquiries from this connection. Please try again later.",
+        note: t("tooManyInquiries"),
       };
     }
 
@@ -164,14 +166,14 @@ export async function submitCustomInquiry(
 
     return {
       ok: true,
-      note: "Thank you. Your inquiry has been received — our team will reply by email.",
+      note: t("inquirySuccess"),
     };
   } catch (error) {
     console.error(error);
 
     return {
       ok: false,
-      note: "We could not submit your inquiry. Please try again or contact the team directly.",
+      note: t("inquiryError"),
     };
   }
 }

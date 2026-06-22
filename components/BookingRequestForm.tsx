@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useTranslations } from "next-intl";
 import { submitBooking } from "@/app/actions";
 import { initialBookingState } from "@/app/action-state";
 
@@ -17,18 +18,20 @@ export default function BookingRequestForm({
   amount,
   currency,
 }: BookingRequestFormProps) {
+  const t = useTranslations("bookingPage");
   const [state, formAction, pending] = useActionState(
     submitBooking,
     initialBookingState,
   );
   const [startedAt] = useState(() => Date.now());
+  const formattedAmount = `${currency} ${amount.toFixed(2)}`;
 
   return (
     <form className="booking-form" action={formAction}>
       <input type="hidden" name="tourPackageId" value={packageId} />
       <input type="hidden" name="startedAt" value={startedAt} />
       <div className="visually-hidden" aria-hidden="true">
-        <label htmlFor="booking-company">Company</label>
+        <label htmlFor="booking-company">{t("company")}</label>
         <input
           id="booking-company"
           name="company"
@@ -38,10 +41,10 @@ export default function BookingRequestForm({
         />
       </div>
       <div className="booking-form-section">
-        <span className="booking-form-label">Journey details</span>
+        <span className="booking-form-label">{t("journeyDetails")}</span>
         <div className="form-grid">
           <div className="form-field">
-            <label htmlFor="booking-package">Package</label>
+            <label htmlFor="booking-package">{t("package")}</label>
             <input
               id="booking-package"
               name="package"
@@ -51,16 +54,16 @@ export default function BookingRequestForm({
             />
           </div>
           <div className="form-field">
-            <label htmlFor="booking-dates">Travel dates</label>
+            <label htmlFor="booking-dates">{t("travelDates")}</label>
             <input
               id="booking-dates"
               name="dates"
               type="text"
-              placeholder="Preferred month or exact dates"
+              placeholder={t("travelDatesPlaceholder")}
             />
           </div>
           <div className="form-field">
-            <label htmlFor="booking-travellers">Travellers</label>
+            <label htmlFor="booking-travellers">{t("travellers")}</label>
             <input
               id="booking-travellers"
               name="travellers"
@@ -70,11 +73,11 @@ export default function BookingRequestForm({
             />
           </div>
           <div className="form-field full">
-            <label htmlFor="booking-notes">Special requests</label>
+            <label htmlFor="booking-notes">{t("specialRequests")}</label>
             <textarea
               id="booking-notes"
               name="notes"
-              placeholder="Tell us about room preferences, celebrations, accessibility needs or flight timing."
+              placeholder={t("specialRequestsPlaceholder")}
             />
           </div>
         </div>
@@ -83,22 +86,17 @@ export default function BookingRequestForm({
       <div className="booking-payment-preview">
         <div className="booking-payment-head">
           <div>
-            <span className="booking-form-label">Total due now</span>
-            <h2>Secure hosted checkout</h2>
+            <span className="booking-form-label">{t("totalDueNow")}</span>
+            <h2>{t("secureCheckout")}</h2>
           </div>
-          <strong>
-            {currency} {amount.toFixed(2)}
-          </strong>
+          <strong>{formattedAmount}</strong>
         </div>
-        <p>
-          You&apos;ll be taken to our bank&apos;s secure checkout to complete
-          payment. No card details are stored by Beyond Borders.
-        </p>
+        <p>{t("checkoutNote")}</p>
       </div>
 
       <div className="booking-submit-row">
         <button className="btn btn-primary" type="submit" disabled={pending}>
-          {pending ? "Starting…" : `Reserve & pay ${currency} ${amount.toFixed(2)}`}
+          {pending ? t("starting") : t("reservePay", { amount: formattedAmount })}
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
             <path
               d="M5 12h14M13 6l6 6-6 6"

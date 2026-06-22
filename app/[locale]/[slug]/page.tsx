@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import CTASection from "@/components/CTASection";
@@ -54,6 +55,8 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
 
   if (!destination) notFound();
 
+  const t = await getTranslations("destinationDetail");
+
   // The publishable/editable core (title, images, status, highlights) comes from
   // the backend; the richer editorial detail content (quick facts, descriptions,
   // key-attraction bullets, related places) is sourced from the static content
@@ -81,18 +84,18 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
       <main>
         <PageHero
           title={pageTitle}
-          label="Destination"
+          label={t("label")}
           image={destination.heroImage}
           summary={pageTagline}
           showBreadcrumbs={false}
           showLabel={false}
           backHref="/destinations"
-          backLabel="← Back to Destinations"
+          backLabel={t("backLabel")}
         />
         <section className="section section-paper destination-detail-section">
           <div className="container destination-detail-layout">
             <article className="destination-detail-main" data-reveal>
-              <span className="section-kicker">Travel notes</span>
+              <span className="section-kicker">{t("travelNotes")}</span>
               <h1 className="display display-lg">{pageTagline}</h1>
               {description.map((paragraph) => (
                 <p className="lead" key={paragraph}>
@@ -110,7 +113,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
               </div>
 
               <div className="destination-copy-block">
-                <h2>Key attraction</h2>
+                <h2>{t("keyAttraction")}</h2>
                 {keyAttractionItems ? (
                   <ul className="destination-highlight-list">
                     {keyAttractionItems.map((item) => (
@@ -123,7 +126,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
               </div>
 
               <div className="destination-copy-block">
-                <h2>Highlights</h2>
+                <h2>{t("highlights")}</h2>
                 <ul className="destination-highlight-list">
                   {destination.highlights.map((highlight) => (
                     <li key={highlight}>{highlight}</li>
@@ -134,7 +137,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
 
             <aside className="destination-sidebar" data-reveal>
               <div className="destination-fact-card">
-                <span>Quick Facts</span>
+                <span>{t("quickFacts")}</span>
                 <dl className="destination-quick-facts">
                   {quickFacts.map((fact) => (
                     <div key={fact.label}>
@@ -145,7 +148,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
                 </dl>
               </div>
               <Link className="btn btn-primary" href="/contacts">
-                Plan this route
+                {t("planRoute")}
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M5 12h14M13 6l6 6-6 6"
@@ -157,7 +160,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
                 </svg>
               </Link>
               <div className="related-destinations">
-                <h2>Explore more</h2>
+                <h2>{t("exploreMore")}</h2>
                 {related.map((item) => (
                   <Link href={item.href} key={item.title}>
                     {item.title}
@@ -169,9 +172,9 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
           </div>
         </section>
         <CTASection
-          title={`Build ${pageTitle} into a private journey.`}
-          text="Share your travel dates and preferred pace, and we will connect this destination with the right hotels, guides and transfers."
-          action="Start planning"
+          title={t("ctaTitle", { title: pageTitle })}
+          text={t("ctaText")}
+          action={t("ctaAction")}
         />
       </main>
     </SiteShell>

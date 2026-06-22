@@ -1,6 +1,7 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
+import { localeRedirect } from "@/lib/i18n/redirect";
 import { createBooking } from "@/lib/data/bookings";
 import { createEnquiry, countRecentEnquiriesByIp } from "@/lib/data/enquiries";
 import { requireVerifiedCustomer } from "@/lib/customer/auth";
@@ -35,6 +36,7 @@ export async function submitEnquiry(
   _prevState: EnquiryState,
   formData: FormData,
 ): Promise<EnquiryState> {
+  const t = await getTranslations("serverActions");
   const parsed = enquirySchema.safeParse({
     name: formString(formData, "name"),
     email: formString(formData, "email"),
@@ -49,21 +51,21 @@ export async function submitEnquiry(
   if (!parsed.success) {
     return {
       ok: false,
-      note: parsed.error.issues[0]?.message ?? "Please check the form.",
+      note: parsed.error.issues[0]?.message ?? t("checkForm"),
     };
   }
 
   if (!passedTimeTrap(parsed.data.startedAt)) {
     return {
       ok: false,
-      note: "Please wait a moment before submitting.",
+      note: t("waitMoment"),
     };
   }
 
   if (!canUseSupabaseService()) {
     return {
       ok: false,
-      note: "Enquiries are not configured yet. Please add Supabase environment variables.",
+      note: t("enquiryNotConfigured"),
     };
   }
 
@@ -74,7 +76,7 @@ export async function submitEnquiry(
     if (recent >= 5) {
       return {
         ok: false,
-        note: "Too many recent enquiries from this connection. Please try again later.",
+        note: t("tooManyEnquiries"),
       };
     }
 
@@ -98,14 +100,14 @@ export async function submitEnquiry(
 
     return {
       ok: true,
-      note: `Thanks, ${parsed.data.name}. A Beyond Borders planner will reply by email.`,
+      note: t("enquirySuccess", { name: parsed.data.name }),
     };
   } catch (error) {
     console.error(error);
 
     return {
       ok: false,
-      note: "We could not submit the enquiry. Please try again or email the team directly.",
+      note: t("enquiryError"),
     };
   }
 }
@@ -118,6 +120,7 @@ export async function submitBooking(
   // form is only rendered for them). Redirects otherwise.
   const session = await requireVerifiedCustomer();
 
+  const t = await getTranslations("serverActions");
   const parsed = bookingSchema.safeParse({
     tourPackageId: formString(formData, "tourPackageId"),
     travelDates: formString(formData, "dates"),
@@ -130,21 +133,21 @@ export async function submitBooking(
   if (!parsed.success) {
     return {
       ok: false,
-      note: parsed.error.issues[0]?.message ?? "Please check the booking form.",
+      note: parsed.error.issues[0]?.message ?? t("checkBookingForm"),
     };
   }
 
   if (!passedTimeTrap(parsed.data.startedAt)) {
     return {
       ok: false,
-      note: "Please wait a moment before submitting.",
+      note: t("waitMoment"),
     };
   }
 
   if (!canUseSupabaseService()) {
     return {
       ok: false,
-      note: "Bookings are not configured yet. Please add Supabase environment variables.",
+      note: t("bookingsNotConfigured"),
     };
   }
 
@@ -159,13 +162,13 @@ export async function submitBooking(
     .maybeSingle();
 
   if (pkgError || !pkg || pkg.status !== "published") {
-    return { ok: false, note: "This journey is not available for booking." };
+    return { ok: false, note: t("journeyNotAvailable") };
   }
 
   if (pkg.price_amount == null) {
     return {
       ok: false,
-      note: "This journey isn't available for instant checkout. Please contact our team.",
+      note: t("noInstantCheckout"),
     };
   }
 
@@ -206,10 +209,10 @@ export async function submitBooking(
 
     return {
       ok: false,
-      note: "We could not start your booking. Please try again or contact the team directly.",
+      note: t("bookingError"),
     };
   }
 
   // Send the verified customer straight into the hosted MPGS checkout.
-  redirect(`/pay/${token}`);
+  localeRedirect(`/pay/${token}`, await getLocale());
 }
