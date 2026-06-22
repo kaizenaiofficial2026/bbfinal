@@ -4757,3 +4757,191 @@ body.menu-open .cookie-consent {
     animation: none;
   }
 }
+
+/* ============================================================
+   Language switcher — custom accessible dropdown (replaces the
+   unstyled native <select>). Mirrors the .btn-line treatment and
+   adapts to the header's over-hero vs scrolled states. RTL-safe.
+   ============================================================ */
+.locale-switcher {
+  position: relative;
+}
+
+.locale-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line-gold);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--gold-deep);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 220ms var(--ease),
+    background 220ms var(--ease),
+    color 220ms var(--ease);
+}
+
+.locale-trigger:hover {
+  border-color: var(--gold);
+  background: rgba(179, 146, 79, 0.08);
+}
+
+.locale-trigger:focus-visible {
+  outline: 2px solid var(--gold-soft);
+  outline-offset: 2px;
+}
+
+.locale-globe {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  opacity: 0.9;
+}
+
+.locale-current {
+  max-width: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.locale-caret {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  opacity: 0.75;
+  transition: transform 220ms var(--ease);
+}
+
+.locale-switcher.is-open .locale-caret {
+  transform: rotate(180deg);
+}
+
+/* Over the hero (header not yet scrolled): light, frosted treatment. */
+.site-header:not(.is-scrolled) .locale-trigger {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: var(--paper);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.site-header:not(.is-scrolled) .locale-trigger:hover {
+  border-color: var(--gold-soft);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* Dropdown panel */
+.locale-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  inset-inline-end: 0;
+  z-index: 60;
+  min-width: 220px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--line-gold);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition:
+    opacity 200ms var(--ease),
+    transform 200ms var(--ease);
+}
+
+.locale-switcher.is-open .locale-menu {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.locale-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    background 150ms var(--ease),
+    color 150ms var(--ease);
+}
+
+.locale-option-native {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.locale-option-en {
+  margin-inline-start: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.locale-check {
+  width: 16px;
+  height: 16px;
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  color: var(--gold-deep);
+  opacity: 0;
+  transform: scale(0.7);
+  transition:
+    opacity 150ms var(--ease),
+    transform 150ms var(--ease);
+}
+
+.locale-option.is-active {
+  background: var(--ivory);
+  color: var(--ink);
+}
+
+.locale-option.is-selected {
+  color: var(--gold-deep);
+}
+
+.locale-option.is-selected .locale-option-native {
+  color: var(--gold-deep);
+}
+
+.locale-option.is-selected .locale-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (max-width: 720px) {
+  .locale-trigger {
+    min-height: 40px;
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .locale-current {
+    max-width: 8ch;
+  }
+
+  .locale-menu {
+    min-width: 200px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .locale-caret,
+  .locale-menu,
+  .locale-check {
+    transition: none;
+  }
+}
