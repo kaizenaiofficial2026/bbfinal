@@ -5,6 +5,9 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
+import { logoutAction } from "@/app/[locale]/account/actions";
+
+type HeaderAccount = { name: string } | null;
 
 const NAV_LINKS = [
   { href: "/", key: "home" },
@@ -13,10 +16,12 @@ const NAV_LINKS = [
   { href: "/destinations", key: "destinations" },
 ] as const;
 
-export default function Header() {
+export default function Header({ account }: { account: HeaderAccount }) {
   const pathname = usePathname();
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
+  const tAuth = useTranslations("auth");
+  const firstName = account ? account.name.split(" ")[0] : "";
   const headerRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -90,7 +95,6 @@ export default function Header() {
             height={75}
             priority
           />
-          <span className="brand-tag">The Travel Partner</span>
         </Link>
 
         <nav
@@ -112,18 +116,38 @@ export default function Header() {
               </Link>
             );
           })}
-          <Link className="mobile-nav-contact btn btn-line" href="/contacts">
+          <Link
+            href="/contacts"
+            className={
+              pathname.startsWith("/contacts") ? "nav-active" : undefined
+            }
+            aria-current={pathname.startsWith("/contacts") ? "page" : undefined}
+          >
             {tCommon("contactUs")}
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M5 12h14M13 6l6 6-6 6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
           </Link>
+          <div className="mobile-nav-auth">
+            {account ? (
+              <>
+                <Link className="auth-secondary" href="/account">
+                  {tAuth("greeting", { name: firstName })}
+                </Link>
+                <form action={logoutAction}>
+                  <button className="auth-primary" type="submit">
+                    {tAuth("signOut")}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <Link className="auth-secondary" href="/login">
+                  {tAuth("signIn")}
+                </Link>
+                <Link className="auth-primary" href="/register">
+                  {tAuth("createAccount")}
+                </Link>
+              </>
+            )}
+          </div>
         </nav>
         <button
           className="mobile-nav-backdrop"
@@ -134,18 +158,32 @@ export default function Header() {
 
         <div className="header-actions">
           <LocaleSwitcher />
-          <Link className="btn btn-line" href="/contacts">
-            {tCommon("contactUs")}
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M5 12h14M13 6l6 6-6 6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
+          <div className="header-auth">
+            {account ? (
+              <>
+                <Link
+                  className="btn btn-line header-account-link"
+                  href="/account"
+                >
+                  {tAuth("greeting", { name: firstName })}
+                </Link>
+                <form action={logoutAction}>
+                  <button className="btn btn-primary" type="submit">
+                    {tAuth("signOut")}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <Link className="btn btn-line" href="/login">
+                  {tAuth("signIn")}
+                </Link>
+                <Link className="btn btn-primary" href="/register">
+                  {tAuth("createAccount")}
+                </Link>
+              </>
+            )}
+          </div>
           <button
             className="menu-toggle"
             type="button"

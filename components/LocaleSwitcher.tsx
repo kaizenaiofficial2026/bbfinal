@@ -113,7 +113,7 @@ export default function LocaleSwitcher() {
             strokeLinejoin="round"
           />
         </svg>
-        <span className="locale-current">{localeLabels[locale]}</span>
+        <span className="locale-current">{locale.toUpperCase()}</span>
         <svg className="locale-caret" aria-hidden="true" viewBox="0 0 24 24" fill="none">
           <path
             d="m6 9 6 6 6-6"

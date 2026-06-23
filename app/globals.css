@@ -274,6 +274,7 @@ p {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: inherit;
+  white-space: nowrap;
   overflow: hidden;
   transition:
     transform 260ms var(--ease),
@@ -481,7 +482,7 @@ body.menu-open .site-header {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 28px;
+  gap: 22px;
 }
 
 .brand {
@@ -531,8 +532,9 @@ body.menu-open .site-header {
 .nav a {
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
   min-height: 38px;
-  padding: 0 15px;
+  padding: 0 13px;
   border-radius: var(--radius-sm);
   font-family: var(--font-label);
   font-size: 14px;
@@ -572,11 +574,12 @@ body.menu-open .site-header {
   align-items: center;
   gap: 10px;
   justify-self: end;
+  flex-shrink: 0;
 }
 
 .header-actions .btn {
   min-height: 44px;
-  padding: 11px 20px;
+  padding: 11px 18px;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -597,6 +600,76 @@ body.menu-open .site-header {
 .site-header:not(.is-scrolled) .header-actions .btn-line:hover {
   border-color: var(--gold-soft);
   background: rgba(255, 255, 255, 0.12);
+}
+
+/* Account controls — desktop cluster lives in the header, mobile cluster in the
+   slide-in nav (mirrors the Contact Us button's dual placement). */
+.header-auth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-auth form {
+  display: contents;
+}
+
+.header-account-link {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-nav-auth {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .header-auth {
+    display: none;
+  }
+
+  .mobile-nav-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-gold);
+  }
+
+  .mobile-nav-auth form {
+    width: 100%;
+  }
+
+  .nav .mobile-nav-auth a,
+  .nav .mobile-nav-auth button {
+    width: 100%;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 20px;
+    border-radius: 9999px;
+    font: inherit;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+  }
+
+  .nav .mobile-nav-auth .auth-primary {
+    background: var(--gold);
+    color: var(--ink);
+    border: 0;
+    box-shadow: 0 16px 36px -20px rgba(179, 146, 79, 0.8);
+  }
+
+  .nav .mobile-nav-auth .auth-secondary {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--line-gold);
+  }
 }
 
 .menu-toggle {
