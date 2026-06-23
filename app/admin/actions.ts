@@ -303,4 +303,5 @@ export async function saveSettingsAction(formData: FormData) {
   }
 
   revalidatePath("/admin/settings");
+  redirect("/admin/settings?saved=1");
 }

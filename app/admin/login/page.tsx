@@ -1,4 +1,5 @@
 import { signInAction } from "../actions";
+import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -14,18 +15,25 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
       <form className="admin-card admin-login-card" action={signInAction}>
         <span className="section-kicker">Staff access</span>
         <h1>Admin login</h1>
+        {error ? (
+          <p className="admin-alert" role="alert">
+            {error}
+          </p>
+        ) : null}
         <label>
           Email
           <input name="email" type="email" autoComplete="email" required />
         </label>
         <label>
           Password
-          <input name="password" type="password" autoComplete="current-password" required />
+          <input
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+          />
         </label>
-        <button className="btn btn-primary" type="submit">
-          Sign in
-        </button>
-        {error ? <p className="form-note">{error}</p> : null}
+        <SubmitButton pendingLabel="Signing in…">Sign in</SubmitButton>
       </form>
     </main>
   );

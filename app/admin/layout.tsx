@@ -1,6 +1,8 @@
-import Link from "next/link";
 import { signOutAction } from "./actions";
+import Image from "next/image";
+import Link from "next/link";
 import ScrollUnlock from "./ScrollUnlock";
+import { AdminNav } from "./_components/AdminNav";
 
 export const dynamic = "force-dynamic";
 
@@ -13,23 +15,36 @@ export default function AdminLayout({
     <main className="admin-shell">
       <ScrollUnlock />
       <aside className="admin-sidebar">
-        <Link className="admin-brand" href="/admin">
-          Beyond Borders Admin
+        <Link
+          className="admin-brand"
+          href="/admin"
+          aria-label="Beyond Borders admin home"
+        >
+          <Image
+            className="admin-logo"
+            src="/assets/images/brand/logo.png"
+            alt="Beyond Borders"
+            width={154}
+            height={75}
+            priority
+          />
         </Link>
-        <nav className="admin-nav">
-          <Link href="/admin/packages">Packages</Link>
-          <Link href="/admin/destinations">Destinations</Link>
-          <Link href="/admin/enquiries">Enquiries</Link>
-          <Link href="/admin/custom-inquiries">Custom inquiries</Link>
-          <Link href="/admin/bookings">Bookings</Link>
-          <Link href="/admin/users">Customers</Link>
-          <Link href="/admin/settings">Settings</Link>
-        </nav>
-        <form action={signOutAction}>
-          <button className="admin-link-button" type="submit">
-            Sign out
-          </button>
-        </form>
+        <AdminNav />
+        <div className="admin-sidebar-footer">
+          <a
+            className="admin-view-site"
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View site ↗
+          </a>
+          <form action={signOutAction}>
+            <button className="admin-link-button" type="submit">
+              Sign out
+            </button>
+          </form>
+        </div>
       </aside>
       <section className="admin-main">{children}</section>
     </main>

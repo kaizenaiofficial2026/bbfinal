@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { listAdminPackages } from "@/lib/data/packages";
+import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 
 export default async function AdminPackagesPage() {
   await requireAdmin();
@@ -13,17 +14,35 @@ export default async function AdminPackagesPage() {
           <span className="section-kicker">Packages</span>
           <h1>Tour packages</h1>
         </div>
-        <Link className="btn btn-primary" href="/admin/packages/new">Create package</Link>
+        <Link className="btn btn-primary" href="/admin/packages/new">
+          Create package
+        </Link>
       </div>
-      <div className="admin-card admin-table">
-        {packages.map((tourPackage) => (
-          <Link href={`/admin/packages/${tourPackage.id}`} key={tourPackage.id}>
-            <span>{tourPackage.title}</span>
-            <span>{tourPackage.duration}</span>
-            <strong>{tourPackage.status}</strong>
-          </Link>
-        ))}
-      </div>
+      {packages.length === 0 ? (
+        <div className="admin-card">
+          <p className="form-hint">
+            No packages yet — create your first package.
+          </p>
+        </div>
+      ) : (
+        <div className="admin-card admin-table">
+          <div className="admin-table-head">
+            <span>Title</span>
+            <span>Duration</span>
+            <span>Status</span>
+          </div>
+          {packages.map((tourPackage) => (
+            <Link
+              href={`/admin/packages/${tourPackage.id}`}
+              key={tourPackage.id}
+            >
+              <span>{tourPackage.title}</span>
+              <span className="admin-muted">{tourPackage.duration}</span>
+              <StatusBadge status={tourPackage.status} />
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

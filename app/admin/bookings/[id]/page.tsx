@@ -1,8 +1,12 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { updateBookingStatusAction } from "../../actions";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getBooking } from "@/lib/data/bookings";
 import { listPaymentsForBooking } from "@/lib/data/payments";
+import { StatusBadge } from "@/app/admin/_components/StatusBadge";
+import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { formatCurrency, formatDateTime } from "@/lib/admin/format";
 
 type BookingPageProps = {
   params: Promise<{ id: string }>;
@@ -19,21 +23,39 @@ export default async function BookingPage({ params }: BookingPageProps) {
 
   return (
     <div className="admin-stack">
-      <span className="section-kicker">Booking</span>
-      <h1>{booking.reference}</h1>
+      <Link className="admin-back" href="/admin/bookings">
+        ← All bookings
+      </Link>
+      <div className="admin-head">
+        <div>
+          <span className="section-kicker">Booking</span>
+          <h1>{booking.reference}</h1>
+        </div>
+        <StatusBadge status={booking.status} />
+      </div>
+
       <section className="admin-card admin-detail">
-        <p><strong>Traveller</strong>{booking.traveller_name}</p>
-        <p><strong>Email</strong>{booking.email}</p>
-        <p><strong>Phone</strong>{booking.phone || "Not provided"}</p>
-        <p><strong>Package</strong>{booking.tour_packages?.title || "Package"}</p>
-        <p><strong>Dates</strong>{booking.travel_dates}</p>
-        <p><strong>Travellers</strong>{booking.travellers}</p>
-        <p><strong>Notes</strong>{booking.notes || "None"}</p>
-        <p><strong>Quoted amount</strong>{booking.quoted_amount ? `${booking.currency} ${booking.quoted_amount}` : "Not quoted"}</p>
+        <p><strong>Traveller</strong><span>{booking.traveller_name}</span></p>
+        <p><strong>Email</strong><span>{booking.email}</span></p>
+        <p><strong>Phone</strong><span>{booking.phone || "Not provided"}</span></p>
+        <p><strong>Package</strong><span>{booking.tour_packages?.title || "Package"}</span></p>
+        <p><strong>Dates</strong><span>{booking.travel_dates}</span></p>
+        <p><strong>Travellers</strong><span>{booking.travellers}</span></p>
+        <p><strong>Notes</strong><span>{booking.notes || "None"}</span></p>
+        <p>
+          <strong>Quoted amount</strong>
+          <span>{formatCurrency(booking.quoted_amount, booking.currency)}</span>
+        </p>
+        <p><strong>Received</strong><span>{formatDateTime(booking.created_at)}</span></p>
       </section>
-      <form className="admin-card admin-inline-form" action={updateBookingStatusAction}>
+
+      <form
+        className="admin-card admin-inline-form"
+        action={updateBookingStatusAction}
+      >
         <input type="hidden" name="id" value={booking.id} />
-        <label>Status
+        <label>
+          Status
           <select name="status" defaultValue={booking.status}>
             <option value="new">New</option>
             <option value="confirmed">Confirmed</option>
@@ -42,19 +64,31 @@ export default async function BookingPage({ params }: BookingPageProps) {
             <option value="cancelled">Cancelled</option>
           </select>
         </label>
-        <button className="btn btn-primary" type="submit">Update status</button>
+        <SubmitButton pendingLabel="Updating…">Update status</SubmitButton>
       </form>
-      <section className="admin-card">
+
+      <section className="admin-card admin-stack">
         <h2>Payments</h2>
-        <div className="admin-table">
-          {payments.map((payment) => (
-            <div key={payment.id}>
-              <span>{payment.mpgs_order_id}</span>
-              <span>{payment.currency} {payment.amount}</span>
-              <strong>{payment.status}</strong>
+        {payments.length === 0 ? (
+          <p className="form-hint">No payments recorded yet.</p>
+        ) : (
+          <div className="admin-table">
+            <div className="admin-table-head">
+              <span>Order</span>
+              <span>Amount</span>
+              <span>Status</span>
             </div>
-          ))}
-        </div>
+            {payments.map((payment) => (
+              <div key={payment.id}>
+                <span>{payment.mpgs_order_id}</span>
+                <span className="admin-muted">
+                  {formatCurrency(payment.amount, payment.currency)}
+                </span>
+                <StatusBadge status={payment.status} />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
