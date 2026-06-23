@@ -15,9 +15,14 @@ import {
   ROOM_TYPES,
   YES_NO,
 } from "@/lib/data/custom-inquiry-options";
+import BaseSelect from "./Select";
 
 type InquiryType = "package" | "hotel" | "airticket" | "transport";
 
+// Thin adapter over the shared custom dropdown (components/Select) so every
+// inquiry dropdown gets the same UI as the contact form instead of the native
+// browser <select>: it turns `placeholder` into a leading empty-value option and
+// forwards `onChange` (used by the hotel → room-category dependency).
 function Select({
   name,
   label,
@@ -31,26 +36,18 @@ function Select({
   placeholder?: string;
   onChange?: (value: string) => void;
 }) {
+  const withPlaceholder = [
+    { label: placeholder ?? "Select…", value: "" },
+    ...options.map((opt) => ({ label: opt, value: opt })),
+  ];
+
   return (
-    <div className="form-field">
-      <label htmlFor={`ci-${name}`}>{label}</label>
-      <select
-        id={`ci-${name}`}
-        name={name}
-        defaultValue=""
-        required
-        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-      >
-        <option value="" disabled>
-          {placeholder ?? "Select…"}
-        </option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-    </div>
+    <BaseSelect
+      name={name}
+      label={label}
+      options={withPlaceholder}
+      onChange={onChange}
+    />
   );
 }
 
@@ -149,6 +146,7 @@ export default function CustomInquiryForm() {
                 onChange={setHotel}
               />
               <Select
+                key={hotel}
                 name="roomCategory"
                 label={t("roomCategory")}
                 options={roomCategories}

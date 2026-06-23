@@ -10,9 +10,10 @@ export type SelectOption = {
 type SelectProps = {
   name: string;
   label: string;
-  options: Array<string | SelectOption>;
+  options: ReadonlyArray<string | SelectOption>;
   defaultValue?: string;
   className?: string;
+  onChange?: (value: string) => void;
 };
 
 export default function Select({
@@ -21,6 +22,7 @@ export default function Select({
   options,
   defaultValue,
   className,
+  onChange,
 }: SelectProps) {
   const normalizedOptions = options.map((option) =>
     typeof option === "string" ? { label: option, value: option } : option,
@@ -56,6 +58,7 @@ export default function Select({
     setActive(i);
     setOpen(false);
     triggerRef.current?.focus();
+    onChange?.(normalizedOptions[i].value);
   };
 
   const onKeyDown = (event: React.KeyboardEvent) => {
