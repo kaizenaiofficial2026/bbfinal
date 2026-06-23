@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
@@ -14,7 +14,19 @@ const LINKS = [
   { href: "/admin/settings", label: "Settings" },
 ] as const;
 
-/** Sidebar navigation with active-section highlighting. */
+/**
+ * Inline pending indicator. `useLinkStatus` flips to pending the instant its
+ * parent <Link> is clicked, so the user gets immediate feedback while the next
+ * screen streams in — covering the gap before <loading> / the route renders.
+ */
+function NavPending() {
+  const { pending } = useLinkStatus();
+  return pending ? (
+    <span className="admin-nav-spinner" aria-label="Loading" role="status" />
+  ) : null;
+}
+
+/** Sidebar navigation with active-section highlighting + per-link loading. */
 export function AdminNav() {
   const pathname = usePathname();
 
@@ -33,7 +45,8 @@ export function AdminNav() {
             className={active ? "is-active" : undefined}
             aria-current={active ? "page" : undefined}
           >
-            {link.label}
+            <span>{link.label}</span>
+            <NavPending />
           </Link>
         );
       })}
