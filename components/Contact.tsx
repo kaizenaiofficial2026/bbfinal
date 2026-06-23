@@ -41,7 +41,7 @@ export default async function Contact() {
               </svg>
               <div>
                 <strong>{t("emailLabel")}</strong>
-                <a href="mailto:info@beyondborders.lk">info@beyondborders.lk</a>
+                <a href="mailto:reservations@beyondborders.lk">reservations@beyondborders.lk</a>
               </div>
             </div>
             <div className="contact-detail">
@@ -57,6 +57,7 @@ export default async function Contact() {
               <div>
                 <strong>{t("phoneLabel")}</strong>
                 <a href="tel:+94112425087">+94 11 242 5087</a>
+                <a href="tel:+94760979222">+94 76 097 9222</a>
               </div>
             </div>
             <div className="contact-detail">
