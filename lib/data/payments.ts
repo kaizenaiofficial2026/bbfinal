@@ -1,5 +1,7 @@
 import "server-only";
 
+import { dbError } from "@/lib/data/errors";
+
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -22,12 +24,12 @@ export async function getPaymentByToken(token: string) {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase
     .from("payments")
-    .select("*, bookings(*, tour_packages(title))")
+    .select("*, bookings(id, reference, traveller_name, email, status, tour_packages(title))")
     .eq("pay_token", token)
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data as PaymentWithBooking | null;
@@ -37,12 +39,12 @@ export async function getPaymentByOrderId(orderId: string) {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase
     .from("payments")
-    .select("*, bookings(*, tour_packages(title))")
+    .select("*, bookings(id, reference, traveller_name, email, status, tour_packages(title))")
     .eq("mpgs_order_id", orderId)
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data as PaymentWithBooking | null;
@@ -57,7 +59,7 @@ export async function listPaymentsForBooking(bookingId: string) {
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data;

@@ -9,6 +9,8 @@ import {
   createSupabaseServiceClient,
 } from "@/lib/supabase/service";
 import { registerSchema } from "@/lib/validation/account";
+import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
+import { getRequestIpHash } from "@/lib/security/request";
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
@@ -16,7 +18,9 @@ function formString(formData: FormData, key: string) {
 
 /** Only allow internal redirect targets (no protocol-relative or absolute URLs). */
 function safeNext(next: string) {
-  return next.startsWith("/") && !next.startsWith("//") ? next : "";
+  return next.startsWith("/") && !next.startsWith("//") && !next.includes("\\")
+    ? next
+    : "";
 }
 
 function withNext(path: string, next: string) {
@@ -32,11 +36,23 @@ export async function registerAction(formData: FormData) {
     email: formString(formData, "email"),
     password: formString(formData, "password"),
     phone: formString(formData, "phone"),
+    company: formString(formData, "company"),
   });
 
   if (!parsed.success) {
     const message = parsed.error.issues[0]?.message ?? t("checkForm");
     localeRedirect(withNext(`/register?error=${encodeURIComponent(message)}`, next), locale);
+  }
+
+  // Throttle account creation per IP — caps automated signup and email-bombing
+  // (each register sends mail to an attacker-supplied address + the team inbox).
+  const ipHash = await getRequestIpHash();
+  const rate = await checkAndRecordRateLimit("register", ipHash, {
+    max: 5,
+    windowMinutes: 60,
+  });
+  if (!rate.allowed) {
+    localeRedirect(withNext(`/register?error=${encodeURIComponent(t("waitMoment"))}`, next), locale);
   }
 
   const { fullName, email, password, phone } = parsed.data;
@@ -63,8 +79,12 @@ export async function registerAction(formData: FormData) {
     );
 
     if (insertError) {
+      console.error("[register] customer upsert failed", insertError);
       localeRedirect(
-        withNext(`/register?error=${encodeURIComponent(insertError.message)}`, next),
+        withNext(
+          `/register?error=${encodeURIComponent(t("couldNotCreateAccount"))}`,
+          next,
+        ),
         locale,
       );
     }
@@ -78,6 +98,18 @@ export async function registerAction(formData: FormData) {
 export async function loginAction(formData: FormData) {
   const locale = await getLocale();
   const next = safeNext(formString(formData, "next"));
+
+  // Throttle sign-in attempts per IP — slows credential stuffing / brute force.
+  const ipHash = await getRequestIpHash();
+  const rate = await checkAndRecordRateLimit("login", ipHash, {
+    max: 10,
+    windowMinutes: 15,
+  });
+  if (!rate.allowed) {
+    const t = await getTranslations("serverActions");
+    localeRedirect(withNext(`/login?error=${encodeURIComponent(t("waitMoment"))}`, next), locale);
+  }
+
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({
     email: formString(formData, "email"),

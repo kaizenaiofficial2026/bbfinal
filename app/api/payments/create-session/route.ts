@@ -2,12 +2,38 @@ import { NextResponse } from "next/server";
 import { getPaymentByToken } from "@/lib/data/payments";
 import { env } from "@/lib/env";
 import { createCheckoutSession } from "@/lib/payments/mpgs";
-import { isExpired } from "@/lib/security/request";
+import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
+import { getRequestIpHash, isExpired } from "@/lib/security/request";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 export async function POST(request: Request) {
   if (!env.paymentsEnabled) {
     return NextResponse.json({ error: "Payments are disabled." }, { status: 503 });
+  }
+
+  // Same-origin only: this endpoint mutates payment state, so reject cross-site
+  // callers (CSRF / abuse hardening). A missing Origin (non-browser) is allowed.
+  const origin = request.headers.get("origin");
+  if (origin) {
+    let sameOrigin = false;
+    try {
+      sameOrigin = new URL(origin).host === request.headers.get("host");
+    } catch {
+      sameOrigin = false;
+    }
+    if (!sameOrigin) {
+      return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+    }
+  }
+
+  // Throttle session creation per IP — caps abuse/amplification toward MPGS.
+  const ipHash = await getRequestIpHash();
+  const rate = await checkAndRecordRateLimit("create-session", ipHash, {
+    max: 20,
+    windowMinutes: 10,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
   }
 
   const { token } = await request.json();

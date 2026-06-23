@@ -1,3 +1,5 @@
+import "server-only";
+
 const bool = (value: string | undefined) => value === "true";
 
 export const env = {

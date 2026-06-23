@@ -7,11 +7,12 @@ import { sendAccountVerifiedEmail } from "@/lib/email/send";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
+  bookingStatusUpdateSchema,
   destinationAdminSchema,
+  enquiryStatusUpdateSchema,
   lines,
   packageAdminSchema,
   settingsSchema,
-  statusUpdateSchema,
 } from "@/lib/validation/admin";
 import { revalidateDestinations } from "@/lib/data/destinations";
 import { revalidatePackages } from "@/lib/data/packages";
@@ -217,14 +218,14 @@ export async function savePackageAction(formData: FormData) {
 
 export async function updateEnquiryStatusAction(formData: FormData) {
   await requireAdmin();
-  const parsed = statusUpdateSchema.parse({
+  const parsed = enquiryStatusUpdateSchema.parse({
     id: formString(formData, "id"),
     status: formString(formData, "status"),
   });
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("enquiries")
-    .update({ status: parsed.status as "new" | "contacted" | "closed" })
+    .update({ status: parsed.status })
     .eq("id", parsed.id);
 
   if (error) {
@@ -236,21 +237,14 @@ export async function updateEnquiryStatusAction(formData: FormData) {
 
 export async function updateBookingStatusAction(formData: FormData) {
   await requireAdmin();
-  const parsed = statusUpdateSchema.parse({
+  const parsed = bookingStatusUpdateSchema.parse({
     id: formString(formData, "id"),
     status: formString(formData, "status"),
   });
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("bookings")
-    .update({
-      status: parsed.status as
-        | "new"
-        | "confirmed"
-        | "awaiting_payment"
-        | "paid"
-        | "cancelled",
-    })
+    .update({ status: parsed.status })
     .eq("id", parsed.id);
 
   if (error) {

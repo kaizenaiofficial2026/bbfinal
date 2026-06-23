@@ -8,6 +8,8 @@ export const registerSchema = z.object({
     .min(8, "Password must be at least 8 characters.")
     .max(200),
   phone: z.string().trim().max(60).optional().or(z.literal("")),
+  // Honeypot: bots fill this hidden field; humans never see it. Must be empty.
+  company: z.string().max(0).optional().or(z.literal("")),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

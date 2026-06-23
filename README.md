@@ -9,7 +9,7 @@ the original single-file `BBdesign/index.html`.
 - **Next.js 16** (App Router, Turbopack, cached public routes, dynamic admin)
 - **React 19** + **TypeScript** (strict)
 - **Supabase** — Postgres, Auth, Storage, RLS-backed admin/content
-- **Resend + React Email** — enquiry, booking, pay-link and receipt emails
+- **Nodemailer (Zoho SMTP) + React Email** — enquiry, booking, pay-link and receipt emails
 - **MPGS Hosted Checkout** — Seylan Bank payment flow, gated by `PAYMENTS_ENABLED`
 - **motion** (v12) + **lenis** — preloader intro, smooth scroll, reveals, count-ups, parallax, pinned horizontal destinations
 

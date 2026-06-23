@@ -11,7 +11,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature." }, { status: 401 });
   }
 
-  const payload = JSON.parse(body);
+  let payload: { order?: { id?: string | number }; orderId?: string | number };
+  try {
+    payload = JSON.parse(body);
+  } catch {
+    return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
+  }
   const orderId = String(payload.order?.id ?? payload.orderId ?? "");
   const payment = await getPaymentByOrderId(orderId);
 

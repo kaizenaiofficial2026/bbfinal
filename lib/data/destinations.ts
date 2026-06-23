@@ -1,5 +1,7 @@
 import "server-only";
 
+import { dbError } from "@/lib/data/errors";
+
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -43,7 +45,7 @@ async function queryPublishedDestinations(locale: string) {
     .order("title", { ascending: true });
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data.map((row) => mapDestination(row, locale));
@@ -73,7 +75,7 @@ async function queryDestinationBySlug(slug: string, locale: string) {
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data ? mapDestination(data, locale) : null;
@@ -104,7 +106,7 @@ export async function getDestinationSlugs() {
     .eq("status", "published");
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data.map((row) => row.slug);
@@ -119,7 +121,7 @@ export async function listAdminDestinations() {
     .order("title", { ascending: true });
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data.map((row) => mapDestination(row, "en"));
@@ -134,7 +136,7 @@ export async function getAdminDestination(id: string) {
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data ? mapDestination(data, "en") : null;

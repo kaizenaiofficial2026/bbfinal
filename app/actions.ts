@@ -2,7 +2,7 @@
 
 import { getLocale, getTranslations } from "next-intl/server";
 import { localeRedirect } from "@/lib/i18n/redirect";
-import { createBooking } from "@/lib/data/bookings";
+import { createBooking, countRecentBookingsByIp } from "@/lib/data/bookings";
 import { createEnquiry, countRecentEnquiriesByIp } from "@/lib/data/enquiries";
 import { requireVerifiedCustomer } from "@/lib/customer/auth";
 import {
@@ -151,6 +151,13 @@ export async function submitBooking(
     };
   }
 
+  // Throttle bookings per IP — defense in depth on top of the verified-customer
+  // gate, so a single approved account can't spawn unlimited booking rows.
+  const ipHash = await getRequestIpHash();
+  if ((await countRecentBookingsByIp(ipHash)) >= 10) {
+    return { ok: false, note: t("waitMoment") };
+  }
+
   const service = createSupabaseServiceClient();
 
   // The payable amount is the package's flat price, read server-side — never
@@ -189,6 +196,7 @@ export async function submitBooking(
       status: "awaiting_payment",
       quoted_amount: pkg.price_amount,
       currency: pkg.currency,
+      ip_hash: ipHash,
     });
 
     const { error: paymentError } = await service.from("payments").insert({

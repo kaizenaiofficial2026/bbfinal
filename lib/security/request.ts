@@ -5,13 +5,15 @@ import { headers } from "next/headers";
 
 export async function getRequestIpHash() {
   const headerStore = await headers();
+  // Prefer the platform-set single client IP (e.g. x-real-ip on Vercel) over the
+  // left-most x-forwarded-for entry, which a client can prepend to rotate its
+  // rate-limit key. Fall back to XFF, then to a shared "unknown" bucket.
+  const realIp = headerStore.get("x-real-ip")?.trim();
   const forwardedFor = headerStore.get("x-forwarded-for") ?? "";
-  const ip = forwardedFor.split(",")[0]?.trim() || headerStore.get("x-real-ip");
+  const ip = realIp || forwardedFor.split(",")[0]?.trim() || "unknown";
 
-  if (!ip) {
-    return null;
-  }
-
+  // Never return null: collapsing IP-less requests into one shared bucket keeps
+  // rate limiting in force (fail-closed) instead of silently disabling it.
   return createHash("sha256")
     .update(`${ip}:${process.env.SUPABASE_SERVICE_ROLE_KEY ?? "local"}`)
     .digest("hex");

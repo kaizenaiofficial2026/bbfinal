@@ -1,5 +1,7 @@
 import "server-only";
 
+import { dbError } from "@/lib/data/errors";
+
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -64,7 +66,7 @@ async function queryPublishedPackages(locale: string) {
     });
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data.map((row) => mapPackage(row, locale));
@@ -100,7 +102,7 @@ async function queryPackageBySlug(slug: string, locale: string) {
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data ? mapPackage(data, locale) : null;
@@ -132,7 +134,7 @@ export async function getPackageSlugs() {
     .eq("status", "published");
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data.map((row) => row.slug);
@@ -151,7 +153,7 @@ export async function listAdminPackages() {
     });
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data.map((row) => mapPackage(row, "en"));
@@ -170,7 +172,7 @@ export async function getAdminPackage(id: string) {
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data ? mapPackage(data, "en") : null;

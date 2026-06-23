@@ -1,5 +1,7 @@
 import "server-only";
 
+import { dbError } from "@/lib/data/errors";
+
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -24,7 +26,7 @@ export async function createBooking(
     .single();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data as BookingWithPackage;
@@ -44,7 +46,7 @@ export async function countRecentBookingsByIp(ipHash: string | null) {
     .gte("created_at", since);
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return count ?? 0;
@@ -58,7 +60,7 @@ export async function listBookings() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data as BookingWithPackage[];
@@ -73,7 +75,7 @@ export async function getBooking(id: string) {
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data as BookingWithPackage | null;

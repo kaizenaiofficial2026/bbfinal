@@ -1,5 +1,7 @@
 import "server-only";
 
+import { dbError } from "@/lib/data/errors";
+
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -17,7 +19,7 @@ export async function createEnquiry(
     .single();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data;
@@ -37,7 +39,7 @@ export async function countRecentEnquiriesByIp(ipHash: string | null) {
     .gte("created_at", since);
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return count ?? 0;
@@ -51,7 +53,7 @@ export async function listEnquiries() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data;
@@ -66,7 +68,7 @@ export async function getEnquiry(id: string) {
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    dbError(error);
   }
 
   return data;

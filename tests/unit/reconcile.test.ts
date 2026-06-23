@@ -5,6 +5,7 @@ const sendInvoiceEmails = vi.fn();
 const sendPaymentSms = vi.fn();
 const maybeSingle = vi.fn();
 const bookingsUpdateEq = vi.fn(async () => ({ data: null, error: null }));
+let capturedPaymentUpdate: Record<string, unknown> | null = null;
 
 vi.mock("@/lib/payments/mpgs", () => ({
   retrieveOrder: (...args: unknown[]) => retrieveOrder(...args),
@@ -23,7 +24,10 @@ vi.mock("@/lib/supabase/service", () => ({
     from: (table: string) => {
       if (table === "payments") {
         const builder = {
-          update: () => builder,
+          update: (payload: Record<string, unknown>) => {
+            capturedPaymentUpdate = payload;
+            return builder;
+          },
           eq: () => builder,
           neq: () => builder,
           select: () => builder,
@@ -72,6 +76,7 @@ describe("reconcilePayment", () => {
     sendPaymentSms.mockReset();
     maybeSingle.mockReset();
     bookingsUpdateEq.mockClear();
+    capturedPaymentUpdate = null;
   });
 
   it("is a no-op when the payment is already captured", async () => {
@@ -123,7 +128,23 @@ describe("reconcilePayment", () => {
     const result = await reconcilePayment(makePayment());
 
     expect(result.captured).toBe(false);
+    expect(capturedPaymentUpdate?.status).toBe("failed");
     expect(sendInvoiceEmails).not.toHaveBeenCalled();
     expect(sendPaymentSms).not.toHaveBeenCalled();
+  });
+
+  it("leaves the payment pending (not failed) when the gateway is not yet final", async () => {
+    retrieveOrder.mockResolvedValue({ result: "PENDING", status: "PENDING" });
+    maybeSingle.mockResolvedValue({ data: { id: "pay-1" }, error: null });
+
+    const result = await reconcilePayment(makePayment());
+
+    expect(result.captured).toBe(false);
+    expect(result.alreadyFinalized).toBe(false);
+    // The M7 fix: a non-terminal order must NOT be written as "failed".
+    expect(capturedPaymentUpdate?.status).toBe("pending");
+    expect(sendInvoiceEmails).not.toHaveBeenCalled();
+    expect(sendPaymentSms).not.toHaveBeenCalled();
+    expect(bookingsUpdateEq).not.toHaveBeenCalled();
   });
 });

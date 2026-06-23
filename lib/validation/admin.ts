@@ -36,9 +36,14 @@ export const packageAdminSchema = z.object({
   sortOrder: z.coerce.number().int().default(0),
 });
 
-export const statusUpdateSchema = z.object({
+export const enquiryStatusUpdateSchema = z.object({
   id: z.uuid(),
-  status: z.string().trim().min(2).max(40),
+  status: z.enum(["new", "contacted", "closed"]),
+});
+
+export const bookingStatusUpdateSchema = z.object({
+  id: z.uuid(),
+  status: z.enum(["new", "confirmed", "awaiting_payment", "paid", "cancelled"]),
 });
 
 export const settingsSchema = z.object({

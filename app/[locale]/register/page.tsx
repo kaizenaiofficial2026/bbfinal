@@ -33,6 +33,21 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           <div className="container" style={{ maxWidth: "560px" }}>
             <form className="booking-form" action={registerAction}>
               {next ? <input type="hidden" name="next" value={next} /> : null}
+              {/* Honeypot — hidden from humans; bots fill it and are rejected. */}
+              <input
+                type="text"
+                name="company"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  left: "-9999px",
+                  width: "1px",
+                  height: "1px",
+                  opacity: 0,
+                }}
+              />
               <div className="form-grid">
                 <div className="form-field full">
                   <label htmlFor="register-name">{t("fullName")}</label>
