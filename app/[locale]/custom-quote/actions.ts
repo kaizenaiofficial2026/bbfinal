@@ -6,7 +6,8 @@ import {
   createCustomInquiry,
 } from "@/lib/data/custom-inquiries";
 import { sendCustomInquiryEmails } from "@/lib/email/send";
-import { getRequestIpHash } from "@/lib/security/request";
+import { sendInquirySms } from "@/lib/sms/send";
+import { generateInquiryReference, getRequestIpHash } from "@/lib/security/request";
 import { canUseSupabaseService } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/types";
 import {
@@ -163,6 +164,10 @@ export async function submitCustomInquiry(
       passportNumber: data.passportNumber || null,
       lines,
     });
+
+    // Business-facing SMS notification (fail-soft — sendInquirySms never throws).
+    // The reference is generated for the SMS only; it is not persisted.
+    await sendInquirySms({ reference: generateInquiryReference() });
 
     return {
       ok: true,

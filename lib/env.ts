@@ -28,6 +28,15 @@ export const env = {
   mpgsCurrency: process.env.MPGS_CURRENCY ?? "LKR",
   mpgsWebhookSecret: process.env.MPGS_WEBHOOK_SECRET,
   payLinkTtlHours: Number(process.env.PAY_LINK_TTL_HOURS ?? 72),
+  // SMS notifications (smslenz.lk). Off by default; enable only once creds + the
+  // business mobile are configured. sender_id ("SMS Nick Name") must be an
+  // smslenz-approved sender — use "SMSlenzDEMO" for testing, "BB Tours SL" in prod.
+  smsEnabled: bool(process.env.SMS_ENABLED),
+  smsBaseUrl: process.env.SMS_BASE_URL ?? "https://smslenz.lk/api/send-sms",
+  smsUserId: process.env.SMS_USER_ID,
+  smsApiKey: process.env.SMS_API_KEY,
+  smsSenderId: process.env.SMS_SENDER_ID ?? "SMSlenzDEMO",
+  smsTeamContact: process.env.SMS_TEAM_CONTACT,
 };
 
 export function hasSupabasePublicEnv() {

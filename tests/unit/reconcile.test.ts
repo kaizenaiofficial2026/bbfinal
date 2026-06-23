@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const retrieveOrder = vi.fn();
 const sendInvoiceEmails = vi.fn();
+const sendPaymentSms = vi.fn();
 const maybeSingle = vi.fn();
 const bookingsUpdateEq = vi.fn(async () => ({ data: null, error: null }));
 
@@ -11,6 +12,10 @@ vi.mock("@/lib/payments/mpgs", () => ({
 
 vi.mock("@/lib/email/send", () => ({
   sendInvoiceEmails: (...args: unknown[]) => sendInvoiceEmails(...args),
+}));
+
+vi.mock("@/lib/sms/send", () => ({
+  sendPaymentSms: (...args: unknown[]) => sendPaymentSms(...args),
 }));
 
 vi.mock("@/lib/supabase/service", () => ({
@@ -64,6 +69,7 @@ describe("reconcilePayment", () => {
   beforeEach(() => {
     retrieveOrder.mockReset();
     sendInvoiceEmails.mockReset();
+    sendPaymentSms.mockReset();
     maybeSingle.mockReset();
     bookingsUpdateEq.mockClear();
   });
@@ -89,6 +95,12 @@ describe("reconcilePayment", () => {
     expect(result.captured).toBe(true);
     expect(result.alreadyFinalized).toBe(false);
     expect(sendInvoiceEmails).toHaveBeenCalledTimes(1);
+    expect(sendPaymentSms).toHaveBeenCalledTimes(1);
+    expect(sendPaymentSms).toHaveBeenCalledWith({
+      reference: "BB-AAAA",
+      amount: 1000,
+      currency: "LKR",
+    });
     expect(bookingsUpdateEq).toHaveBeenCalledTimes(1);
   });
 
@@ -101,6 +113,7 @@ describe("reconcilePayment", () => {
 
     expect(result.captured).toBe(true);
     expect(sendInvoiceEmails).not.toHaveBeenCalled();
+    expect(sendPaymentSms).not.toHaveBeenCalled();
   });
 
   it("marks failed and sends nothing when the gateway does not confirm", async () => {
@@ -111,5 +124,6 @@ describe("reconcilePayment", () => {
 
     expect(result.captured).toBe(false);
     expect(sendInvoiceEmails).not.toHaveBeenCalled();
+    expect(sendPaymentSms).not.toHaveBeenCalled();
   });
 });

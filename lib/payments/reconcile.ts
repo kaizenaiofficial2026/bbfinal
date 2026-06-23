@@ -2,6 +2,7 @@ import "server-only";
 
 import type { PaymentWithBooking } from "@/lib/data/payments";
 import { sendInvoiceEmails } from "@/lib/email/send";
+import { sendPaymentSms } from "@/lib/sms/send";
 import { retrieveOrder } from "@/lib/payments/mpgs";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
@@ -62,6 +63,14 @@ export async function reconcilePayment(
       amount: payment.amount,
       currency: payment.currency,
       transactionId: order.transaction?.[0]?.transaction?.id ?? null,
+    });
+
+    // Business-facing SMS notification (fail-soft — sendPaymentSms never throws).
+    // Inside the guarded transition block, so it fires exactly once.
+    await sendPaymentSms({
+      reference: payment.bookings.reference,
+      amount: payment.amount,
+      currency: payment.currency,
     });
   }
 
