@@ -257,24 +257,32 @@ export default function SiteEffects() {
 
     async function waitForPageAssets(onProgress: (progress: number) => void) {
       const videos = Array.from(document.querySelectorAll("video"));
-      // Video posters aren't part of document.images, so collect them too and
-      // load them alongside the regular images.
-      const posterUrls = videos
-        .map((video) => video.getAttribute("poster"))
-        .filter((src): src is string => Boolean(src));
-
-      const imageUrls = [
-        ...Array.from(document.images).map(
-          (img) => img.currentSrc || img.getAttribute("src"),
+      // Video posters aren't part of document.images, so collect them separately.
+      const posterUrls = Array.from(
+        new Set(
+          videos
+            .map((video) => video.getAttribute("poster"))
+            .filter((src): src is string => Boolean(src))
+            .map((src) => new URL(src, document.baseURI).href),
         ),
-        ...posterUrls,
-      ]
-        .filter((src): src is string => Boolean(src))
-        .map((src) => new URL(src, document.baseURI).href);
+      );
 
-      const uniqueImageUrls = Array.from(new Set(imageUrls));
+      // Wait on the live <img> elements rather than cloning their `src`. This
+      // matters specifically for next/image: (1) below-the-fold images render
+      // with loading="lazy", so we promote them to eager here to actually pull
+      // them in DURING the preloader instead of letting them stream in on scroll
+      // afterwards; (2) awaiting the real element loads the exact srcset
+      // candidate it will display (driven by its `sizes`), so there is no second
+      // fetch — and no pop-in — when it later enters the viewport. A cloned
+      // `new Image(src)` would warm the wrong (largest fallback) candidate.
+      const imgEls = Array.from(document.images);
+      imgEls.forEach((img) => {
+        if (img.loading === "lazy") img.loading = "eager";
+      });
+
       const tasks = [
-        ...uniqueImageUrls.map((src) => loadImage(src)),
+        ...imgEls.map((img) => decodeImageElement(img)),
+        ...posterUrls.map((src) => loadImage(src)),
         ...videos.map((video) => loadVideo(video)),
         waitForFonts(),
         waitForDocumentLoad(),
@@ -315,6 +323,35 @@ export default function SiteEffects() {
         img.src = src;
 
         if (img.complete) finish();
+      });
+    }
+
+    // Wait for an <img> already in the DOM to finish loading AND decoding, so the
+    // preloader only lifts once the pixels are ready to paint. Resolves (never
+    // rejects) on error so one broken asset can't hold the intro hostage.
+    function decodeImageElement(img: HTMLImageElement) {
+      return new Promise<void>((resolve) => {
+        const settle = () => {
+          img.removeEventListener("load", settle);
+          img.removeEventListener("error", settle);
+          if (img.decode) {
+            img
+              .decode()
+              .catch(() => undefined)
+              .finally(() => resolve());
+          } else {
+            resolve();
+          }
+        };
+
+        if (img.complete && img.naturalWidth > 0) {
+          settle();
+          return;
+        }
+
+        // `error` settles too — a missing asset must not stall the preloader.
+        img.addEventListener("load", settle, { once: true });
+        img.addEventListener("error", settle, { once: true });
       });
     }
 
