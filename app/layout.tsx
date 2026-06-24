@@ -10,7 +10,6 @@ import {
   Noto_Sans_Telugu,
 } from "next/font/google";
 import { getLocale } from "next-intl/server";
-import { Analytics } from "@vercel/analytics/next";
 import CookieConsent from "@/components/CookieConsent";
 import PageviewTracker from "@/components/PageviewTracker";
 import { isRtl } from "@/i18n/routing";
@@ -96,8 +95,25 @@ export const metadata: Metadata = {
   },
   description:
     "Beyond Borders designs private Sri Lanka journeys across ancient cities, tea country, leopard country and golden shores — handcrafted in Colombo.",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   icons: {
     icon: "/assets/images/brand/favicon.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Beyond Borders",
+    title: "Beyond Borders | The Travel Partner",
+    description:
+      "Private Sri Lanka journeys across ancient cities, tea country, leopard country and golden shores — handcrafted in Colombo.",
+    images: ["/assets/images/brand/logo.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Beyond Borders | The Travel Partner",
+    description:
+      "Private Sri Lanka journeys, handcrafted in Colombo by Beyond Borders.",
   },
 };
 
@@ -117,7 +133,6 @@ export default async function RootLayout({
       <body className="is-loading">
         {children}
         <CookieConsent />
-        <Analytics />
         <PageviewTracker />
       </body>
     </html>

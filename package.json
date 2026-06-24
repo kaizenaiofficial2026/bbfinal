@@ -14,7 +14,10 @@
     "sms:verify": "tsx scripts/verify-sms.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:security": "node tests/security/audit.mjs",
     "test:e2e": "playwright test",
+    "test:all": "node tests/run-all.mjs",
     "react:scan": "react-scan http://localhost:3000"
   },
   "dependencies": {
@@ -33,6 +36,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -42,6 +46,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.9",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.9",
