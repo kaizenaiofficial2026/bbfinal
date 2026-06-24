@@ -128,7 +128,21 @@
     "noBookings": "آپ کی ابھی کوئی بکنگ نہیں ہے۔",
     "journey": "سفر",
     "continuePayment": "ادائیگی جاری رکھیں",
-    "signOut": "سائن آؤٹ"
+    "signOut": "سائن آؤٹ",
+    "forgotTitle": "Forgot your password?",
+    "forgotSummary": "Enter your email and we'll send a 6-digit code to reset your password.",
+    "forgotCta": "Send reset code",
+    "forgotLink": "Forgot password?",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Set a new password",
+    "resetSummary": "Enter the code we emailed you and choose a new password.",
+    "codeLabel": "Reset code",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "resetCta": "Update password",
+    "resetSentNote": "If an account exists for that email, we've sent a 6-digit code. It expires in 15 minutes.",
+    "resendCode": "Didn't get a code? Request another",
+    "resetSuccessNote": "Your password has been updated. Please sign in."
   },
   "pay": {
     "heroTitle": "محفوظ ادائیگی",
@@ -341,6 +355,10 @@
     "tooManyInquiries": "اس کنکشن سے بہت زیادہ حالیہ استفسارات۔ براہ کرم بعد میں دوبارہ کوشش کریں۔",
     "inquirySuccess": "شکریہ۔ آپ کا استفسار موصول ہو گیا ہے — ہماری ٹیم ای میل کے ذریعے جواب دے گی۔",
     "inquiryError": "ہم آپ کا استفسار جمع نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں یا ٹیم سے براہ راست رابطہ کریں۔",
-    "couldNotCreateAccount": "آپ کا اکاؤنٹ نہیں بنایا جا سکا۔"
+    "couldNotCreateAccount": "آپ کا اکاؤنٹ نہیں بنایا جا سکا۔",
+    "resetInvalidCode": "That code is invalid. Please check and try again.",
+    "resetCodeExpired": "That code has expired. Please request a new one.",
+    "resetTooMany": "Too many attempts. Please request a new code.",
+    "resetServerError": "Something went wrong. Please try again."
   }
 }

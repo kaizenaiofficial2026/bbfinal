@@ -13,3 +13,27 @@ export const registerSchema = z.object({
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const requestResetSchema = z.object({
+  email: z.email("Please enter a valid email address.").max(180),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    email: z.email("Please enter a valid email address.").max(180),
+    code: z
+      .string()
+      .trim()
+      .regex(/^\d{6}$/, "Enter the 6-digit code from your email."),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters.")
+      .max(200),
+    confirm: z.string(),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "Passwords do not match.",
+    path: ["confirm"],
+  });
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

@@ -128,7 +128,21 @@
     "noBookings": "ನಿಮಗೆ ಇನ್ನೂ ಯಾವುದೇ ಬುಕಿಂಗ್ ಇಲ್ಲ.",
     "journey": "ಪ್ರಯಾಣ",
     "continuePayment": "ಪಾವತಿ ಮುಂದುವರಿಸಿ",
-    "signOut": "ಸೈನ್ ಔಟ್"
+    "signOut": "ಸೈನ್ ಔಟ್",
+    "forgotTitle": "Forgot your password?",
+    "forgotSummary": "Enter your email and we'll send a 6-digit code to reset your password.",
+    "forgotCta": "Send reset code",
+    "forgotLink": "Forgot password?",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Set a new password",
+    "resetSummary": "Enter the code we emailed you and choose a new password.",
+    "codeLabel": "Reset code",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "resetCta": "Update password",
+    "resetSentNote": "If an account exists for that email, we've sent a 6-digit code. It expires in 15 minutes.",
+    "resendCode": "Didn't get a code? Request another",
+    "resetSuccessNote": "Your password has been updated. Please sign in."
   },
   "pay": {
     "heroTitle": "ಸುರಕ್ಷಿತ ಪಾವತಿ",
@@ -341,6 +355,10 @@
     "tooManyInquiries": "ಈ ಸಂಪರ್ಕದಿಂದ ತುಂಬಾ ಇತ್ತೀಚಿನ ವಿಚಾರಣೆಗಳು. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
     "inquirySuccess": "ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ವಿಚಾರಣೆಯನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆ — ನಮ್ಮ ತಂಡ ಇಮೇಲ್ ಮೂಲಕ ಉತ್ತರಿಸುತ್ತದೆ.",
     "inquiryError": "ನಾವು ನಿಮ್ಮ ವಿಚಾರಣೆಯನ್ನು ಸಲ್ಲಿಸಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ತಂಡವನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.",
-    "couldNotCreateAccount": "ನಿಮ್ಮ ಖಾತೆಯನ್ನು ರಚಿಸಲಾಗಲಿಲ್ಲ."
+    "couldNotCreateAccount": "ನಿಮ್ಮ ಖಾತೆಯನ್ನು ರಚಿಸಲಾಗಲಿಲ್ಲ.",
+    "resetInvalidCode": "That code is invalid. Please check and try again.",
+    "resetCodeExpired": "That code has expired. Please request a new one.",
+    "resetTooMany": "Too many attempts. Please request a new code.",
+    "resetServerError": "Something went wrong. Please try again."
   }
 }

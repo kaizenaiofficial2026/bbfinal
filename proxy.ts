@@ -86,7 +86,12 @@ export async function proxy(request: NextRequest) {
   // /admin/* is not localized. Gate everything except the login page; never
   // hand admin routes to the i18n middleware.
   if (pathname.startsWith("/admin")) {
-    if (pathname.startsWith("/admin/login")) {
+    // Pre-auth pages: login + the forgot/reset-password flow.
+    if (
+      pathname.startsWith("/admin/login") ||
+      pathname.startsWith("/admin/forgot-password") ||
+      pathname.startsWith("/admin/reset-password")
+    ) {
       return NextResponse.next();
     }
     return requireStaffSession(request);

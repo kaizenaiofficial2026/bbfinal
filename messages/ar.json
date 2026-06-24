@@ -128,7 +128,21 @@
     "noBookings": "ليس لديك أي حجوزات بعد.",
     "journey": "رحلة",
     "continuePayment": "متابعة الدفع",
-    "signOut": "تسجيل الخروج"
+    "signOut": "تسجيل الخروج",
+    "forgotTitle": "Forgot your password?",
+    "forgotSummary": "Enter your email and we'll send a 6-digit code to reset your password.",
+    "forgotCta": "Send reset code",
+    "forgotLink": "Forgot password?",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Set a new password",
+    "resetSummary": "Enter the code we emailed you and choose a new password.",
+    "codeLabel": "Reset code",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "resetCta": "Update password",
+    "resetSentNote": "If an account exists for that email, we've sent a 6-digit code. It expires in 15 minutes.",
+    "resendCode": "Didn't get a code? Request another",
+    "resetSuccessNote": "Your password has been updated. Please sign in."
   },
   "pay": {
     "heroTitle": "دفع آمن",
@@ -341,6 +355,10 @@
     "tooManyInquiries": "عدد كبير جدًا من الاستفسارات الأخيرة من هذا الاتصال. يرجى المحاولة لاحقًا.",
     "inquirySuccess": "شكرًا لك. تم استلام استفسارك — سيرد فريقنا عبر البريد الإلكتروني.",
     "inquiryError": "تعذر إرسال استفسارك. يرجى المحاولة مرة أخرى أو التواصل مع الفريق مباشرة.",
-    "couldNotCreateAccount": "تعذر إنشاء حسابك."
+    "couldNotCreateAccount": "تعذر إنشاء حسابك.",
+    "resetInvalidCode": "That code is invalid. Please check and try again.",
+    "resetCodeExpired": "That code has expired. Please request a new one.",
+    "resetTooMany": "Too many attempts. Please request a new code.",
+    "resetServerError": "Something went wrong. Please try again."
   }
 }

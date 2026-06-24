@@ -128,7 +128,21 @@
     "noBookings": "आपकी अभी तक कोई बुकिंग नहीं है।",
     "journey": "यात्रा",
     "continuePayment": "भुगतान जारी रखें",
-    "signOut": "साइन आउट"
+    "signOut": "साइन आउट",
+    "forgotTitle": "Forgot your password?",
+    "forgotSummary": "Enter your email and we'll send a 6-digit code to reset your password.",
+    "forgotCta": "Send reset code",
+    "forgotLink": "Forgot password?",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Set a new password",
+    "resetSummary": "Enter the code we emailed you and choose a new password.",
+    "codeLabel": "Reset code",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "resetCta": "Update password",
+    "resetSentNote": "If an account exists for that email, we've sent a 6-digit code. It expires in 15 minutes.",
+    "resendCode": "Didn't get a code? Request another",
+    "resetSuccessNote": "Your password has been updated. Please sign in."
   },
   "pay": {
     "heroTitle": "सुरक्षित भुगतान",
@@ -341,6 +355,10 @@
     "tooManyInquiries": "इस कनेक्शन से बहुत अधिक हालिया पूछताछ। कृपया बाद में पुनः प्रयास करें।",
     "inquirySuccess": "धन्यवाद। आपकी पूछताछ प्राप्त हो गई है — हमारी टीम ईमेल द्वारा जवाब देगी।",
     "inquiryError": "हम आपकी पूछताछ सबमिट नहीं कर सके। कृपया पुनः प्रयास करें या टीम से सीधे संपर्क करें।",
-    "couldNotCreateAccount": "आपका खाता नहीं बनाया जा सका।"
+    "couldNotCreateAccount": "आपका खाता नहीं बनाया जा सका।",
+    "resetInvalidCode": "That code is invalid. Please check and try again.",
+    "resetCodeExpired": "That code has expired. Please request a new one.",
+    "resetTooMany": "Too many attempts. Please request a new code.",
+    "resetServerError": "Something went wrong. Please try again."
   }
 }

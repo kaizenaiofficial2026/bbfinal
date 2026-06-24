@@ -1,20 +1,27 @@
+import Link from "next/link";
 import { signInAction } from "../actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 
 type LoginPageProps = {
   searchParams: Promise<{
     error?: string;
+    reset?: string;
   }>;
 };
 
 export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
-  const { error } = await searchParams;
+  const { error, reset } = await searchParams;
 
   return (
     <main className="admin-login">
       <form className="admin-card admin-login-card" action={signInAction}>
         <span className="section-kicker">Staff access</span>
         <h1>Admin login</h1>
+        {reset ? (
+          <p className="admin-note-success" role="status">
+            Your password has been updated. Please sign in.
+          </p>
+        ) : null}
         {error ? (
           <p className="admin-alert" role="alert">
             {error}
@@ -34,6 +41,11 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
           />
         </label>
         <SubmitButton pendingLabel="Signing in…">Sign in</SubmitButton>
+        <p className="admin-muted">
+          <Link className="admin-back" href="/admin/forgot-password">
+            Forgot password?
+          </Link>
+        </p>
       </form>
     </main>
   );

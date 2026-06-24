@@ -16,6 +16,16 @@ import {
 } from "@/lib/validation/admin";
 import { revalidateDestinations } from "@/lib/data/destinations";
 import { revalidatePackages } from "@/lib/data/packages";
+import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
+import { getRequestIpHash } from "@/lib/security/request";
+import {
+  requestResetSchema,
+  resetPasswordSchema,
+} from "@/lib/validation/account";
+import {
+  createAndSendResetCode,
+  verifyAndReset,
+} from "@/lib/auth/password-reset";
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
@@ -89,6 +99,82 @@ export async function signOutAction() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   redirect("/admin/login");
+}
+
+export async function requestAdminResetAction(formData: FormData) {
+  const parsed = requestResetSchema.safeParse({
+    email: formString(formData, "email"),
+  });
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "Please check the form.";
+    redirect(`/admin/forgot-password?error=${encodeURIComponent(message)}`);
+  }
+
+  const ipHash = await getRequestIpHash();
+  const rate = await checkAndRecordRateLimit(
+    "admin-password-reset-request",
+    ipHash,
+    { max: 5, windowMinutes: 30 },
+  );
+  if (!rate.allowed) {
+    redirect(
+      `/admin/forgot-password?error=${encodeURIComponent("Please wait a moment before trying again.")}`,
+    );
+  }
+
+  const email = parsed.data.email;
+  const resetUrl = `${env.siteUrl}/admin/reset-password?email=${encodeURIComponent(email)}`;
+  await createAndSendResetCode({ email, audience: "admin", resetUrl });
+
+  redirect(`/admin/reset-password?email=${encodeURIComponent(email)}&sent=1`);
+}
+
+export async function resetAdminPasswordAction(formData: FormData) {
+  const email = formString(formData, "email");
+
+  const back = (message: string): never =>
+    redirect(
+      `/admin/reset-password?email=${encodeURIComponent(email)}&error=${encodeURIComponent(message)}`,
+    );
+
+  const parsed = resetPasswordSchema.safeParse({
+    email,
+    code: formString(formData, "code"),
+    password: formString(formData, "password"),
+    confirm: formString(formData, "confirm"),
+  });
+  if (!parsed.success) {
+    return back(parsed.error.issues[0]?.message ?? "Please check the form.");
+  }
+
+  const ipHash = await getRequestIpHash();
+  const rate = await checkAndRecordRateLimit(
+    "admin-password-reset-verify",
+    ipHash,
+    { max: 10, windowMinutes: 15 },
+  );
+  if (!rate.allowed) {
+    return back("Please wait a moment before trying again.");
+  }
+
+  const result = await verifyAndReset({
+    email: parsed.data.email,
+    code: parsed.data.code,
+    newPassword: parsed.data.password,
+    audience: "admin",
+  });
+
+  if (!result.ok) {
+    const messages: Record<typeof result.reason, string> = {
+      invalid: "That code is invalid. Please check and try again.",
+      expired: "That code has expired. Please request a new one.",
+      too_many: "Too many attempts. Please request a new code.",
+      server: "Something went wrong. Please try again.",
+    };
+    return back(messages[result.reason]);
+  }
+
+  redirect("/admin/login?reset=1");
 }
 
 export async function saveDestinationAction(formData: FormData) {

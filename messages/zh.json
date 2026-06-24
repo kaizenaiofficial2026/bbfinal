@@ -128,7 +128,21 @@
     "noBookings": "你还没有任何预订。",
     "journey": "旅程",
     "continuePayment": "继续付款",
-    "signOut": "退出登录"
+    "signOut": "退出登录",
+    "forgotTitle": "Forgot your password?",
+    "forgotSummary": "Enter your email and we'll send a 6-digit code to reset your password.",
+    "forgotCta": "Send reset code",
+    "forgotLink": "Forgot password?",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Set a new password",
+    "resetSummary": "Enter the code we emailed you and choose a new password.",
+    "codeLabel": "Reset code",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "resetCta": "Update password",
+    "resetSentNote": "If an account exists for that email, we've sent a 6-digit code. It expires in 15 minutes.",
+    "resendCode": "Didn't get a code? Request another",
+    "resetSuccessNote": "Your password has been updated. Please sign in."
   },
   "pay": {
     "heroTitle": "安全支付",
@@ -341,6 +355,10 @@
     "tooManyInquiries": "来自此连接的近期咨询过多。请稍后再试。",
     "inquirySuccess": "谢谢。您的咨询已收到——我们的团队将通过电子邮件回复。",
     "inquiryError": "我们无法提交您的咨询。请重试或直接联系团队。",
-    "couldNotCreateAccount": "无法创建您的账户。"
+    "couldNotCreateAccount": "无法创建您的账户。",
+    "resetInvalidCode": "That code is invalid. Please check and try again.",
+    "resetCodeExpired": "That code has expired. Please request a new one.",
+    "resetTooMany": "Too many attempts. Please request a new code.",
+    "resetServerError": "Something went wrong. Please try again."
   }
 }

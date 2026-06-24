@@ -15,6 +15,7 @@ import {
   CustomInquiryStaffNotification,
   type InquiryLine,
 } from "./templates/custom-inquiry";
+import { PasswordResetCode } from "./templates/password-reset";
 
 type SendResult = {
   skipped: boolean;
@@ -145,6 +146,25 @@ export async function sendRegistrationEmails(input: {
       ),
     }),
   ]);
+}
+
+export async function sendPasswordResetEmail(input: {
+  email: string;
+  code: string;
+  resetUrl: string;
+  ttlMinutes: number;
+}) {
+  await sendEmail({
+    to: input.email,
+    subject: "Your Beyond Borders password reset code",
+    react: (
+      <PasswordResetCode
+        code={input.code}
+        resetUrl={input.resetUrl}
+        ttlMinutes={input.ttlMinutes}
+      />
+    ),
+  });
 }
 
 export async function sendAccountVerifiedEmail(input: {

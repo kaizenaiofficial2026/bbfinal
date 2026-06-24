@@ -128,7 +128,21 @@
     "noBookings": "మీకు ఇంకా బుకింగ్‌లు లేవు.",
     "journey": "ప్రయాణం",
     "continuePayment": "చెల్లింపు కొనసాగించండి",
-    "signOut": "సైన్ అవుట్"
+    "signOut": "సైన్ అవుట్",
+    "forgotTitle": "Forgot your password?",
+    "forgotSummary": "Enter your email and we'll send a 6-digit code to reset your password.",
+    "forgotCta": "Send reset code",
+    "forgotLink": "Forgot password?",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Set a new password",
+    "resetSummary": "Enter the code we emailed you and choose a new password.",
+    "codeLabel": "Reset code",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "resetCta": "Update password",
+    "resetSentNote": "If an account exists for that email, we've sent a 6-digit code. It expires in 15 minutes.",
+    "resendCode": "Didn't get a code? Request another",
+    "resetSuccessNote": "Your password has been updated. Please sign in."
   },
   "pay": {
     "heroTitle": "సురక్షిత చెల్లింపు",
@@ -341,6 +355,10 @@
     "tooManyInquiries": "ఈ కనెక్షన్ నుండి చాలా ఇటీవలి విచారణలు. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.",
     "inquirySuccess": "ధన్యవాదాలు. మీ విచారణ అందుకోబడింది — మా బృందం ఇమెయిల్ ద్వారా సమాధానమిస్తుంది.",
     "inquiryError": "మేము మీ విచారణను సమర్పించలేకపోయాము. దయచేసి మళ్లీ ప్రయత్నించండి లేదా బృందాన్ని నేరుగా సంప్రదించండి.",
-    "couldNotCreateAccount": "మీ ఖాతాను సృష్టించలేకపోయాము."
+    "couldNotCreateAccount": "మీ ఖాతాను సృష్టించలేకపోయాము.",
+    "resetInvalidCode": "That code is invalid. Please check and try again.",
+    "resetCodeExpired": "That code has expired. Please request a new one.",
+    "resetTooMany": "Too many attempts. Please request a new code.",
+    "resetServerError": "Something went wrong. Please try again."
   }
 }

@@ -11,11 +11,11 @@ export const metadata: Metadata = {
 };
 
 type LoginPageProps = {
-  searchParams: Promise<{ error?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; next?: string; reset?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { error, next } = await searchParams;
+  const { error, next, reset } = await searchParams;
   const t = await getTranslations("auth");
   const registerHref = next ? `/register?next=${encodeURIComponent(next)}` : "/register";
 
@@ -32,6 +32,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <div className="container" style={{ maxWidth: "560px" }}>
             <form className="booking-form" action={loginAction}>
               {next ? <input type="hidden" name="next" value={next} /> : null}
+              {reset ? (
+                <p className="form-note" aria-live="polite">
+                  {t("resetSuccessNote")}
+                </p>
+              ) : null}
               <div className="form-grid">
                 <div className="form-field full">
                   <label htmlFor="login-email">{t("email")}</label>
@@ -46,6 +51,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 <button className="btn btn-primary" type="submit">{t("signIn")}</button>
                 {error ? <p className="form-note" aria-live="polite">{error}</p> : null}
               </div>
+              <p className="form-note">
+                <Link href="/forgot-password">{t("forgotLink")}</Link>
+              </p>
               <p className="form-note">
                 {t("newHere")} <Link href={registerHref}>{t("createAccountLink")}</Link>.
               </p>
