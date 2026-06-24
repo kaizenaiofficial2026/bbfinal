@@ -1,4 +1,14 @@
+import { readFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
+
+/** Entities created by auth.setup.ts (admin creds, verified customer, pending). */
+export function readTestState(): {
+  admin: { email: string; password: string };
+  customer: { id: string; email: string; password: string };
+  pending: { id: string; email: string; password: string };
+} {
+  return JSON.parse(readFileSync("tests/.auth/state.json", "utf8"));
+}
 
 /** Public, unauthenticated routes (English is unprefixed in this app). */
 export const PUBLIC_PAGES = [

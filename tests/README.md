@@ -14,8 +14,9 @@ non-zero if any gate fails):
 | 1. Type check | `npm run typecheck` | `tsc --noEmit` — no type errors |
 | 2. Lint | `npm run lint` | ESLint across the codebase |
 | 3. Unit & component (+coverage) | `npm run test:coverage` | Pure logic + React components, with coverage thresholds |
-| 4. Security audit | `npm run test:security` | Dependencies, secrets, key leakage, dangerous patterns |
-| 5. E2E / responsive / a11y / SEO / perf | `npm run test:e2e` | Real browser flows against the running app |
+| 4. Integration (test DB) | `npm run test:integration` | Server logic against the **test** Supabase: OTP reset, RLS, data, analytics |
+| 5. Security audit | `npm run test:security` | Dependencies, secrets, key leakage, dangerous patterns |
+| 6. E2E / responsive / a11y / SEO / perf | `npm run test:e2e` | Real browser flows (incl. authenticated admin + customer) |
 
 Each layer can also be run on its own (see the commands above).
 
@@ -37,6 +38,35 @@ Each layer can also be run on its own (see the commands above).
 ### Component (`tests/component/`, Vitest + Testing Library)
 - `PasswordInput` show/hide toggle, `StatusBadge` label/tone, `TourPackageList`
   pricing (shows/omits price correctly), and the contact/booking forms.
+
+### Integration (`tests/integration/`, Vitest — node, **test DB**)
+Runs the real server modules against the test Supabase (`tests/support/db.ts`
+creates/cleans data with the `@beyondborders.test` email domain):
+- **Password reset / OTP** — a real code is stored hashed and emailed (email
+  mocked); a valid code **actually changes the password** (re-login verified); a
+  wrong code is rejected + counted; expired codes fail; admin codes only go to
+  allowlisted staff.
+- **Row-Level Security** — anon clients can't read `customers` / `page_views` /
+  reset codes; a signed-in customer reads **only their own** profile; the service
+  role bypasses RLS.
+- **Data integrity** — 7 published packages, all USD-priced, the 3 new ones
+  present, every package has itinerary days.
+- **Analytics** — the overview RPCs return live figures; a recorded page view is
+  counted.
+
+### Authenticated E2E (`tests/e2e/*.authed.spec.ts`)
+A Playwright `setup` project (`auth.setup.ts`) creates an admin + a verified
+customer in the test DB and captures their sessions (`tests/.auth/`). Then:
+- **Admin** — dashboard (analytics + metrics), packages list, the staff
+  change-password form, and **real mutations**: verifying an applicant and
+  deactivating a login are confirmed in the database.
+- **Customer account** — the signed-in account page + the self-service
+  change-password card; the session isn't bounced to login.
+- **Booking → payment** — a verified customer submits a booking; the booking +
+  payment rows are created (`awaiting_payment` / `initiated`) and the flow
+  reaches the **MPGS hosted-checkout** pay page (traveller, amount, pay action).
+
+A global teardown removes all test-DB records after the run.
 
 ### End-to-end (`tests/e2e/`, Playwright — Chromium)
 - **smoke** — every public page returns < 400, has a title, and throws no
@@ -72,11 +102,20 @@ committed `.env`, no hardcoded private keys / JWTs / API secrets, the Supabase
 - **Dev server, served on demand.** E2E reuses a running `npm run dev` (or starts
   one). Playwright runs **1 worker locally** to avoid dev-compile contention; CI
   can raise `--workers`.
-- **Non-destructive by design.** Tests never complete write-path flows against the
-  live database (real registrations, real bookings, real payments). They verify
-  rendering, validation and gating. **Full write-path + payment E2E need a
-  dedicated seeded test database and an MPGS sandbox** — wire those env vars and
-  the booking/registration submit flows can be exercised end-to-end.
+- **Write-path runs against the TEST database** (`tests/support/db.ts`), and the
+  payment flow against the **MPGS test gateway**. All test data uses the
+  `@beyondborders.test` domain and is cleaned up automatically. Point these at a
+  fresh prod Supabase / live gateway later — the suite is unchanged.
+- **What's still left to a human / a richer environment:**
+  - **Completing a card on the MPGS sandbox** — tests reach the hosted-checkout
+    page and confirm the payment is *initiated*, but don't drive the third-party
+    bank UI to a captured transaction (+ the capture webhook). That's a manual
+    sandbox step.
+  - **Real email/SMS delivery** — sends are asserted/mocked, not delivered to an
+    inbox (SMTP is live; SMS is disabled).
+  - **Cross-browser / real devices** — Chromium only (no Firefox/WebKit/touch).
+  - **RTL visual correctness** (ar/ur) and translation *quality* across the 6
+    non-English locales.
 - **Performance** here is a dev-server *guardrail*. The real perf gate is a
   Lighthouse run against a production build (`npm run build && npm run start`).
 - **Coverage thresholds (65%)** are a ratchet just below the current coverage of

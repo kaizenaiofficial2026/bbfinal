@@ -19,6 +19,11 @@ const STAGES = [
     args: ["vitest", "run", "--coverage"],
   },
   {
+    name: "Integration — test DB (vitest)",
+    cmd: "npx",
+    args: ["vitest", "run", "-c", "vitest.integration.config.ts"],
+  },
+  {
     name: "Security audit",
     cmd: "node",
     args: ["tests/security/audit.mjs"],
