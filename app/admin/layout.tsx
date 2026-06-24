@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ScrollUnlock from "./ScrollUnlock";
 import { AdminNav } from "./_components/AdminNav";
+import AdminTopbar from "./_components/AdminTopbar";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,8 @@ export default function AdminLayout({
   return (
     <main className="admin-shell">
       <ScrollUnlock />
-      <aside className="admin-sidebar">
+      <AdminTopbar />
+      <aside className="admin-sidebar" id="adminSidebar">
         <Link
           className="admin-brand"
           href="/admin"

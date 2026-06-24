@@ -4710,6 +4710,14 @@ html.lenis body {
   border-bottom: 1px solid var(--line-soft);
 }
 
+/* Let long unbreakable values (e.g. a customer email) wrap instead of forcing
+   the table — and the page — to scroll sideways on narrow screens. */
+.admin-table a > span,
+.admin-table > div > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .admin-form,
 .admin-inline-form,
 .admin-detail {
@@ -4760,14 +4768,151 @@ html.lenis body {
   place-items: start center;
 }
 
+/* Mobile chrome (top bar + drawer backdrop) is hidden on desktop. */
+.admin-topbar,
+.admin-backdrop {
+  display: none;
+}
+
+/* The login screen renders inside the admin layout but is pre-auth — drop the
+   nav chrome so only the login card shows. */
+.admin-shell:has(.admin-login) .admin-topbar,
+.admin-shell:has(.admin-login) .admin-sidebar,
+.admin-shell:has(.admin-login) .admin-backdrop {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .admin-shell {
     grid-template-columns: 1fr;
   }
 
+  /* Sticky top bar carries the logo + hamburger so page content is visible
+     immediately instead of below the full nav list. */
+  .admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 60px;
+    padding: 0 16px;
+    background: var(--ink);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .admin-topbar-brand {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .admin-topbar .admin-logo {
+    width: 116px;
+  }
+
+  .admin-menu-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .admin-menu-toggle span {
+    position: relative;
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--paper);
+    transition: background 200ms var(--ease);
+  }
+
+  .admin-menu-toggle span::before,
+  .admin-menu-toggle span::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 20px;
+    height: 2px;
+    background: var(--paper);
+    transition: transform 240ms var(--ease);
+  }
+
+  .admin-menu-toggle span::before {
+    top: -6px;
+  }
+
+  .admin-menu-toggle span::after {
+    top: 6px;
+  }
+
+  body.admin-menu-open .admin-menu-toggle span {
+    background: transparent;
+  }
+
+  body.admin-menu-open .admin-menu-toggle span::before {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  body.admin-menu-open .admin-menu-toggle span::after {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  /* Sidebar becomes an off-canvas drawer. */
   .admin-sidebar {
-    position: static;
-    height: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 120;
+    width: min(82vw, 320px);
+    height: 100dvh;
+    padding: 24px;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 300ms var(--ease);
+    box-shadow: 26px 0 80px -44px rgba(0, 0, 0, 0.75);
+  }
+
+  body.admin-menu-open .admin-sidebar {
+    transform: translateX(0);
+  }
+
+  .admin-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: rgba(15, 13, 10, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms var(--ease);
+  }
+
+  body.admin-menu-open .admin-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  body.admin-menu-open {
+    overflow: hidden;
+  }
+
+  .admin-main {
+    padding: 24px 20px;
+  }
+
+  .admin-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 
   .admin-metrics {
@@ -4777,17 +4922,48 @@ html.lenis body {
 
 @media (max-width: 620px) {
   .admin-main {
-    padding: 22px;
+    padding: 20px 16px;
   }
 
-  .admin-head,
+  .admin-head h1,
+  .admin-stack h1 {
+    font-size: 26px;
+  }
+
+  /* Table rows become self-contained cards (the column header row is dropped,
+     so the long email no longer needs its own label). The descendant selector
+     out-specifies the base `.admin-table > div { display: grid }`. */
+  .admin-table .admin-table-head {
+    display: none;
+  }
+
   .admin-table a,
   .admin-table > div {
     grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
   }
 
-  .admin-metrics {
-    grid-template-columns: 1fr;
+  .admin-table a .admin-badge,
+  .admin-table > div .admin-badge {
+    justify-self: start;
+  }
+
+  .admin-metrics a {
+    padding: 16px;
+  }
+
+  .admin-metrics strong {
+    font-size: 26px;
+  }
+
+  .admin-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
 
