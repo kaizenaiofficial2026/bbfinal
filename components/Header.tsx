@@ -138,14 +138,9 @@ export default function Header({ account }: { account: HeaderAccount }) {
                 </form>
               </>
             ) : (
-              <>
-                <Link className="auth-secondary" href="/login">
-                  {tAuth("signIn")}
-                </Link>
-                <Link className="auth-primary" href="/register">
-                  {tAuth("createAccount")}
-                </Link>
-              </>
+              <Link className="auth-primary" href="/register">
+                {tAuth("createAccount")}
+              </Link>
             )}
           </div>
         </nav>
@@ -174,14 +169,9 @@ export default function Header({ account }: { account: HeaderAccount }) {
                 </form>
               </>
             ) : (
-              <>
-                <Link className="btn btn-line" href="/login">
-                  {tAuth("signIn")}
-                </Link>
-                <Link className="btn btn-primary" href="/register">
-                  {tAuth("createAccount")}
-                </Link>
-              </>
+              <Link className="btn btn-primary" href="/register">
+                {tAuth("createAccount")}
+              </Link>
             )}
           </div>
           <button
