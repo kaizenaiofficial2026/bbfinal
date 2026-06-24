@@ -3411,6 +3411,30 @@ body.menu-open .menu-toggle span::after {
   border-top: 1px solid var(--line);
 }
 
+/* Standalone reserve / awaiting / contact cards on the booking page (the cases
+   without a full form) sit on their own between the package panel above and the
+   rest of the page — give them the same card treatment as the surrounding boxes
+   and keep the actions grouped instead of spread to opposite edges. */
+.booking-main > .booking-form-section {
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+}
+
+.booking-main > .booking-form-section .form-note {
+  max-width: 46ch;
+}
+
+.booking-main > .booking-form-section .booking-submit-row {
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px 22px;
+  margin-top: 18px;
+}
+
 .booking-payment-preview {
   padding: 24px;
   border: 1px solid var(--line-gold);
