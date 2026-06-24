@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import PageHero from "@/components/PageHero";
-import SiteShell from "@/components/SiteShell";
+import AuthShell from "@/components/AuthShell";
+import PasswordInput from "@/components/PasswordInput";
 import { registerAction } from "../account/actions";
 
 export const metadata: Metadata = {
@@ -21,62 +21,150 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
   const loginHref = next ? `/login?next=${encodeURIComponent(next)}` : "/login";
 
   return (
-    <SiteShell>
-      <main>
-        <PageHero
-          title={t("registerTitle")}
-          label="Beyond Borders"
-          image="/assets/images/heroes/pricing-header.jpg"
-          summary={t("registerSummary")}
+    <AuthShell
+      title={t("registerTitle")}
+      subtitle={t("registerSummary")}
+      footer={
+        <p>
+          {t("haveAccount")} <Link href={loginHref}>{t("signIn")}</Link>
+        </p>
+      }
+    >
+      <form className="auth-form" action={registerAction}>
+        {next ? <input type="hidden" name="next" value={next} /> : null}
+        {/* Honeypot — hidden from humans; bots fill it and are rejected. */}
+        <input
+          type="text"
+          name="company"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            width: "1px",
+            height: "1px",
+            opacity: 0,
+          }}
         />
-        <section className="section section-paper">
-          <div className="container" style={{ maxWidth: "560px" }}>
-            <form className="booking-form" action={registerAction}>
-              {next ? <input type="hidden" name="next" value={next} /> : null}
-              {/* Honeypot — hidden from humans; bots fill it and are rejected. */}
-              <input
-                type="text"
-                name="company"
-                tabIndex={-1}
-                autoComplete="off"
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  left: "-9999px",
-                  width: "1px",
-                  height: "1px",
-                  opacity: 0,
-                }}
-              />
-              <div className="form-grid">
-                <div className="form-field full">
-                  <label htmlFor="register-name">{t("fullName")}</label>
-                  <input id="register-name" name="fullName" type="text" autoComplete="name" required />
-                </div>
-                <div className="form-field full">
-                  <label htmlFor="register-email">{t("email")}</label>
-                  <input id="register-email" name="email" type="email" autoComplete="email" required />
-                </div>
-                <div className="form-field full">
-                  <label htmlFor="register-phone">{t("phone")}</label>
-                  <input id="register-phone" name="phone" type="tel" autoComplete="tel" placeholder="+94 77 000 0000" />
-                </div>
-                <div className="form-field full">
-                  <label htmlFor="register-password">{t("password")}</label>
-                  <input id="register-password" name="password" type="password" autoComplete="new-password" minLength={8} required />
-                </div>
-              </div>
-              <div className="booking-submit-row">
-                <button className="btn btn-primary" type="submit">{t("createAccount")}</button>
-                {error ? <p className="form-note" aria-live="polite">{error}</p> : null}
-              </div>
-              <p className="form-note">
-                {t("haveAccount")} <Link href={loginHref}>{t("signIn")}</Link>.
-              </p>
-            </form>
+
+        <div className="auth-grid-2">
+          <div className="auth-field">
+            <label htmlFor="reg-first">{t("firstName")}</label>
+            <input
+              id="reg-first"
+              name="firstName"
+              type="text"
+              autoComplete="given-name"
+              required
+            />
           </div>
-        </section>
-      </main>
-    </SiteShell>
+          <div className="auth-field">
+            <label htmlFor="reg-last">{t("lastName")}</label>
+            <input
+              id="reg-last"
+              name="lastName"
+              type="text"
+              autoComplete="family-name"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="reg-email">{t("email")}</label>
+          <input
+            id="reg-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+          />
+        </div>
+
+        <div className="auth-grid-2">
+          <div className="auth-field">
+            <label htmlFor="reg-phone">{t("mobileNumber")}</label>
+            <input
+              id="reg-phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              placeholder="+94 77 000 0000"
+              required
+            />
+          </div>
+          <div className="auth-field">
+            <label htmlFor="reg-dob">{t("dateOfBirth")}</label>
+            <input id="reg-dob" name="dateOfBirth" type="date" required />
+          </div>
+        </div>
+
+        <div className="auth-grid-2">
+          <div className="auth-field">
+            <label htmlFor="reg-country">{t("country")}</label>
+            <input
+              id="reg-country"
+              name="country"
+              type="text"
+              autoComplete="country-name"
+              required
+            />
+          </div>
+          <div className="auth-field">
+            <label htmlFor="reg-city">{t("city")}</label>
+            <input
+              id="reg-city"
+              name="city"
+              type="text"
+              autoComplete="address-level2"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="auth-grid-2">
+          <div className="auth-field">
+            <label htmlFor="reg-passport">{t("passportNumber")}</label>
+            <input
+              id="reg-passport"
+              name="passportNumber"
+              type="text"
+              autoComplete="off"
+              required
+            />
+          </div>
+          <div className="auth-field">
+            <label htmlFor="reg-passport-exp">{t("passportExpiry")}</label>
+            <input
+              id="reg-passport-exp"
+              name="passportExpiry"
+              type="date"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="reg-password">{t("password")}</label>
+          <PasswordInput
+            id="reg-password"
+            name="password"
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
+        </div>
+
+        {error ? (
+          <p className="auth-alert" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <button className="btn btn-primary auth-submit" type="submit">
+          {t("createAccount")}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

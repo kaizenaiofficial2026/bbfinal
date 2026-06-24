@@ -8,11 +8,11 @@ import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   bookingStatusUpdateSchema,
+  changePasswordSchema,
   destinationAdminSchema,
   enquiryStatusUpdateSchema,
   lines,
   packageAdminSchema,
-  settingsSchema,
 } from "@/lib/validation/admin";
 import { revalidateDestinations } from "@/lib/data/destinations";
 import { revalidatePackages } from "@/lib/data/packages";
@@ -370,24 +370,124 @@ export async function verifyCustomerAction(formData: FormData) {
   revalidatePath("/admin/users");
 }
 
-export async function saveSettingsAction(formData: FormData) {
+/** Enable or disable a customer's login (separate from purchase verification). */
+export async function setCustomerActiveAction(formData: FormData) {
   await requireAdmin();
-  const parsed = settingsSchema.parse({
-    contactEmail: formString(formData, "contactEmail"),
-    phone: formString(formData, "phone"),
-    address: formString(formData, "address"),
-    heroCopy: formString(formData, "heroCopy"),
-  });
+  const customerId = formString(formData, "customerId");
+  const active = formString(formData, "active") === "true";
+
+  if (!customerId) {
+    throw new Error("Missing customer id.");
+  }
+
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("site_settings").upsert({
-    key: "site",
-    value: parsed,
-  });
+  const { error } = await supabase
+    .from("customers")
+    .update({ active })
+    .eq("id", customerId);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  revalidatePath("/admin/settings");
-  redirect("/admin/settings?saved=1");
+  revalidatePath("/admin/users");
+}
+
+/** Email the logged-in admin a one-time code for the change-password form. */
+export async function sendAdminPasswordOtpAction() {
+  const user = await requireAdmin();
+  const email = user.email;
+  if (!email) {
+    redirect(
+      `/admin/settings?error=${encodeURIComponent("Your account has no email on file.")}`,
+    );
+  }
+
+  const ipHash = await getRequestIpHash();
+  const rate = await checkAndRecordRateLimit(
+    "admin-password-change-otp",
+    ipHash,
+    { max: 5, windowMinutes: 30 },
+  );
+  if (!rate.allowed) {
+    redirect(
+      `/admin/settings?error=${encodeURIComponent("Please wait a moment before requesting another code.")}`,
+    );
+  }
+
+  const resetUrl = `${env.siteUrl}/admin/reset-password?email=${encodeURIComponent(email)}`;
+  await createAndSendResetCode({ email, audience: "admin", resetUrl });
+
+  redirect("/admin/settings?sent=1");
+}
+
+/**
+ * Change the logged-in admin's password. Requires the current password AND a
+ * one-time code emailed to the admin, then refreshes the session so they stay
+ * signed in with the new credentials.
+ */
+export async function changeAdminPasswordAction(formData: FormData) {
+  const user = await requireAdmin();
+  const email = user.email;
+
+  const back = (message: string): never =>
+    redirect(`/admin/settings?error=${encodeURIComponent(message)}`);
+
+  if (!email) {
+    return back("Your account has no email on file.");
+  }
+
+  const parsed = changePasswordSchema.safeParse({
+    oldPassword: formString(formData, "oldPassword"),
+    password: formString(formData, "password"),
+    confirm: formString(formData, "confirm"),
+    code: formString(formData, "code"),
+  });
+  if (!parsed.success) {
+    return back(parsed.error.issues[0]?.message ?? "Please check the form.");
+  }
+
+  const ipHash = await getRequestIpHash();
+  const rate = await checkAndRecordRateLimit("admin-password-change", ipHash, {
+    max: 10,
+    windowMinutes: 15,
+  });
+  if (!rate.allowed) {
+    return back("Too many attempts. Please wait a moment and try again.");
+  }
+
+  // 1) Confirm the current password by re-authenticating.
+  const supabase = await createSupabaseServerClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password: parsed.data.oldPassword,
+  });
+  if (signInError) {
+    return back("Your current password is incorrect.");
+  }
+
+  // 2) Verify the emailed code and apply the new password.
+  const result = await verifyAndReset({
+    email,
+    code: parsed.data.code,
+    newPassword: parsed.data.password,
+    audience: "admin",
+  });
+  if (!result.ok) {
+    const messages: Record<typeof result.reason, string> = {
+      invalid: "That code is invalid. Please check and try again.",
+      expired: "That code has expired. Please request a new one.",
+      too_many: "Too many attempts. Please request a new code.",
+      server: "Something went wrong. Please try again.",
+    };
+    return back(messages[result.reason]);
+  }
+
+  // 3) Refresh the session with the new password so the admin stays signed in.
+  await supabase.auth.signInWithPassword({
+    email,
+    password: parsed.data.password,
+  });
+
+  redirect("/admin/settings?changed=1");
 }

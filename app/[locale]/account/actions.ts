@@ -32,10 +32,16 @@ export async function registerAction(formData: FormData) {
   const locale = await getLocale();
   const next = safeNext(formString(formData, "next"));
   const parsed = registerSchema.safeParse({
-    fullName: formString(formData, "fullName"),
+    firstName: formString(formData, "firstName"),
+    lastName: formString(formData, "lastName"),
+    country: formString(formData, "country"),
+    city: formString(formData, "city"),
+    dateOfBirth: formString(formData, "dateOfBirth"),
+    passportNumber: formString(formData, "passportNumber"),
+    passportExpiry: formString(formData, "passportExpiry"),
     email: formString(formData, "email"),
-    password: formString(formData, "password"),
     phone: formString(formData, "phone"),
+    password: formString(formData, "password"),
     company: formString(formData, "company"),
   });
 
@@ -55,7 +61,19 @@ export async function registerAction(formData: FormData) {
     localeRedirect(withNext(`/register?error=${encodeURIComponent(t("waitMoment"))}`, next), locale);
   }
 
-  const { fullName, email, password, phone } = parsed.data;
+  const {
+    firstName,
+    lastName,
+    country,
+    city,
+    dateOfBirth,
+    passportNumber,
+    passportExpiry,
+    email,
+    password,
+    phone,
+  } = parsed.data;
+  const fullName = `${firstName} ${lastName}`.trim();
 
   const supabase = await createSupabaseServerClient();
   const { data: signUp, error } = await supabase.auth.signUp({
@@ -74,7 +92,19 @@ export async function registerAction(formData: FormData) {
   if (canUseSupabaseService()) {
     const service = createSupabaseServiceClient();
     const { error: insertError } = await service.from("customers").upsert(
-      { id: signUp.user.id, full_name: fullName, email, phone: phone || null },
+      {
+        id: signUp.user.id,
+        full_name: fullName,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
+        country,
+        city,
+        date_of_birth: dateOfBirth,
+        passport_number: passportNumber,
+        passport_expiry: passportExpiry,
+      },
       { onConflict: "id" },
     );
 
@@ -111,13 +141,30 @@ export async function loginAction(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: signIn, error } = await supabase.auth.signInWithPassword({
     email: formString(formData, "email"),
     password: formString(formData, "password"),
   });
 
   if (error) {
     localeRedirect(withNext(`/login?error=${encodeURIComponent(error.message)}`, next), locale);
+  }
+
+  // Deactivated by staff? Sign back out and explain instead of letting them in.
+  if (signIn.user) {
+    const { data: customer } = await supabase
+      .from("customers")
+      .select("active")
+      .eq("id", signIn.user.id)
+      .maybeSingle();
+    if (customer && customer.active === false) {
+      await supabase.auth.signOut();
+      const t = await getTranslations("serverActions");
+      localeRedirect(
+        withNext(`/login?error=${encodeURIComponent(t("accountDeactivated"))}`, next),
+        locale,
+      );
+    }
   }
 
   localeRedirect(next || "/account", locale);

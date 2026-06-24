@@ -5,6 +5,7 @@ import { listEnquiries } from "@/lib/data/enquiries";
 import { listAdminDestinations } from "@/lib/data/destinations";
 import { listAdminPackages } from "@/lib/data/packages";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
+import { AnalyticsPanel } from "@/app/admin/_components/AnalyticsPanel";
 
 export default async function AdminPage() {
   await requireAdmin();
@@ -25,6 +26,9 @@ export default async function AdminPage() {
           <h1>Operations overview</h1>
         </div>
       </div>
+
+      <AnalyticsPanel />
+
       <div className="admin-metrics">
         <Link href="/admin/packages">
           Packages <strong>{packages.length}</strong>

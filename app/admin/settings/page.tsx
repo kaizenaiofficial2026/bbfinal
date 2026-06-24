@@ -1,72 +1,110 @@
-import { saveSettingsAction } from "../actions";
+import Link from "next/link";
+import {
+  changeAdminPasswordAction,
+  sendAdminPasswordOtpAction,
+} from "../actions";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 
-type SiteSettings = {
-  contactEmail?: string;
-  phone?: string;
-  address?: string;
-  heroCopy?: string;
-};
-
 type SettingsPageProps = {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ error?: string; sent?: string; changed?: string }>;
 };
 
 export default async function AdminSettingsPage({
   searchParams,
 }: SettingsPageProps) {
-  await requireAdmin();
-  const { saved } = await searchParams;
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", "site")
-    .maybeSingle();
-  const settings = (data?.value ?? {}) as SiteSettings;
+  const user = await requireAdmin();
+  const { error, sent, changed } = await searchParams;
+  const email = user.email ?? "";
 
   return (
     <div className="admin-stack">
       <div>
         <span className="section-kicker">Settings</span>
-        <h1>Site settings</h1>
+        <h1>Change password</h1>
       </div>
-      <form className="admin-card admin-form" action={saveSettingsAction}>
-        {saved ? (
+
+      <section className="admin-card admin-stack">
+        {changed ? (
           <p className="admin-note-success" role="status">
-            Settings saved.
+            Your password has been updated.
           </p>
         ) : null}
-        <label>
-          Contact email
-          <input
-            name="contactEmail"
-            type="email"
-            defaultValue={settings.contactEmail ?? ""}
-          />
-          <small className="form-hint">
-            Shown on the public contact page and footer.
-          </small>
-        </label>
-        <label>
-          Phone
-          <input name="phone" defaultValue={settings.phone ?? ""} />
-        </label>
-        <label>
-          Address
-          <textarea name="address" defaultValue={settings.address ?? ""} />
-        </label>
-        <label>
-          Hero copy
-          <textarea name="heroCopy" defaultValue={settings.heroCopy ?? ""} />
-          <small className="form-hint">
-            Optional headline used in hero sections.
-          </small>
-        </label>
-        <SubmitButton pendingLabel="Saving…">Save settings</SubmitButton>
-      </form>
+        {sent ? (
+          <p className="admin-note-success" role="status">
+            We emailed a 6-digit code to {email}. Enter it below — it expires in
+            15 minutes.
+          </p>
+        ) : null}
+        {error ? (
+          <p className="admin-alert" role="alert">
+            {error}
+          </p>
+        ) : null}
+
+        <p className="form-hint">
+          Changing your password needs a one-time code. Send the code to your
+          email, then enter your current password, a new password, and the code.
+        </p>
+
+        <form action={sendAdminPasswordOtpAction}>
+          <SubmitButton pendingLabel="Sending…" className="btn btn-line">
+            Send verification code
+          </SubmitButton>
+        </form>
+
+        <form className="admin-form" action={changeAdminPasswordAction}>
+          <label>
+            Current password
+            <input
+              name="oldPassword"
+              type="password"
+              autoComplete="current-password"
+              required
+            />
+          </label>
+          <div className="admin-grid-2">
+            <label>
+              New password
+              <input
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </label>
+            <label>
+              Confirm new password
+              <input
+                name="confirm"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </label>
+          </div>
+          <label>
+            Verification code
+            <input
+              name="code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="\d{6}"
+              maxLength={6}
+              required
+            />
+          </label>
+          <SubmitButton pendingLabel="Updating…">Change password</SubmitButton>
+        </form>
+
+        <p className="admin-muted">
+          <Link className="admin-back" href="/admin/forgot-password">
+            Forgot your password?
+          </Link>
+        </p>
+      </section>
     </div>
   );
 }

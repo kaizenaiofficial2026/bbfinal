@@ -205,10 +205,18 @@ export type Database = {
           created_at: string;
           updated_at: string;
           full_name: string;
+          first_name: string | null;
+          last_name: string | null;
           email: string;
           phone: string | null;
+          country: string | null;
+          city: string | null;
+          date_of_birth: string | null;
+          passport_number: string | null;
+          passport_expiry: string | null;
           verified: boolean;
           verified_at: string | null;
+          active: boolean;
         };
         Insert: Partial<Database["public"]["Tables"]["customers"]["Row"]> &
           Pick<

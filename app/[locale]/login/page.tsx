@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import PageHero from "@/components/PageHero";
-import SiteShell from "@/components/SiteShell";
+import AuthShell from "@/components/AuthShell";
+import PasswordInput from "@/components/PasswordInput";
 import { loginAction } from "../account/actions";
 
 export const metadata: Metadata = {
@@ -17,50 +17,61 @@ type LoginPageProps = {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { error, next, reset } = await searchParams;
   const t = await getTranslations("auth");
-  const registerHref = next ? `/register?next=${encodeURIComponent(next)}` : "/register";
+  const registerHref = next
+    ? `/register?next=${encodeURIComponent(next)}`
+    : "/register";
 
   return (
-    <SiteShell>
-      <main>
-        <PageHero
-          title={t("loginTitle")}
-          label="Beyond Borders"
-          image="/assets/images/heroes/pricing-header.jpg"
-          summary={t("loginSummary")}
-        />
-        <section className="section section-paper">
-          <div className="container" style={{ maxWidth: "560px" }}>
-            <form className="booking-form" action={loginAction}>
-              {next ? <input type="hidden" name="next" value={next} /> : null}
-              {reset ? (
-                <p className="form-note" aria-live="polite">
-                  {t("resetSuccessNote")}
-                </p>
-              ) : null}
-              <div className="form-grid">
-                <div className="form-field full">
-                  <label htmlFor="login-email">{t("email")}</label>
-                  <input id="login-email" name="email" type="email" autoComplete="email" required />
-                </div>
-                <div className="form-field full">
-                  <label htmlFor="login-password">{t("password")}</label>
-                  <input id="login-password" name="password" type="password" autoComplete="current-password" required />
-                </div>
-              </div>
-              <div className="booking-submit-row">
-                <button className="btn btn-primary" type="submit">{t("signIn")}</button>
-                {error ? <p className="form-note" aria-live="polite">{error}</p> : null}
-              </div>
-              <p className="form-note">
-                <Link href="/forgot-password">{t("forgotLink")}</Link>
-              </p>
-              <p className="form-note">
-                {t("newHere")} <Link href={registerHref}>{t("createAccountLink")}</Link>.
-              </p>
-            </form>
-          </div>
-        </section>
-      </main>
-    </SiteShell>
+    <AuthShell
+      title={t("loginTitle")}
+      subtitle={t("loginSummary")}
+      footer={
+        <>
+          <p>
+            {t("newHere")}{" "}
+            <Link href={registerHref}>{t("createAccountLink")}</Link>
+          </p>
+          <p>
+            <Link href="/forgot-password">{t("forgotLink")}</Link>
+          </p>
+        </>
+      }
+    >
+      <form className="auth-form" action={loginAction}>
+        {next ? <input type="hidden" name="next" value={next} /> : null}
+        {reset ? (
+          <p className="auth-success" role="status">
+            {t("resetSuccessNote")}
+          </p>
+        ) : null}
+        <div className="auth-field">
+          <label htmlFor="login-email">{t("email")}</label>
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+          />
+        </div>
+        <div className="auth-field">
+          <label htmlFor="login-password">{t("password")}</label>
+          <PasswordInput
+            id="login-password"
+            name="password"
+            autoComplete="current-password"
+            required
+          />
+        </div>
+        {error ? (
+          <p className="auth-alert" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <button className="btn btn-primary auth-submit" type="submit">
+          {t("signIn")}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

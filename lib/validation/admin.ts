@@ -53,6 +53,24 @@ export const settingsSchema = z.object({
   heroCopy: z.string().trim().max(500).optional().or(z.literal("")),
 });
 
+export const changePasswordSchema = z
+  .object({
+    oldPassword: z.string().min(1, "Enter your current password."),
+    password: z
+      .string()
+      .min(8, "New password must be at least 8 characters.")
+      .max(200),
+    confirm: z.string(),
+    code: z
+      .string()
+      .trim()
+      .regex(/^\d{6}$/, "Enter the 6-digit code from your email."),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "New passwords do not match.",
+    path: ["confirm"],
+  });
+
 export function lines(value: string) {
   return value
     .split("\n")

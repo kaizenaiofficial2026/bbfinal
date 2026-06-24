@@ -10,7 +10,9 @@ import {
   Noto_Sans_Telugu,
 } from "next/font/google";
 import { getLocale } from "next-intl/server";
+import { Analytics } from "@vercel/analytics/next";
 import CookieConsent from "@/components/CookieConsent";
+import PageviewTracker from "@/components/PageviewTracker";
 import { isRtl } from "@/i18n/routing";
 import "./globals.css";
 
@@ -115,6 +117,8 @@ export default async function RootLayout({
       <body className="is-loading">
         {children}
         <CookieConsent />
+        <Analytics />
+        <PageviewTracker />
       </body>
     </html>
   );

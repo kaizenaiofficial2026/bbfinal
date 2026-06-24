@@ -1,22 +1,63 @@
 import { requireAdmin } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { verifyCustomerAction } from "../actions";
+import { setCustomerActiveAction, verifyCustomerAction } from "../actions";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 import { formatDate } from "@/lib/admin/format";
+
+type CustomerRow = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  country: string | null;
+  city: string | null;
+  date_of_birth: string | null;
+  passport_number: string | null;
+  passport_expiry: string | null;
+  verified: boolean;
+  active: boolean;
+  created_at: string;
+};
+
+function ActiveToggle({ customer }: { customer: CustomerRow }) {
+  return (
+    <form action={setCustomerActiveAction}>
+      <input type="hidden" name="customerId" value={customer.id} />
+      <input type="hidden" name="active" value={(!customer.active).toString()} />
+      <SubmitButton
+        pendingLabel="Saving…"
+        className={customer.active ? "btn btn-line" : "btn btn-primary"}
+      >
+        {customer.active ? "Deactivate login" : "Activate login"}
+      </SubmitButton>
+    </form>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string | null }) {
+  return (
+    <p>
+      <strong>{label}</strong>
+      <span>{value || "—"}</span>
+    </p>
+  );
+}
 
 export default async function AdminCustomersPage() {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("customers")
-    .select("id, full_name, email, phone, verified, created_at")
+    .select(
+      "id, full_name, email, phone, country, city, date_of_birth, passport_number, passport_expiry, verified, active, created_at",
+    )
     .order("verified", { ascending: true })
     .order("created_at", { ascending: false });
 
-  const rows = data ?? [];
-  const pending = rows.filter((customer) => !customer.verified);
-  const verified = rows.filter((customer) => customer.verified);
+  const rows = (data ?? []) as CustomerRow[];
+  const pending = rows.filter((c) => !c.verified);
+  const verified = rows.filter((c) => c.verified);
 
   return (
     <div className="admin-stack">
@@ -24,50 +65,91 @@ export default async function AdminCustomersPage() {
       <h1>Customer accounts</h1>
 
       <section className="admin-card admin-stack">
-        <h2>Awaiting verification ({pending.length})</h2>
+        <h2>New applications ({pending.length})</h2>
         {pending.length === 0 ? (
           <p className="form-hint">No customers awaiting verification.</p>
         ) : (
           pending.map((customer) => (
-            <form
-              className="admin-inline-form"
-              action={verifyCustomerAction}
-              key={customer.id}
-            >
-              <input type="hidden" name="customerId" value={customer.id} />
-              <div>
-                <strong>{customer.full_name}</strong>
-                <span className="admin-muted-block">
-                  {customer.email}
-                  {customer.phone ? ` · ${customer.phone}` : ""}
-                  {` · Registered ${formatDate(customer.created_at)}`}
-                </span>
+            <article className="admin-applicant" key={customer.id}>
+              <div className="admin-applicant-head">
+                <div>
+                  <strong>{customer.full_name}</strong>
+                  <span className="admin-muted-block">
+                    Registered {formatDate(customer.created_at)}
+                  </span>
+                </div>
+                <StatusBadge status={customer.active ? "active" : "inactive"} />
               </div>
-              <SubmitButton pendingLabel="Verifying…">Verify</SubmitButton>
-            </form>
+
+              <div className="admin-detail admin-applicant-grid">
+                <Detail label="Email" value={customer.email} />
+                <Detail label="Mobile" value={customer.phone} />
+                <Detail
+                  label="Country & city"
+                  value={[customer.city, customer.country]
+                    .filter(Boolean)
+                    .join(", ")}
+                />
+                <Detail
+                  label="Date of birth"
+                  value={
+                    customer.date_of_birth
+                      ? formatDate(customer.date_of_birth)
+                      : null
+                  }
+                />
+                <Detail label="Passport no." value={customer.passport_number} />
+                <Detail
+                  label="Passport expiry"
+                  value={
+                    customer.passport_expiry
+                      ? formatDate(customer.passport_expiry)
+                      : null
+                  }
+                />
+              </div>
+
+              <div className="admin-actions-row">
+                <form action={verifyCustomerAction}>
+                  <input type="hidden" name="customerId" value={customer.id} />
+                  <SubmitButton pendingLabel="Verifying…">
+                    Verify (allow purchases)
+                  </SubmitButton>
+                </form>
+                <ActiveToggle customer={customer} />
+              </div>
+            </article>
           ))
         )}
       </section>
 
       <section className="admin-card admin-stack">
-        <h2>Verified ({verified.length})</h2>
+        <h2>Verified customers ({verified.length})</h2>
         {verified.length === 0 ? (
           <p className="form-hint">No verified customers yet.</p>
         ) : (
-          <div className="admin-table">
-            <div className="admin-table-head">
-              <span>Name</span>
-              <span>Email</span>
-              <span>Status</span>
-            </div>
-            {verified.map((customer) => (
-              <div key={customer.id}>
-                <span>{customer.full_name}</span>
-                <span className="admin-muted">{customer.email}</span>
-                <StatusBadge status="verified" />
+          verified.map((customer) => (
+            <article className="admin-applicant" key={customer.id}>
+              <div className="admin-applicant-head">
+                <div>
+                  <strong>{customer.full_name}</strong>
+                  <span className="admin-muted-block">
+                    {customer.email}
+                    {customer.phone ? ` · ${customer.phone}` : ""}
+                  </span>
+                </div>
+                <div className="admin-applicant-badges">
+                  <StatusBadge status="verified" />
+                  <StatusBadge
+                    status={customer.active ? "active" : "inactive"}
+                  />
+                </div>
               </div>
-            ))}
-          </div>
+              <div className="admin-actions-row">
+                <ActiveToggle customer={customer} />
+              </div>
+            </article>
+          ))
         )}
       </section>
     </div>

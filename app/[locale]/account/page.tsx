@@ -8,6 +8,10 @@ import { getCustomerUser } from "@/lib/customer/auth";
 import { isExpired } from "@/lib/security/request";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logoutAction } from "./actions";
+import {
+  changeCustomerPasswordAction,
+  sendCustomerPasswordOtpAction,
+} from "./password-actions";
 
 export const metadata: Metadata = {
   title: "My account",
@@ -28,7 +32,11 @@ type BookingWithPayments = {
   }[];
 };
 
-export default async function AccountPage() {
+type AccountPageProps = {
+  searchParams: Promise<{ error?: string; sent?: string; changed?: string }>;
+};
+
+export default async function AccountPage({ searchParams }: AccountPageProps) {
   const session = await getCustomerUser();
 
   if (!session) {
@@ -36,6 +44,7 @@ export default async function AccountPage() {
   }
 
   const { customer } = session;
+  const { error, sent, changed } = await searchParams;
   const t = await getTranslations("auth");
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
@@ -108,6 +117,91 @@ export default async function AccountPage() {
                   );
                 })
               )}
+            </article>
+
+            <article className="booking-summary-card">
+              <span className="booking-form-label">
+                {t("changePasswordTitle")}
+              </span>
+              {changed ? (
+                <p className="form-success" role="status">
+                  {t("passwordChangedNote")}
+                </p>
+              ) : null}
+              {sent ? (
+                <p className="form-success" role="status">
+                  {t("codeSentNote", { email: session.user.email })}
+                </p>
+              ) : null}
+              {error ? (
+                <p className="form-note" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <p className="form-note">{t("changePasswordHint")}</p>
+
+              <form action={sendCustomerPasswordOtpAction}>
+                <button className="btn btn-line" type="submit">
+                  {t("sendCode")}
+                </button>
+              </form>
+
+              <form
+                className="booking-form"
+                action={changeCustomerPasswordAction}
+              >
+                <div className="form-grid">
+                  <div className="form-field full">
+                    <label htmlFor="cp-old">{t("currentPassword")}</label>
+                    <input
+                      id="cp-old"
+                      name="oldPassword"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="cp-new">{t("newPassword")}</label>
+                    <input
+                      id="cp-new"
+                      name="password"
+                      type="password"
+                      autoComplete="new-password"
+                      minLength={8}
+                      required
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="cp-confirm">{t("confirmPassword")}</label>
+                    <input
+                      id="cp-confirm"
+                      name="confirm"
+                      type="password"
+                      autoComplete="new-password"
+                      minLength={8}
+                      required
+                    />
+                  </div>
+                  <div className="form-field full">
+                    <label htmlFor="cp-code">{t("codeLabel")}</label>
+                    <input
+                      id="cp-code"
+                      name="code"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      pattern="\d{6}"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="booking-submit-row">
+                  <button className="btn btn-primary" type="submit">
+                    {t("changePasswordCta")}
+                  </button>
+                </div>
+              </form>
             </article>
 
             <form action={logoutAction}>

@@ -49,6 +49,13 @@ export async function getCustomerUser(): Promise<CustomerSession | null> {
     return null;
   }
 
+  // Staff can deactivate a login; treat a deactivated customer as signed out so
+  // every gated page (and the header) drops them. (Pre-migration the column is
+  // absent → undefined → treated as active.)
+  if (customer.active === false) {
+    return null;
+  }
+
   return { user: { id: user.id, email: user.email }, customer };
 }
 

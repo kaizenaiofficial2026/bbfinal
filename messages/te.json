@@ -34,7 +34,8 @@
       "heading": "మా టూర్ ప్యాకేజీలు",
       "explore": "అన్వేషించండి",
       "swipe": "స్వైప్ చేయండి",
-      "viewMore": "మరిన్ని చూడటానికి క్లిక్ చేయండి"
+      "viewMore": "మరిన్ని చూడటానికి క్లిక్ చేయండి",
+      "from": "From"
     },
     "experience": {
       "heading": "ద్వీపం మీ చుట్టూ ప్రణాళిక చేయబడినప్పుడు ఏమి మారుతుంది.",
@@ -90,7 +91,8 @@
     "customKicker": "అనుకూలం",
     "customHeading": "ఏదైనా భిన్నంగా కావాలా?",
     "customText": "మీ తేదీలు, బృంద పరిమాణం మరియు మీరు మిస్ కాలేని ప్రదేశాలను తెలియజేయండి, మా ప్లానర్లు మీ కోసం పూర్తి కస్టమ్ ప్రయాణం మరియు కోట్‌ను రూపొందిస్తారు.",
-    "customCta": "కస్టమ్ కోట్ అభ్యర్థించండి"
+    "customCta": "కస్టమ్ కోట్ అభ్యర్థించండి",
+    "from": "From"
   },
   "notFound": {
     "kicker": "లోపం 404",
@@ -142,7 +144,24 @@
     "resetCta": "Update password",
     "resetSentNote": "If an account exists for that email, we've sent a 6-digit code. It expires in 15 minutes.",
     "resendCode": "Didn't get a code? Request another",
-    "resetSuccessNote": "Your password has been updated. Please sign in."
+    "resetSuccessNote": "Your password has been updated. Please sign in.",
+    "changePasswordTitle": "Change password",
+    "changePasswordHint": "Send a one-time code to your email, then enter your current password, a new password, and the code.",
+    "currentPassword": "Current password",
+    "sendCode": "Send verification code",
+    "changePasswordCta": "Change password",
+    "codeSentNote": "We emailed a 6-digit code to {email}. It expires in 15 minutes.",
+    "passwordChangedNote": "Your password has been updated.",
+    "asideKicker": "Beyond Borders",
+    "asideHeadline": "Private Sri Lanka journeys, designed entirely around you.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "country": "Country",
+    "city": "City",
+    "dateOfBirth": "Date of birth",
+    "passportNumber": "Passport number",
+    "passportExpiry": "Passport expiry",
+    "mobileNumber": "Mobile number"
   },
   "pay": {
     "heroTitle": "సురక్షిత చెల్లింపు",
@@ -359,6 +378,8 @@
     "resetInvalidCode": "That code is invalid. Please check and try again.",
     "resetCodeExpired": "That code has expired. Please request a new one.",
     "resetTooMany": "Too many attempts. Please request a new code.",
-    "resetServerError": "Something went wrong. Please try again."
+    "resetServerError": "Something went wrong. Please try again.",
+    "currentPasswordWrong": "Your current password is incorrect.",
+    "accountDeactivated": "Your account has been deactivated. Please contact our team."
   }
 }

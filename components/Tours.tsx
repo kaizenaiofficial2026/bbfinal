@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { TourPackage } from "@/lib/data/types";
+import { formatPackagePrice } from "@/lib/format/price";
 
 const imageFocus: Record<string, string> = {
   "glamour-of-sri-lanka": "center center",
@@ -24,30 +25,38 @@ export default function Tours({ packages }: ToursProps) {
         </div>
 
         <div className="luxury-package-grid" data-reveal-group="package-cards">
-          {packages.map((tour) => (
-            <article className="luxury-package-card" key={tour.slug}>
-              <Link
-                className="luxury-package-link"
-                href={`/tours#${tour.slug}`}
-                aria-label={`View ${tour.title} package`}
-              >
-                <Image
-                  className="luxury-package-image"
-                  src={tour.image}
-                  alt={tour.title}
-                  fill
-                  sizes="(max-width: 720px) 100vw, (max-width: 1280px) 50vw, 50vw"
-                  style={{ objectPosition: imageFocus[tour.slug] }}
-                />
-                <div className="luxury-card-overlay" />
-                <div className="luxury-card-content">
-                  <h3>{tour.title}</h3>
-                  <p>{tour.summary}</p>
-                  <span className="luxury-explore-btn">{t("explore")}</span>
-                </div>
-              </Link>
-            </article>
-          ))}
+          {packages.map((tour) => {
+            const price = formatPackagePrice(tour.priceAmount, tour.currency);
+            return (
+              <article className="luxury-package-card" key={tour.slug}>
+                <Link
+                  className="luxury-package-link"
+                  href={`/tours#${tour.slug}`}
+                  aria-label={`View ${tour.title} package`}
+                >
+                  <Image
+                    className="luxury-package-image"
+                    src={tour.image}
+                    alt={tour.title}
+                    fill
+                    sizes="(max-width: 720px) 100vw, (max-width: 1280px) 50vw, 50vw"
+                    style={{ objectPosition: imageFocus[tour.slug] }}
+                  />
+                  <div className="luxury-card-overlay" />
+                  <div className="luxury-card-content">
+                    <h3>{tour.title}</h3>
+                    <p>{tour.summary}</p>
+                    {price ? (
+                      <span className="luxury-card-price">
+                        {t("from")} {price}
+                      </span>
+                    ) : null}
+                    <span className="luxury-explore-btn">{t("explore")}</span>
+                  </div>
+                </Link>
+              </article>
+            );
+          })}
         </div>
         <div className="luxury-swipe-cue" aria-hidden="true">
           <span>{t("swipe")}</span>

@@ -17,6 +17,8 @@ const STATUS_LABELS: Record<string, string> = {
   failed: "Failed",
   refunded: "Refunded",
   verified: "Verified",
+  active: "Active",
+  inactive: "Inactive",
 };
 
 export type StatusTone =
@@ -42,6 +44,8 @@ const STATUS_TONES: Record<string, StatusTone> = {
   failed: "danger",
   refunded: "neutral",
   verified: "positive",
+  active: "positive",
+  inactive: "danger",
 };
 
 export function statusLabel(status: string): string {
