@@ -18,6 +18,13 @@ import { revalidateDestinations } from "@/lib/data/destinations";
 import { revalidatePackages } from "@/lib/data/packages";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { getRequestIpHash } from "@/lib/security/request";
+import { toRetryMinutes } from "@/lib/security/retry-after";
+
+/** English rate-limit copy with an accurate wait time (admin UI is en-only). */
+function rateLimitMessage(retryAfterSeconds?: number) {
+  const minutes = toRetryMinutes(retryAfterSeconds);
+  return `You've made too many attempts. Please wait about ${minutes} minute(s) before trying again.`;
+}
 import {
   requestResetSchema,
   resetPasswordSchema,
@@ -118,7 +125,7 @@ export async function requestAdminResetAction(formData: FormData) {
   );
   if (!rate.allowed) {
     redirect(
-      `/admin/forgot-password?error=${encodeURIComponent("Please wait a moment before trying again.")}`,
+      `/admin/forgot-password?error=${encodeURIComponent(rateLimitMessage(rate.retryAfterSeconds))}`,
     );
   }
 
@@ -154,7 +161,7 @@ export async function resetAdminPasswordAction(formData: FormData) {
     { max: 10, windowMinutes: 15 },
   );
   if (!rate.allowed) {
-    return back("Please wait a moment before trying again.");
+    return back(rateLimitMessage(rate.retryAfterSeconds));
   }
 
   const result = await verifyAndReset({
@@ -411,7 +418,7 @@ export async function sendAdminPasswordOtpAction() {
   );
   if (!rate.allowed) {
     redirect(
-      `/admin/settings?error=${encodeURIComponent("Please wait a moment before requesting another code.")}`,
+      `/admin/settings?error=${encodeURIComponent(rateLimitMessage(rate.retryAfterSeconds))}`,
     );
   }
 
@@ -453,7 +460,7 @@ export async function changeAdminPasswordAction(formData: FormData) {
     windowMinutes: 15,
   });
   if (!rate.allowed) {
-    return back("Too many attempts. Please wait a moment and try again.");
+    return back(rateLimitMessage(rate.retryAfterSeconds));
   }
 
   // 1) Confirm the current password by re-authenticating.

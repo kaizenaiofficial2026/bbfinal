@@ -21,32 +21,44 @@ export const customInquirySchema = z.discriminatedUnion("inquiryType", [
     ...guest,
     package: required("Please choose a package."),
   }),
-  z.object({
-    inquiryType: z.literal("hotel"),
-    ...guest,
-    hotel: required("Please choose a hotel."),
-    roomCategory: required("Please choose a room category."),
-    roomType: required("Please choose a room type."),
-    mealPlan: required("Please choose a meal plan."),
-    numberOfRooms: z.coerce.number().int().min(1).max(50),
-    arrival: required("Arrival date is required.").max(40),
-    departure: required("Departure date is required.").max(40),
-    adults: z.coerce.number().int().min(1).max(50),
-    children: z.coerce.number().int().min(0).max(50),
-    extraBed: yesNo,
-  }),
-  z.object({
-    inquiryType: z.literal("airticket"),
-    ...guest,
-    airline: required("Airline is required.").max(120),
-    route: required("Route is required."),
-    wayType: z.enum(["One way", "Both way"]),
-    arrival: required("Departure date is required.").max(40),
-    departure: z.string().trim().max(40).optional().or(z.literal("")),
-    flightClass: required("Class is required.").max(60),
-    pax: z.coerce.number().int().min(1).max(50),
-    extraBaggage: yesNo,
-  }),
+  z
+    .object({
+      inquiryType: z.literal("hotel"),
+      ...guest,
+      hotel: required("Please choose a hotel."),
+      roomCategory: required("Please choose a room category."),
+      roomType: required("Please choose a room type."),
+      mealPlan: required("Please choose a meal plan."),
+      numberOfRooms: z.coerce.number().int().min(1).max(50),
+      arrival: required("Arrival date is required.").max(40),
+      departure: required("Departure date is required.").max(40),
+      adults: z.coerce.number().int().min(1).max(50),
+      children: z.coerce.number().int().min(0).max(50),
+      extraBed: yesNo,
+    })
+    // ISO date strings (YYYY-MM-DD) compare correctly as strings.
+    .refine((d) => d.departure >= d.arrival, {
+      message: "Departure can't be before arrival.",
+      path: ["departure"],
+    }),
+  z
+    .object({
+      inquiryType: z.literal("airticket"),
+      ...guest,
+      airline: required("Airline is required.").max(120),
+      route: required("Route is required."),
+      wayType: z.enum(["One way", "Both way"]),
+      arrival: required("Departure date is required.").max(40),
+      departure: z.string().trim().max(40).optional().or(z.literal("")),
+      flightClass: required("Class is required.").max(60),
+      pax: z.coerce.number().int().min(1).max(50),
+      extraBaggage: yesNo,
+    })
+    // `arrival` is the departure date; `departure` is the optional return date.
+    .refine((d) => !d.departure || d.departure >= d.arrival, {
+      message: "The return date can't be before the departure date.",
+      path: ["departure"],
+    }),
   z.object({
     inquiryType: z.literal("transport"),
     ...guest,

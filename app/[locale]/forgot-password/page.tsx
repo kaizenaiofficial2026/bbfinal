@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
+import SubmitButton from "@/components/SubmitButton";
 import { requestCustomerResetAction } from "../account/password-actions";
 
 export const metadata: Metadata = {
@@ -45,9 +46,9 @@ export default async function ForgotPasswordPage({
             {error}
           </p>
         ) : null}
-        <button className="btn btn-primary auth-submit" type="submit">
+        <SubmitButton className="btn btn-primary auth-submit">
           {t("forgotCta")}
-        </button>
+        </SubmitButton>
       </form>
     </AuthShell>
   );

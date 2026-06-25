@@ -4,6 +4,14 @@ import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { submitBooking } from "@/app/actions";
 import { initialBookingState } from "@/app/action-state";
+import Spinner from "./Spinner";
+import { useSubmitFeedback } from "./useSubmitFeedback";
+import {
+  combineTravelDates,
+  isPastDate,
+  isValidRange,
+  todayIso,
+} from "@/lib/validation/dates";
 
 type BookingRequestFormProps = {
   packageId: string;
@@ -23,13 +31,50 @@ export default function BookingRequestForm({
     submitBooking,
     initialBookingState,
   );
+  // Booking redirects to the pay page on success, so only surface failures.
+  const feedback = useSubmitFeedback(
+    pending,
+    state.ok,
+    state.note,
+    initialBookingState.note,
+    { toastOnSuccess: false },
+  );
   const [startedAt] = useState(() => Date.now());
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [dateError, setDateError] = useState<string | null>(null);
+
   const formattedAmount = `${currency} ${amount.toFixed(2)}`;
 
+  const validateDates = () => {
+    if (!start || !end) return t("errSelectDates");
+    const today = todayIso();
+    if (isPastDate(start, today) || isPastDate(end, today))
+      return t("errDatePast");
+    if (!isValidRange(start, end)) return t("errEndBeforeStart");
+    return null;
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const error = validateDates();
+    if (error) {
+      // Cancels the form action too — the booking is never submitted.
+      event.preventDefault();
+      setDateError(error);
+    }
+  };
+
   return (
-    <form className="booking-form" action={formAction}>
+    <form
+      className="booking-form"
+      action={formAction}
+      onSubmit={handleSubmit}
+      noValidate
+    >
       <input type="hidden" name="tourPackageId" value={packageId} />
       <input type="hidden" name="startedAt" value={startedAt} />
+      {/* Native date pickers feed this combined value to the server. */}
+      <input type="hidden" name="dates" value={combineTravelDates(start, end)} />
       <div className="visually-hidden" aria-hidden="true">
         <label htmlFor="booking-company">{t("company")}</label>
         <input
@@ -43,7 +88,7 @@ export default function BookingRequestForm({
       <div className="booking-form-section">
         <span className="booking-form-label">{t("journeyDetails")}</span>
         <div className="form-grid">
-          <div className="form-field">
+          <div className="form-field full">
             <label htmlFor="booking-package">{t("package")}</label>
             <input
               id="booking-package"
@@ -53,16 +98,36 @@ export default function BookingRequestForm({
               readOnly
             />
           </div>
-          <div className="form-field">
-            <label htmlFor="booking-dates">{t("travelDates")}</label>
+          <div className={`form-field${dateError ? " is-invalid" : ""}`}>
+            <label htmlFor="booking-start">{t("startDate")}</label>
             <input
-              id="booking-dates"
-              name="dates"
-              type="text"
-              placeholder={t("travelDatesPlaceholder")}
-              defaultValue={state.values?.dates}
+              id="booking-start"
+              type="date"
+              value={start}
+              onChange={(event) => {
+                setStart(event.target.value);
+                setDateError(null);
+              }}
             />
           </div>
+          <div className={`form-field${dateError ? " is-invalid" : ""}`}>
+            <label htmlFor="booking-end">{t("endDate")}</label>
+            <input
+              id="booking-end"
+              type="date"
+              value={end}
+              min={start || undefined}
+              onChange={(event) => {
+                setEnd(event.target.value);
+                setDateError(null);
+              }}
+            />
+          </div>
+          {dateError ? (
+            <p className="field-error full" role="alert">
+              {dateError}
+            </p>
+          ) : null}
           <div className="form-field">
             <label htmlFor="booking-travellers">{t("travellers")}</label>
             <input
@@ -98,19 +163,30 @@ export default function BookingRequestForm({
       </div>
 
       <div className="booking-submit-row">
-        <button className="btn btn-primary" type="submit" disabled={pending}>
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={pending}
+          aria-busy={pending}
+        >
+          {pending ? <Spinner /> : null}
           {pending ? t("starting") : t("reservePay", { amount: formattedAmount })}
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M5 12h14M13 6l6 6-6 6"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          {!pending ? (
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ) : null}
         </button>
-        <p className="form-note" aria-live="polite">
+        <p
+          className={`form-note${feedback === "error" ? " is-error" : ""}`}
+          aria-live="polite"
+        >
           {state.note}
         </p>
       </div>

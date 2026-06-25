@@ -71,6 +71,21 @@ export const changePasswordSchema = z
     path: ["confirm"],
   });
 
+// Step 1 of the customer wizard: verify current + new password (no code yet).
+export const startChangePasswordSchema = z
+  .object({
+    oldPassword: z.string().min(1, "Enter your current password."),
+    password: z
+      .string()
+      .min(8, "New password must be at least 8 characters.")
+      .max(200),
+    confirm: z.string(),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "New passwords do not match.",
+    path: ["confirm"],
+  });
+
 export function lines(value: string) {
   return value
     .split("\n")

@@ -3,6 +3,8 @@
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import Select, { type SelectOption } from "./Select";
+import Spinner from "./Spinner";
+import { useSubmitFeedback } from "./useSubmitFeedback";
 import { submitEnquiry } from "@/app/actions";
 import { initialEnquiryState } from "@/app/action-state";
 
@@ -11,6 +13,12 @@ export default function ContactForm() {
   const [state, formAction, pending] = useActionState(
     submitEnquiry,
     initialEnquiryState,
+  );
+  const feedback = useSubmitFeedback(
+    pending,
+    state.ok,
+    state.note,
+    initialEnquiryState.note,
   );
   const [startedAt] = useState(() => Date.now());
 
@@ -115,19 +123,37 @@ export default function ContactForm() {
         </div>
       </div>
       <div className="form-actions">
-        <button className="btn btn-primary" type="submit" disabled={pending}>
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={pending}
+          aria-busy={pending}
+        >
+          {pending ? <Spinner /> : null}
           {pending ? t("sending") : t("sendEnquiry")}
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M5 12h14M13 6l6 6-6 6"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          {!pending ? (
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ) : null}
         </button>
-        <p className="form-note" id="formNote" aria-live="polite">
+        <p
+          className={`form-note${
+            feedback === "error"
+              ? " is-error"
+              : feedback === "success"
+                ? " is-success"
+                : ""
+          }`}
+          id="formNote"
+          aria-live="polite"
+        >
           {state.note}
         </p>
       </div>

@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
 import PasswordInput from "@/components/PasswordInput";
+import SubmitButton from "@/components/SubmitButton";
 import { registerAction } from "../account/actions";
 
 export const metadata: Metadata = {
@@ -161,9 +162,9 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
             {error}
           </p>
         ) : null}
-        <button className="btn btn-primary auth-submit" type="submit">
+        <SubmitButton className="btn btn-primary auth-submit">
           {t("createAccount")}
-        </button>
+        </SubmitButton>
       </form>
     </AuthShell>
   );

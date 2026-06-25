@@ -12,7 +12,8 @@ test.describe("booking → payment (authenticated, verified customer)", () => {
     await page.goto(`/booking/${PACKAGE}`);
     await waitForReady(page);
     await dismissCookies(page);
-    await expect(page.locator('form.booking-form input[name="dates"]')).toBeVisible();
+    await expect(page.locator("#booking-start")).toBeVisible();
+    await expect(page.locator("#booking-end")).toBeVisible();
     await expect(page.locator('input[name="travellers"]')).toBeVisible();
   });
 
@@ -26,7 +27,9 @@ test.describe("booking → payment (authenticated, verified customer)", () => {
     await waitForReady(page);
     await dismissCookies(page);
 
-    await page.locator('input[name="dates"]').fill("August 2026");
+    // Native date-range pickers feed the hidden combined "dates" field.
+    await page.locator("#booking-start").fill("2026-08-10");
+    await page.locator("#booking-end").fill("2026-08-20");
     await page.locator('input[name="travellers"]').fill("2");
     await page.locator('textarea[name="notes"]').fill("QA automated booking");
 

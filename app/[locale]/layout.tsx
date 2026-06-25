@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { ToastProvider } from "@/components/Toast";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -23,5 +24,9 @@ export default async function LocaleLayout({
   // Enables static rendering for localized pages.
   setRequestLocale(locale);
 
-  return <NextIntlClientProvider>{children}</NextIntlClientProvider>;
+  return (
+    <NextIntlClientProvider>
+      <ToastProvider>{children}</ToastProvider>
+    </NextIntlClientProvider>
+  );
 }

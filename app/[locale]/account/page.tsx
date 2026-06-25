@@ -8,11 +8,8 @@ import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { getCustomerUser } from "@/lib/customer/auth";
 import { isExpired } from "@/lib/security/request";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import ChangePasswordWizard from "@/components/account/ChangePasswordWizard";
 import { logoutAction } from "./actions";
-import {
-  changeCustomerPasswordAction,
-  sendCustomerPasswordOtpAction,
-} from "./password-actions";
 
 export const metadata: Metadata = {
   title: "My account",
@@ -33,10 +30,6 @@ type BookingWithPayments = {
   }[];
 };
 
-type AccountPageProps = {
-  searchParams: Promise<{ error?: string; sent?: string; changed?: string }>;
-};
-
 function initialsOf(name: string) {
   const letters = name
     .split(" ")
@@ -47,7 +40,7 @@ function initialsOf(name: string) {
   return letters || "•";
 }
 
-export default async function AccountPage({ searchParams }: AccountPageProps) {
+export default async function AccountPage() {
   const session = await getCustomerUser();
 
   if (!session) {
@@ -55,7 +48,6 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   }
 
   const { customer } = session;
-  const { error, sent, changed } = await searchParams;
   const t = await getTranslations("auth");
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
@@ -228,101 +220,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               </section>
 
               {/* Security */}
-              <section className="account-panel">
-                <div className="account-panel-head">
-                  <h3 className="account-panel-title">
-                    {t("changePasswordTitle")}
-                  </h3>
-                </div>
-                <div className="account-otp-row">
-                  <p className="account-panel-note">
-                    {t("changePasswordHint")}
-                  </p>
-                  <form
-                    action={sendCustomerPasswordOtpAction}
-                    className="account-otp-form"
-                  >
-                    <button className="btn btn-line" type="submit">
-                      {t("sendCode")}
-                    </button>
-                  </form>
-                </div>
-
-                {changed ? (
-                  <p className="form-success" role="status">
-                    {t("passwordChangedNote")}
-                  </p>
-                ) : null}
-                {sent ? (
-                  <p className="form-success" role="status">
-                    {t("codeSentNote", { email: session.user.email })}
-                  </p>
-                ) : null}
-                {error ? (
-                  <p className="form-note account-error" role="alert">
-                    {error}
-                  </p>
-                ) : null}
-
-                <div className="account-security">
-                  <form
-                    className="account-security-form"
-                    action={changeCustomerPasswordAction}
-                  >
-                    <div className="form-grid">
-                      <div className="form-field full">
-                        <label htmlFor="cp-old">{t("currentPassword")}</label>
-                        <input
-                          id="cp-old"
-                          name="oldPassword"
-                          type="password"
-                          autoComplete="current-password"
-                          required
-                        />
-                      </div>
-                      <div className="form-field">
-                        <label htmlFor="cp-new">{t("newPassword")}</label>
-                        <input
-                          id="cp-new"
-                          name="password"
-                          type="password"
-                          autoComplete="new-password"
-                          minLength={8}
-                          required
-                        />
-                      </div>
-                      <div className="form-field">
-                        <label htmlFor="cp-confirm">{t("confirmPassword")}</label>
-                        <input
-                          id="cp-confirm"
-                          name="confirm"
-                          type="password"
-                          autoComplete="new-password"
-                          minLength={8}
-                          required
-                        />
-                      </div>
-                      <div className="form-field full">
-                        <label htmlFor="cp-code">{t("codeLabel")}</label>
-                        <input
-                          id="cp-code"
-                          name="code"
-                          inputMode="numeric"
-                          autoComplete="one-time-code"
-                          pattern="\d{6}"
-                          maxLength={6}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="account-form-actions">
-                      <button className="btn btn-primary" type="submit">
-                        {t("changePasswordCta")}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </section>
+              <ChangePasswordWizard email={session.user.email} />
             </div>
           </div>
         </section>

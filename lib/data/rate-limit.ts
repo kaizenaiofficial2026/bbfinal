@@ -20,10 +20,12 @@ export async function checkAndRecordRateLimit(
   action: string,
   ipHash: string,
   { max, windowMinutes }: RateLimitOptions,
-): Promise<{ allowed: boolean }> {
+): Promise<{ allowed: boolean; retryAfterSeconds?: number }> {
   try {
     const supabase = createSupabaseServiceClient();
-    const since = new Date(Date.now() - windowMinutes * 60 * 1000).toISOString();
+    const windowMs = windowMinutes * 60 * 1000;
+    const now = Date.now();
+    const since = new Date(now - windowMs).toISOString();
     const { count, error } = await supabase
       .from("rate_limit_events")
       .select("id", { count: "exact", head: true })
@@ -36,7 +38,24 @@ export async function checkAndRecordRateLimit(
     }
 
     if ((count ?? 0) >= max) {
-      return { allowed: false };
+      // Sliding window: capacity returns when the OLDEST counted attempt ages
+      // out of the window. Tell the caller how long that is so the UI can show
+      // an accurate "try again in N minutes".
+      let retryAfterSeconds = Math.ceil(windowMs / 1000);
+      const { data: oldest } = await supabase
+        .from("rate_limit_events")
+        .select("created_at")
+        .eq("action", action)
+        .eq("ip_hash", ipHash)
+        .gte("created_at", since)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (oldest?.created_at) {
+        const freeAt = new Date(oldest.created_at).getTime() + windowMs;
+        retryAfterSeconds = Math.max(1, Math.ceil((freeAt - now) / 1000));
+      }
+      return { allowed: false, retryAfterSeconds };
     }
 
     await supabase.from("rate_limit_events").insert({ action, ip_hash: ipHash });

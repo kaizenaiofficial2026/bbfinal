@@ -14,6 +14,8 @@ type SelectProps = {
   defaultValue?: string;
   className?: string;
   onChange?: (value: string) => void;
+  /** Validation message; when set, the field is outlined red and shows it. */
+  error?: string;
 };
 
 export default function Select({
@@ -23,6 +25,7 @@ export default function Select({
   defaultValue,
   className,
   onChange,
+  error,
 }: SelectProps) {
   const normalizedOptions = options.map((option) =>
     typeof option === "string" ? { label: option, value: option } : option,
@@ -117,7 +120,11 @@ export default function Select({
   };
 
   return (
-    <div className={`form-field${className ? ` ${className}` : ""}`}>
+    <div
+      className={`form-field${className ? ` ${className}` : ""}${
+        error ? " is-invalid" : ""
+      }`}
+    >
       <label id={labelId}>{label}</label>
       <div
         className={`select${open ? " is-open" : ""}`}
@@ -156,6 +163,11 @@ export default function Select({
         </ul>
         <input type="hidden" name={name} value={selected.value} readOnly />
       </div>
+      {error ? (
+        <p className="field-error" role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

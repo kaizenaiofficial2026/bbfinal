@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { renderIntl as render } from "./intl-render";
 
 vi.mock("@/app/actions", () => ({
@@ -47,5 +47,38 @@ describe("BookingRequestForm", () => {
     const honeypot = container.querySelector('input[name="company"]');
     expect(honeypot).not.toBeNull();
     expect(honeypot?.closest('[aria-hidden="true"]')).not.toBeNull();
+  });
+
+  it("uses native start/end date pickers feeding a hidden dates field", () => {
+    const { container } = render(
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
+    );
+
+    expect(container.querySelector("#booking-start")).toHaveAttribute(
+      "type",
+      "date",
+    );
+    expect(container.querySelector("#booking-end")).toHaveAttribute(
+      "type",
+      "date",
+    );
+    expect(container.querySelector('input[name="dates"]')).not.toBeNull();
+  });
+
+  it("blocks submit and shows an error when the end date precedes the start", () => {
+    const { container } = render(
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
+    );
+
+    const start = container.querySelector("#booking-start") as HTMLInputElement;
+    const end = container.querySelector("#booking-end") as HTMLInputElement;
+    // Far-future dates so the "no past dates" rule never interferes.
+    fireEvent.change(start, { target: { value: "2030-07-10" } });
+    fireEvent.change(end, { target: { value: "2030-07-01" } });
+    fireEvent.submit(container.querySelector("form") as HTMLFormElement);
+
+    expect(
+      screen.getByText(/end date can't be before the start date/i),
+    ).toBeInTheDocument();
   });
 });

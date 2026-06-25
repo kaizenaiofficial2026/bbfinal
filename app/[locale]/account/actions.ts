@@ -12,6 +12,7 @@ import { registerSchema } from "@/lib/validation/account";
 import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { getRequestIpHash } from "@/lib/security/request";
+import { toRetryMinutes } from "@/lib/security/retry-after";
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
@@ -59,7 +60,10 @@ export async function registerAction(formData: FormData) {
     windowMinutes: 60,
   });
   if (!rate.allowed) {
-    localeRedirect(withNext(`/register?error=${encodeURIComponent(t("waitMoment"))}`, next), locale);
+    const message = t("rateLimited", {
+      minutes: toRetryMinutes(rate.retryAfterSeconds),
+    });
+    localeRedirect(withNext(`/register?error=${encodeURIComponent(message)}`, next), locale);
   }
 
   // Reject addresses that can't actually receive mail before we burn a signup
@@ -148,7 +152,10 @@ export async function loginAction(formData: FormData) {
   });
   if (!rate.allowed) {
     const t = await getTranslations("serverActions");
-    localeRedirect(withNext(`/login?error=${encodeURIComponent(t("waitMoment"))}`, next), locale);
+    const message = t("rateLimited", {
+      minutes: toRetryMinutes(rate.retryAfterSeconds),
+    });
+    localeRedirect(withNext(`/login?error=${encodeURIComponent(message)}`, next), locale);
   }
 
   const supabase = await createSupabaseServerClient();

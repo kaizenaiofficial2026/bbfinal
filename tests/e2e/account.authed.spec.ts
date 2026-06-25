@@ -15,14 +15,20 @@ test.describe("customer account (authenticated)", () => {
       /Qa/i,
     );
 
-    // Bookings section + the self-service change-password card.
+    // Bookings section + the 2-step self-service change-password wizard.
     await expect(page.locator("body")).toContainText(/your bookings/i);
     await expect(page.locator("body")).toContainText(/change password/i);
-    await expect(
-      page.getByRole("button", { name: /send verification code/i }),
-    ).toBeVisible();
+
+    // Step 1: verify current password + choose a new one (×2), then "Continue".
     await expect(page.locator('input[name="oldPassword"]')).toBeAttached();
-    await expect(page.locator('input[name="code"]')).toBeAttached();
+    await expect(page.locator('input[name="password"]')).toBeAttached();
+    await expect(page.locator('input[name="confirm"]')).toBeAttached();
+    await expect(
+      page.getByRole("button", { name: /continue/i }),
+    ).toBeVisible();
+
+    // The OTP code field only appears at step 2, not on first load.
+    await expect(page.locator('input[name="code"]')).toHaveCount(0);
   });
 
   test("a signed-in customer is not bounced to the login", async ({ page }) => {

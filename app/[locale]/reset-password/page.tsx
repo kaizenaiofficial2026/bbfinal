@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
 import PasswordInput from "@/components/PasswordInput";
+import SubmitButton from "@/components/SubmitButton";
 import { resetCustomerPasswordAction } from "../account/password-actions";
 
 export const metadata: Metadata = {
@@ -78,9 +79,9 @@ export default async function ResetPasswordPage({
             {error}
           </p>
         ) : null}
-        <button className="btn btn-primary auth-submit" type="submit">
+        <SubmitButton className="btn btn-primary auth-submit">
           {t("resetCta")}
-        </button>
+        </SubmitButton>
       </form>
     </AuthShell>
   );

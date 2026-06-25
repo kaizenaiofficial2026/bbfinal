@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 import { createCheckoutSession } from "@/lib/payments/mpgs";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { getRequestIpHash, isExpired } from "@/lib/security/request";
+import { toRetryMinutes } from "@/lib/security/retry-after";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 export async function POST(request: Request) {
@@ -33,7 +34,19 @@ export async function POST(request: Request) {
     windowMinutes: 10,
   });
   if (!rate.allowed) {
-    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+    const minutes = toRetryMinutes(rate.retryAfterSeconds);
+    return NextResponse.json(
+      {
+        error: `Too many payment attempts. Please wait about ${minutes} minute(s) and try again.`,
+        retryAfterSeconds: rate.retryAfterSeconds,
+      },
+      {
+        status: 429,
+        headers: rate.retryAfterSeconds
+          ? { "Retry-After": String(rate.retryAfterSeconds) }
+          : undefined,
+      },
+    );
   }
 
   const { token } = await request.json();

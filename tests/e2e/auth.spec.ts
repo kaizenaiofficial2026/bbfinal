@@ -71,6 +71,27 @@ test.describe("auth pages: redesigned split-panel + flows", () => {
     expect(firstInvalid).toBe(false);
   });
 
+  test("navbar leads with a Sign in link to /login when logged out", async ({
+    page,
+  }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await dismissCookies(page);
+    const signIn = page
+      .locator(".header-auth")
+      .getByRole("link", { name: /sign in/i });
+    await expect(signIn).toBeVisible();
+    await expect(signIn).toHaveAttribute("href", /\/login$/);
+  });
+
+  test("login footer invites account creation", async ({ page }) => {
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    await dismissCookies(page);
+    await expect(page.getByText(/don't have an account\?/i)).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /create an account/i }),
+    ).toBeVisible();
+  });
+
   test("forgot-password page asks for an email", async ({ page }) => {
     await page.goto("/forgot-password", { waitUntil: "domcontentloaded" });
     await dismissCookies(page);

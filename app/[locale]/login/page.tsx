@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
 import PasswordInput from "@/components/PasswordInput";
+import SubmitButton from "@/components/SubmitButton";
 import { loginAction } from "../account/actions";
 
 export const metadata: Metadata = {
@@ -68,9 +69,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             {error}
           </p>
         ) : null}
-        <button className="btn btn-primary auth-submit" type="submit">
+        <SubmitButton className="btn btn-primary auth-submit">
           {t("signIn")}
-        </button>
+        </SubmitButton>
       </form>
     </AuthShell>
   );

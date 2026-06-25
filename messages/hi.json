@@ -115,7 +115,7 @@
     "signIn": "साइन इन करें",
     "loginTitle": "साइन इन करें",
     "loginSummary": "यात्रा आरक्षित करने और अपनी बुकिंग प्रबंधित करने के लिए साइन इन करें।",
-    "newHere": "नए हैं?",
+    "newHere": "Don't have an account?",
     "createAccountLink": "खाता बनाएँ",
     "accountLabel": "मेरा खाता",
     "greeting": "नमस्ते, {name}",
@@ -167,7 +167,16 @@
     "memberSince": "Member since",
     "travelDocument": "Travel document",
     "documentOnFile": "On file",
-    "documentMissing": "Not provided"
+    "documentMissing": "Not provided",
+    "step1Title": "Step 1 · Verify your identity",
+    "step1Hint": "Enter your current password and choose a new one. We'll email you a verification code next.",
+    "step2Title": "Step 2 · Enter the code",
+    "step2Hint": "We emailed a 6-digit code to {email}. Enter it below to finish changing your password.",
+    "codeSentTo": "We emailed a 6-digit code to {email}.",
+    "continueLabel": "Continue",
+    "verifyChangeLabel": "Change password",
+    "backLabel": "Back",
+    "passwordsDontMatch": "New passwords do not match."
   },
   "pay": {
     "heroTitle": "सुरक्षित भुगतान",
@@ -231,7 +240,12 @@
     "secureCheckout": "सुरक्षित होस्टेड चेकआउट",
     "checkoutNote": "भुगतान पूरा करने के लिए आपको हमारे बैंक के सुरक्षित चेकआउट पर ले जाया जाएगा। Beyond Borders द्वारा कोई कार्ड विवरण संग्रहीत नहीं किया जाता।",
     "starting": "शुरू हो रहा है…",
-    "reservePay": "{amount} आरक्षित करें और भुगतान करें"
+    "reservePay": "{amount} आरक्षित करें और भुगतान करें",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "errSelectDates": "Please choose your travel dates.",
+    "errEndBeforeStart": "The end date can't be before the start date.",
+    "errDatePast": "Please choose dates in the future."
   },
   "aboutPage": {
     "heroTitle": "हमारे बारे में",
@@ -363,7 +377,13 @@
     "email": "ईमेल",
     "mobile": "मोबाइल नंबर",
     "sending": "भेजा जा रहा है…",
-    "submitInquiry": "पूछताछ सबमिट करें"
+    "submitInquiry": "पूछताछ सबमिट करें",
+    "errRequired": "This field is required.",
+    "errArrivalRequired": "Please choose an arrival date.",
+    "errDepartureRequired": "Please choose a departure date.",
+    "errDepartureBeforeArrival": "Departure can't be before arrival.",
+    "errReturnBeforeDeparture": "The return date can't be before the departure date.",
+    "errDatePast": "Please choose a date in the future."
   },
   "serverActions": {
     "checkForm": "कृपया फॉर्म जांचें।",
@@ -387,6 +407,7 @@
     "resetTooMany": "Too many attempts. Please request a new code.",
     "resetServerError": "Something went wrong. Please try again.",
     "currentPasswordWrong": "Your current password is incorrect.",
-    "accountDeactivated": "Your account has been deactivated. Please contact our team."
+    "accountDeactivated": "Your account has been deactivated. Please contact our team.",
+    "rateLimited": "You've made too many attempts. Please wait about {minutes} minute(s) before trying again."
   }
 }
