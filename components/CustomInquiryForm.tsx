@@ -1,6 +1,12 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import {
+  createContext,
+  useActionState,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { useTranslations } from "next-intl";
 import { submitCustomInquiry } from "@/app/[locale]/custom-quote/actions";
 import { initialInquiryState } from "@/app/[locale]/custom-quote/inquiry-state";
@@ -18,6 +24,11 @@ import {
 import BaseSelect from "./Select";
 
 type InquiryType = "package" | "hotel" | "airticket" | "transport";
+
+// Submitted values (echoed back by the action on a failed submit) reach the
+// module-level Field/Select helpers via context, so the form repopulates
+// instead of wiping every field.
+const InquiryValuesContext = createContext<Record<string, string>>({});
 
 // Thin adapter over the shared custom dropdown (components/Select) so every
 // inquiry dropdown gets the same UI as the contact form instead of the native
@@ -40,12 +51,14 @@ function Select({
     { label: placeholder ?? "Select…", value: "" },
     ...options.map((opt) => ({ label: opt, value: opt })),
   ];
+  const values = useContext(InquiryValuesContext);
 
   return (
     <BaseSelect
       name={name}
       label={label}
       options={withPlaceholder}
+      defaultValue={values[name]}
       onChange={onChange}
     />
   );
@@ -66,6 +79,7 @@ function Field({
   placeholder?: string;
   required?: boolean;
 }) {
+  const values = useContext(InquiryValuesContext);
   return (
     <div className="form-field">
       <label htmlFor={`ci-${name}`}>{label}</label>
@@ -75,6 +89,7 @@ function Field({
         type={type}
         min={min}
         placeholder={placeholder}
+        defaultValue={values[name]}
         required={required}
       />
     </div>
@@ -104,6 +119,7 @@ export default function CustomInquiryForm() {
   );
 
   return (
+    <InquiryValuesContext.Provider value={state.values ?? {}}>
     <form className="booking-form" action={formAction}>
       <input type="hidden" name="inquiryType" value={type} />
       <input type="hidden" name="startedAt" value={startedAt} />
@@ -210,5 +226,6 @@ export default function CustomInquiryForm() {
         </p>
       </div>
     </form>
+    </InquiryValuesContext.Provider>
   );
 }

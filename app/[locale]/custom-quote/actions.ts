@@ -14,6 +14,7 @@ import {
   customInquirySchema,
   type CustomInquiryInput,
 } from "@/lib/validation/custom-inquiry";
+import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import type { InquiryState } from "./inquiry-state";
 
 function fs(formData: FormData, key: string) {
@@ -79,54 +80,48 @@ export async function submitCustomInquiry(
   formData: FormData,
 ): Promise<InquiryState> {
   const t = await getTranslations("serverActions");
+
+  // Every visible field, echoed back so a failed submit doesn't wipe the form.
+  const FIELDS = [
+    "inquiryType", "firstName", "lastName", "countryCity", "passportNumber",
+    "email", "mobile", "package", "hotel", "roomCategory", "roomType",
+    "mealPlan", "numberOfRooms", "arrival", "departure", "adults", "children",
+    "extraBed", "airline", "route", "wayType", "flightClass", "pax",
+    "extraBaggage", "carType", "hireType", "numberOfVehicles", "numberOfDays",
+  ] as const;
+  const values = Object.fromEntries(
+    FIELDS.map((key) => [key, fs(formData, key)]),
+  ) as Record<string, string>;
+
   const parsed = customInquirySchema.safeParse({
-    inquiryType: fs(formData, "inquiryType"),
-    firstName: fs(formData, "firstName"),
-    lastName: fs(formData, "lastName"),
-    countryCity: fs(formData, "countryCity"),
-    passportNumber: fs(formData, "passportNumber"),
-    email: fs(formData, "email"),
-    mobile: fs(formData, "mobile"),
+    ...values,
     company: fs(formData, "company"),
     startedAt: fs(formData, "startedAt"),
-    package: fs(formData, "package"),
-    hotel: fs(formData, "hotel"),
-    roomCategory: fs(formData, "roomCategory"),
-    roomType: fs(formData, "roomType"),
-    mealPlan: fs(formData, "mealPlan"),
-    numberOfRooms: fs(formData, "numberOfRooms"),
-    arrival: fs(formData, "arrival"),
-    departure: fs(formData, "departure"),
-    adults: fs(formData, "adults"),
-    children: fs(formData, "children"),
-    extraBed: fs(formData, "extraBed"),
-    airline: fs(formData, "airline"),
-    route: fs(formData, "route"),
-    wayType: fs(formData, "wayType"),
-    flightClass: fs(formData, "flightClass"),
-    pax: fs(formData, "pax"),
-    extraBaggage: fs(formData, "extraBaggage"),
-    carType: fs(formData, "carType"),
-    hireType: fs(formData, "hireType"),
-    numberOfVehicles: fs(formData, "numberOfVehicles"),
-    numberOfDays: fs(formData, "numberOfDays"),
   });
 
   if (!parsed.success) {
     return {
       ok: false,
       note: parsed.error.issues[0]?.message ?? t("checkForm"),
+      values,
     };
   }
 
   const data = parsed.data;
 
   if (data.startedAt && Date.now() - data.startedAt < 2500) {
-    return { ok: false, note: t("waitMoment") };
+    return { ok: false, note: t("waitMoment"), values };
+  }
+
+  // Make sure the address can actually receive mail (catches typos + fakes).
+  const email = data.email.trim().toLowerCase();
+  const deliverable = await checkEmailDeliverable(email);
+  if (!deliverable.ok) {
+    return { ok: false, note: deliverable.reason, values };
   }
 
   if (!canUseSupabaseService()) {
-    return { ok: false, note: t("inquiriesNotConfigured") };
+    return { ok: false, note: t("inquiriesNotConfigured"), values };
   }
 
   try {
@@ -137,6 +132,7 @@ export async function submitCustomInquiry(
       return {
         ok: false,
         note: t("tooManyInquiries"),
+        values,
       };
     }
 
@@ -148,7 +144,7 @@ export async function submitCustomInquiry(
       last_name: data.lastName,
       country_city: data.countryCity || null,
       passport_number: data.passportNumber || null,
-      email: data.email,
+      email,
       mobile: data.mobile,
       details: details as Json,
       ip_hash: ipHash,
@@ -158,7 +154,7 @@ export async function submitCustomInquiry(
       inquiryType: data.inquiryType,
       firstName: data.firstName,
       fullName: `${data.firstName} ${data.lastName}`,
-      email: data.email,
+      email,
       mobile: data.mobile,
       countryCity: data.countryCity || null,
       passportNumber: data.passportNumber || null,
@@ -179,6 +175,7 @@ export async function submitCustomInquiry(
     return {
       ok: false,
       note: t("inquiryError"),
+      values,
     };
   }
 }

@@ -53,6 +53,19 @@ export default function Select({
     return () => document.removeEventListener("click", onDocClick);
   }, []);
 
+  // Re-sync when the parent supplies a new defaultValue — e.g. a form action
+  // echoing values back after a failed submit — so the choice isn't lost. This
+  // uses the supported "adjust state during render when a prop changes" pattern
+  // rather than an effect.
+  const [lastDefault, setLastDefault] = useState(defaultValue);
+  if (defaultValue !== lastDefault) {
+    setLastDefault(defaultValue);
+    if (defaultValue !== undefined) {
+      const match = normalizedOptions.find((o) => o.value === defaultValue);
+      if (match) setSelected(match);
+    }
+  }
+
   const choose = (i: number) => {
     setSelected(normalizedOptions[i]);
     setActive(i);

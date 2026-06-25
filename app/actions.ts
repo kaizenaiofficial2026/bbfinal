@@ -18,6 +18,7 @@ import {
 import { generateBookingReference, getRequestIpHash } from "@/lib/security/request";
 import { bookingSchema } from "@/lib/validation/booking";
 import { enquirySchema } from "@/lib/validation/enquiry";
+import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import type { BookingState, EnquiryState } from "@/app/action-state";
 
 function formString(formData: FormData, key: string) {
@@ -37,12 +38,23 @@ export async function submitEnquiry(
   formData: FormData,
 ): Promise<EnquiryState> {
   const t = await getTranslations("serverActions");
-  const parsed = enquirySchema.safeParse({
+
+  // Echo what the visitor typed so a failed submit never wipes the form.
+  const values = {
     name: formString(formData, "name"),
     email: formString(formData, "email"),
     phone: formString(formData, "phone"),
-    packageLabel: formString(formData, "package"),
+    country: formString(formData, "country"),
+    package: formString(formData, "package"),
     message: formString(formData, "message"),
+  };
+
+  const parsed = enquirySchema.safeParse({
+    name: values.name,
+    email: values.email,
+    phone: values.phone,
+    packageLabel: values.package,
+    message: values.message,
     source: "contact-form",
     company: formString(formData, "company"),
     startedAt: formString(formData, "startedAt"),
@@ -52,6 +64,7 @@ export async function submitEnquiry(
     return {
       ok: false,
       note: parsed.error.issues[0]?.message ?? t("checkForm"),
+      values,
     };
   }
 
@@ -59,13 +72,22 @@ export async function submitEnquiry(
     return {
       ok: false,
       note: t("waitMoment"),
+      values,
     };
+  }
+
+  // Make sure the address can actually receive mail (catches typos + fakes).
+  const email = parsed.data.email.trim().toLowerCase();
+  const deliverable = await checkEmailDeliverable(email);
+  if (!deliverable.ok) {
+    return { ok: false, note: deliverable.reason, values };
   }
 
   if (!canUseSupabaseService()) {
     return {
       ok: false,
       note: t("enquiryNotConfigured"),
+      values,
     };
   }
 
@@ -77,12 +99,13 @@ export async function submitEnquiry(
       return {
         ok: false,
         note: t("tooManyEnquiries"),
+        values,
       };
     }
 
     await createEnquiry({
       name: parsed.data.name,
-      email: parsed.data.email,
+      email,
       phone: parsed.data.phone || null,
       package_label: parsed.data.packageLabel || null,
       message: parsed.data.message,
@@ -92,7 +115,7 @@ export async function submitEnquiry(
 
     await sendEnquiryEmails({
       name: parsed.data.name,
-      email: parsed.data.email,
+      email,
       phone: parsed.data.phone || null,
       packageLabel: parsed.data.packageLabel || null,
       message: parsed.data.message,
@@ -108,6 +131,7 @@ export async function submitEnquiry(
     return {
       ok: false,
       note: t("enquiryError"),
+      values,
     };
   }
 }
@@ -121,11 +145,19 @@ export async function submitBooking(
   const session = await requireVerifiedCustomer();
 
   const t = await getTranslations("serverActions");
-  const parsed = bookingSchema.safeParse({
-    tourPackageId: formString(formData, "tourPackageId"),
-    travelDates: formString(formData, "dates"),
+
+  // Echo the journey details back so a failed submit doesn't wipe them.
+  const values = {
+    dates: formString(formData, "dates"),
     travellers: formString(formData, "travellers"),
     notes: formString(formData, "notes"),
+  };
+
+  const parsed = bookingSchema.safeParse({
+    tourPackageId: formString(formData, "tourPackageId"),
+    travelDates: values.dates,
+    travellers: values.travellers,
+    notes: values.notes,
     company: formString(formData, "company"),
     startedAt: formString(formData, "startedAt"),
   });
@@ -134,6 +166,7 @@ export async function submitBooking(
     return {
       ok: false,
       note: parsed.error.issues[0]?.message ?? t("checkBookingForm"),
+      values,
     };
   }
 
@@ -141,6 +174,7 @@ export async function submitBooking(
     return {
       ok: false,
       note: t("waitMoment"),
+      values,
     };
   }
 
@@ -148,6 +182,7 @@ export async function submitBooking(
     return {
       ok: false,
       note: t("bookingsNotConfigured"),
+      values,
     };
   }
 
@@ -155,7 +190,7 @@ export async function submitBooking(
   // gate, so a single approved account can't spawn unlimited booking rows.
   const ipHash = await getRequestIpHash();
   if ((await countRecentBookingsByIp(ipHash)) >= 10) {
-    return { ok: false, note: t("waitMoment") };
+    return { ok: false, note: t("waitMoment"), values };
   }
 
   const service = createSupabaseServiceClient();
@@ -169,13 +204,14 @@ export async function submitBooking(
     .maybeSingle();
 
   if (pkgError || !pkg || pkg.status !== "published") {
-    return { ok: false, note: t("journeyNotAvailable") };
+    return { ok: false, note: t("journeyNotAvailable"), values };
   }
 
   if (pkg.price_amount == null) {
     return {
       ok: false,
       note: t("noInstantCheckout"),
+      values,
     };
   }
 
@@ -218,6 +254,7 @@ export async function submitBooking(
     return {
       ok: false,
       note: t("bookingError"),
+      values,
     };
   }
 

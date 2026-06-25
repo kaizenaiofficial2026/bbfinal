@@ -53,6 +53,28 @@ async function sendEmail({
   return { skipped: false };
 }
 
+/**
+ * Fire a batch of best-effort notification emails. Unlike Promise.all, one
+ * rejected recipient — e.g. an external address the SMTP relay refuses — never
+ * aborts the siblings or throws. The underlying record (enquiry, booking, …) is
+ * already persisted, so a notification hiccup must not fail the user's action
+ * or hide a captured lead; failures are logged for follow-up instead.
+ */
+async function sendBestEffort(
+  label: string,
+  tasks: Array<Promise<SendResult>>,
+): Promise<void> {
+  const results = await Promise.allSettled(tasks);
+  results.forEach((result, index) => {
+    if (result.status === "rejected") {
+      console.error(
+        `[email] ${label} notification #${index + 1} failed:`,
+        result.reason,
+      );
+    }
+  });
+}
+
 export async function sendEnquiryEmails(input: {
   name: string;
   email: string;
@@ -60,7 +82,7 @@ export async function sendEnquiryEmails(input: {
   packageLabel?: string | null;
   message: string;
 }) {
-  await Promise.all([
+  await sendBestEffort("enquiry", [
     sendEmail({
       to: env.emailTeamInbox,
       subject: `New enquiry from ${input.name}`,
@@ -94,7 +116,7 @@ export async function sendCustomInquiryEmails(input: {
     ),
   );
 
-  await Promise.all([
+  await sendBestEffort("custom-inquiry", [
     sendEmail({
       to: staffRecipients,
       subject: `New ${input.inquiryType} inquiry from ${input.fullName}`,
@@ -128,7 +150,7 @@ export async function sendRegistrationEmails(input: {
   email: string;
   phone?: string | null;
 }) {
-  await Promise.all([
+  await sendBestEffort("registration", [
     sendEmail({
       to: input.email,
       subject: "Your Beyond Borders account is being reviewed",
@@ -190,7 +212,7 @@ export async function sendInvoiceEmails(input: {
 }) {
   const invoice = <InvoiceEmail {...input} />;
 
-  await Promise.all([
+  await sendBestEffort("invoice", [
     sendEmail({
       to: input.email,
       subject: `Invoice for booking ${input.reference}`,

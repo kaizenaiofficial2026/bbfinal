@@ -59,6 +59,7 @@ export default function ContactForm() {
             type="text"
             autoComplete="name"
             placeholder={t("namePlaceholder")}
+            defaultValue={state.values?.name}
             required
           />
         </div>
@@ -70,6 +71,7 @@ export default function ContactForm() {
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
+            defaultValue={state.values?.email}
             required
           />
         </div>
@@ -81,6 +83,7 @@ export default function ContactForm() {
             type="tel"
             autoComplete="tel"
             placeholder="+1 555 000 0000"
+            defaultValue={state.values?.phone}
             required
           />
         </div>
@@ -89,6 +92,7 @@ export default function ContactForm() {
           name="country"
           label={t("country")}
           options={countryOptions}
+          defaultValue={state.values?.country}
         />
 
         <Select
@@ -96,6 +100,7 @@ export default function ContactForm() {
           label={t("packageOfInterest")}
           options={packageOptions}
           className="full"
+          defaultValue={state.values?.package}
         />
 
         <div className="form-field full">
@@ -104,6 +109,7 @@ export default function ContactForm() {
             id="message"
             name="message"
             placeholder={t("messagePlaceholder")}
+            defaultValue={state.values?.message}
             required
           />
         </div>

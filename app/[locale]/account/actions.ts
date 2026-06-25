@@ -9,6 +9,7 @@ import {
   createSupabaseServiceClient,
 } from "@/lib/supabase/service";
 import { registerSchema } from "@/lib/validation/account";
+import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { getRequestIpHash } from "@/lib/security/request";
 
@@ -61,6 +62,17 @@ export async function registerAction(formData: FormData) {
     localeRedirect(withNext(`/register?error=${encodeURIComponent(t("waitMoment"))}`, next), locale);
   }
 
+  // Reject addresses that can't actually receive mail before we burn a signup
+  // attempt (and before emailing a bogus address).
+  const email = parsed.data.email.trim().toLowerCase();
+  const deliverable = await checkEmailDeliverable(email);
+  if (!deliverable.ok) {
+    localeRedirect(
+      withNext(`/register?error=${encodeURIComponent(deliverable.reason)}`, next),
+      locale,
+    );
+  }
+
   const {
     firstName,
     lastName,
@@ -69,7 +81,6 @@ export async function registerAction(formData: FormData) {
     dateOfBirth,
     passportNumber,
     passportExpiry,
-    email,
     password,
     phone,
   } = parsed.data;

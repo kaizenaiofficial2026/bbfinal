@@ -60,6 +60,7 @@ export default function BookingRequestForm({
               name="dates"
               type="text"
               placeholder={t("travelDatesPlaceholder")}
+              defaultValue={state.values?.dates}
             />
           </div>
           <div className="form-field">
@@ -70,6 +71,7 @@ export default function BookingRequestForm({
               type="number"
               min="1"
               placeholder="2"
+              defaultValue={state.values?.travellers}
             />
           </div>
           <div className="form-field full">
@@ -78,6 +80,7 @@ export default function BookingRequestForm({
               id="booking-notes"
               name="notes"
               placeholder={t("specialRequestsPlaceholder")}
+              defaultValue={state.values?.notes}
             />
           </div>
         </div>
