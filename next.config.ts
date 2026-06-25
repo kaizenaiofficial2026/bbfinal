@@ -22,6 +22,14 @@ const mpgsOrigin = safeOrigin(
 );
 const supabaseOrigin = safeOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL);
 
+// Vercel Web Analytics + Speed Insights. On a Vercel deployment the script and
+// beacons are served same-origin under /_vercel/* (covered by 'self'); these
+// external hosts are only reached in local dev, self-hosting, or behind a proxy
+// — the loader script (va.vercel-scripts.com) and the Speed Insights vitals
+// intake (vitals.vercel-insights.com). Harmless to allow everywhere.
+const vercelScript = "https://va.vercel-scripts.com";
+const vercelVitals = "https://vitals.vercel-insights.com";
+
 // Content Security Policy. 'unsafe-inline' is required for Next's framework
 // inline scripts/styles (no nonce pipeline here); 'unsafe-eval' is dev-only for
 // Fast Refresh. The MPGS hosted-checkout script/iframe and Supabase are the only
@@ -33,11 +41,11 @@ const contentSecurityPolicy = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${mpgsOrigin} https://*.gateway.mastercard.com`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${mpgsOrigin} https://*.gateway.mastercard.com ${vercelScript}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseOrigin} https://*.supabase.co wss://*.supabase.co ${mpgsOrigin} https://*.gateway.mastercard.com`,
+  `connect-src 'self' ${supabaseOrigin} https://*.supabase.co wss://*.supabase.co ${mpgsOrigin} https://*.gateway.mastercard.com ${vercelScript} ${vercelVitals}`,
   `frame-src 'self' ${mpgsOrigin} https://*.gateway.mastercard.com`,
 ]
   .map((directive) => directive.replace(/\s+/g, " ").trim())

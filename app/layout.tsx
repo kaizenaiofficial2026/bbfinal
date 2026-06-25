@@ -10,6 +10,8 @@ import {
   Noto_Sans_Telugu,
 } from "next/font/google";
 import { getLocale } from "next-intl/server";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import CookieConsent from "@/components/CookieConsent";
 import PageviewTracker from "@/components/PageviewTracker";
 import { isRtl } from "@/i18n/routing";
@@ -134,6 +136,10 @@ export default async function RootLayout({
         {children}
         <CookieConsent />
         <PageviewTracker />
+        {/* Vercel Web Analytics + Speed Insights — self-mounting client
+            components; cover both the public and admin trees from the root. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
