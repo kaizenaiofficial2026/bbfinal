@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -16,6 +19,10 @@ type ToursProps = {
 
 export default function Tours({ packages }: ToursProps) {
   const t = useTranslations("home.tours");
+  const [expanded, setExpanded] = useState(false);
+  // Desktop shows the first row of 3 and expands inline; mobile shows them all
+  // (the grid becomes a swipeable carousel below 981px).
+  const collapsible = packages.length > 3;
 
   return (
     <section className="luxury-packages-section" id="tours">
@@ -24,14 +31,19 @@ export default function Tours({ packages }: ToursProps) {
           <h2 className="display display-lg">{t("heading")}</h2>
         </div>
 
-        <div className="luxury-package-grid" data-reveal-group="package-cards">
+        <div
+          className={`luxury-package-grid${
+            collapsible && !expanded ? " is-collapsed" : ""
+          }`}
+          data-reveal-group="package-cards"
+        >
           {packages.map((tour) => {
             const price = formatPackagePrice(tour.priceAmount, tour.currency);
             return (
               <article className="luxury-package-card" key={tour.slug}>
                 <Link
                   className="luxury-package-link"
-                  href={`/tours#${tour.slug}`}
+                  href={`/booking/${tour.slug}`}
                   aria-label={`View ${tour.title} package`}
                 >
                   <Image
@@ -58,6 +70,7 @@ export default function Tours({ packages }: ToursProps) {
             );
           })}
         </div>
+
         <div className="luxury-swipe-cue" aria-hidden="true">
           <span>{t("swipe")}</span>
           <svg viewBox="0 0 24 24" fill="none">
@@ -71,11 +84,18 @@ export default function Tours({ packages }: ToursProps) {
           </svg>
         </div>
 
-        <div className="luxury-packages-more">
-          <Link className="luxury-more-btn" href="/tours">
-            {t("viewMore")}
-          </Link>
-        </div>
+        {collapsible ? (
+          <div className="luxury-packages-more">
+            <button
+              type="button"
+              className="luxury-more-btn"
+              onClick={() => setExpanded((value) => !value)}
+              aria-expanded={expanded}
+            >
+              {expanded ? t("showLess") : t("viewMore")}
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );

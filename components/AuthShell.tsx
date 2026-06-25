@@ -30,6 +30,17 @@ export default async function AuthShell({
     <main className="auth-shell">
       <RemovePreloadLock />
       <div className="auth-card">
+        <Link className="auth-back-home" href="/" aria-label="Back to home">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M15 18l-6-6 6-6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </Link>
         <aside className="auth-aside">
           <Link className="auth-aside-brand" href="/" aria-label="Beyond Borders home">
             <Image

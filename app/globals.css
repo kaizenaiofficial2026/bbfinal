@@ -1399,6 +1399,9 @@ body.menu-open .menu-toggle span::after {
   bottom: 36px;
   left: 36px;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   max-width: 520px;
 }
 
@@ -1496,6 +1499,21 @@ body.menu-open .menu-toggle span::after {
   border-color: var(--gold);
   background: var(--gold);
   color: var(--ink);
+}
+
+/* Desktop only: collapse the home packages to the first row of three and let
+   the "view more" button expand/retract them inline. Below 981px the grid is a
+   swipeable carousel showing all cards, so the toggle is hidden there. */
+@media (min-width: 981px) {
+  .luxury-package-grid.is-collapsed > .luxury-package-card:nth-child(n + 4) {
+    display: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .luxury-packages-more {
+    display: none;
+  }
 }
 
 .tour-badge {
@@ -3141,12 +3159,21 @@ body.menu-open .menu-toggle span::after {
 }
 
 .tour-package-price {
-  margin: 16px 0 0;
+  /* Push the price (and the button after it) to the bottom of the card so the
+     price line aligns across every card in a row regardless of summary/meta
+     height. */
+  margin: auto 0 0;
   color: var(--gold-deep);
   font-family: var(--font-label);
   font-size: 17px;
   font-weight: 700;
   letter-spacing: 0.03em;
+}
+
+/* When a card has a price, the button sits a fixed gap below it (the price owns
+   the auto top-margin); price-less cards keep the button auto-margined. */
+.tour-package-body:has(.tour-package-price) > .tour-package-button {
+  margin-top: 16px;
 }
 
 .tour-package-price span {
@@ -5680,6 +5707,7 @@ body.menu-open .cookie-consent {
 }
 
 .auth-card {
+  position: relative;
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   width: min(100%, 980px);
@@ -5688,6 +5716,36 @@ body.menu-open .cookie-consent {
   border-radius: 24px;
   background: var(--paper);
   box-shadow: 0 40px 120px -60px rgba(28, 26, 21, 0.55);
+}
+
+/* Back-to-home arrow, top-left of the card — readable over both the gradient
+   panel (desktop) and the white form panel (mobile, where the panel fills). */
+.auth-back-home {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(20, 18, 13, 0.34);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  transition:
+    background 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+.auth-back-home:hover {
+  background: rgba(20, 18, 13, 0.55);
+  transform: translateX(-2px);
+}
+
+.auth-back-home svg {
+  width: 20px;
+  height: 20px;
 }
 
 .auth-aside {
@@ -5905,8 +5963,9 @@ body.menu-open .cookie-consent {
     margin-bottom: 2px;
   }
 
+  /* Extra top room so the back-home arrow doesn't crowd the in-panel logo. */
   .auth-panel {
-    padding: 32px 24px 30px;
+    padding: 60px 24px 30px;
   }
 }
 
