@@ -162,7 +162,12 @@
     "dateOfBirth": "Date of birth",
     "passportNumber": "Passport number",
     "passportExpiry": "Passport expiry",
-    "mobileNumber": "Mobile number"
+    "mobileNumber": "Mobile number",
+    "location": "Location",
+    "memberSince": "Member since",
+    "travelDocument": "Travel document",
+    "documentOnFile": "On file",
+    "documentMissing": "Not provided"
   },
   "pay": {
     "heroTitle": "محفوظ ادائیگی",
