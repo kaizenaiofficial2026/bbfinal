@@ -191,7 +191,8 @@
     "resultNotConfirmed": "银行未确认已完成的付款。如有异常，请联系团队。",
     "resultNotFound": "未找到此付款请求。",
     "resultDisabled": "支付已停用。凭证启用后，此返回页面即可用于 MPGS。",
-    "contactTeam": "联系团队"
+    "contactTeam": "联系团队",
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
   },
   "bookingPage": {
     "heroLabel": "行程结账",

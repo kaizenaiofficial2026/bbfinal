@@ -10,6 +10,8 @@ import {
   createSupabaseServiceClient,
 } from "@/lib/supabase/service";
 import { sendEnquiryEmails } from "@/lib/email/send";
+import { env } from "@/lib/env";
+import { convertCharge } from "@/lib/payments/currency";
 import {
   createMpgsOrderId,
   createPayToken,
@@ -235,11 +237,21 @@ export async function submitBooking(
       ip_hash: ipHash,
     });
 
+    // The booking keeps its USD figure for display; the payment row stores the
+    // amount we actually charge — the gateway only settles in its own currency
+    // (LKR), so convert here once and let create-session/reconcile use it as-is.
+    const charge = convertCharge(
+      pkg.price_amount,
+      pkg.currency,
+      env.mpgsCurrency,
+      env.usdToLkrRate,
+    );
+
     const { error: paymentError } = await service.from("payments").insert({
       booking_id: booking.id,
       mpgs_order_id: createMpgsOrderId(reference),
-      amount: pkg.price_amount,
-      currency: pkg.currency,
+      amount: charge.amount,
+      currency: charge.currency,
       status: "initiated",
       pay_token: token,
       pay_token_expires_at: createPayTokenExpiry(),

@@ -191,7 +191,8 @@
     "resultNotConfirmed": "لم يؤكّد البنك عملية دفع مكتملة. يرجى التواصل مع الفريق إذا بدا هذا غير صحيح.",
     "resultNotFound": "لم نتمكن من العثور على طلب الدفع هذا.",
     "resultDisabled": "الدفع معطّل. صفحة العودة هذه جاهزة لـ MPGS بمجرد تفعيل بيانات الاعتماد.",
-    "contactTeam": "تواصل مع الفريق"
+    "contactTeam": "تواصل مع الفريق",
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
   },
   "bookingPage": {
     "heroLabel": "إتمام حجز الرحلة",

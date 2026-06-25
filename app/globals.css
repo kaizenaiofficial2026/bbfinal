@@ -5174,6 +5174,16 @@ html.lenis body {
   place-items: start center;
 }
 
+/* Disclosure under the USD amount: the card is actually billed in LKR. */
+.pay-charge-note {
+  margin: -8px 0 0;
+  font-family: var(--font-label);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: right;
+}
+
 /* Mobile chrome (top bar + drawer backdrop) is hidden on desktop. */
 .admin-topbar,
 .admin-backdrop {

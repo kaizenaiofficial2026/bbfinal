@@ -28,6 +28,10 @@ export const env = {
   mpgsApiPassword: process.env.MPGS_API_PASSWORD,
   mpgsMerchantName: process.env.MPGS_MERCHANT_NAME ?? "Beyond Borders",
   mpgsCurrency: process.env.MPGS_CURRENCY ?? "LKR",
+  // Prices are shown in USD but the Seylan gateway settles only in LKR, so the
+  // actual charge = USD amount × this rate. Set to the rate you want to bill at
+  // (update periodically). A wrong/low rate undercharges customers.
+  usdToLkrRate: Number(process.env.USD_TO_LKR_RATE ?? 300),
   mpgsWebhookSecret: process.env.MPGS_WEBHOOK_SECRET,
   payLinkTtlHours: Number(process.env.PAY_LINK_TTL_HOURS ?? 72),
   // SMS notifications (smslenz.lk). Off by default; enable only once creds + the

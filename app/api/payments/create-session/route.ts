@@ -51,13 +51,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Payment already completed." }, { status: 409 });
   }
 
-  const session = await createCheckoutSession({
-    orderId: payment.mpgs_order_id,
-    amount: payment.amount,
-    currency: payment.currency,
-    description: `Beyond Borders booking ${payment.bookings.reference}`,
-    returnUrl: `${env.siteUrl}/pay/${payment.pay_token}/result`,
-  });
+  // Surface a real reason if the gateway rejects the session (e.g. an
+  // unsupported currency) instead of letting it become an unhandled 500 — that
+  // crashes the client's response.json() into a misleading "string did not
+  // match the expected pattern" error.
+  let session;
+  try {
+    session = await createCheckoutSession({
+      orderId: payment.mpgs_order_id,
+      amount: payment.amount,
+      currency: payment.currency,
+      description: `Beyond Borders booking ${payment.bookings.reference}`,
+      returnUrl: `${env.siteUrl}/pay/${payment.pay_token}/result`,
+    });
+  } catch (caught) {
+    console.error("[create-session] gateway error", caught);
+    return NextResponse.json(
+      {
+        error:
+          caught instanceof Error
+            ? caught.message
+            : "We couldn't start the payment. Please contact us.",
+      },
+      { status: 502 },
+    );
+  }
+
   const supabase = createSupabaseServiceClient();
   await supabase
     .from("payments")

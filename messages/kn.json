@@ -191,7 +191,8 @@
     "resultNotConfirmed": "ಬ್ಯಾಂಕ್ ಕ್ಯಾಪ್ಚರ್ ಆದ ಪಾವತಿಯನ್ನು ದೃಢೀಕರಿಸಲಿಲ್ಲ. ಇದು ತಪ್ಪೆನಿಸಿದರೆ ದಯವಿಟ್ಟು ತಂಡವನ್ನು ಸಂಪರ್ಕಿಸಿ.",
     "resultNotFound": "ಈ ಪಾವತಿ ವಿನಂತಿಯನ್ನು ನಾವು ಕಂಡುಹಿಡಿಯಲಾಗಲಿಲ್ಲ.",
     "resultDisabled": "ಪಾವತಿ ನಿಷ್ಕ್ರಿಯವಾಗಿದೆ. ಕ್ರೆಡೆನ್ಷಿಯಲ್‌ಗಳು ಸಕ್ರಿಯವಾದ ತಕ್ಷಣ ಈ ರಿಟರ್ನ್ ಪುಟ MPGS ಗೆ ಸಿದ್ಧವಾಗಿದೆ.",
-    "contactTeam": "ತಂಡವನ್ನು ಸಂಪರ್ಕಿಸಿ"
+    "contactTeam": "ತಂಡವನ್ನು ಸಂಪರ್ಕಿಸಿ",
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
   },
   "bookingPage": {
     "heroLabel": "ಪ್ರಯಾಣ ಚೆಕ್‌ಔಟ್",

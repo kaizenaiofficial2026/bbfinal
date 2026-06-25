@@ -191,7 +191,8 @@
     "resultNotConfirmed": "بینک نے مکمل شدہ ادائیگی کی تصدیق نہیں کی۔ اگر یہ غلط لگے تو براہ کرم ٹیم سے رابطہ کریں۔",
     "resultNotFound": "ہمیں یہ ادائیگی کی درخواست نہیں ملی۔",
     "resultDisabled": "ادائیگیاں غیر فعال ہیں۔ کریڈنشلز فعال ہوتے ہی یہ ریٹرن صفحہ MPGS کے لیے تیار ہے۔",
-    "contactTeam": "ٹیم سے رابطہ کریں"
+    "contactTeam": "ٹیم سے رابطہ کریں",
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
   },
   "bookingPage": {
     "heroLabel": "سفر کی چیک آؤٹ",

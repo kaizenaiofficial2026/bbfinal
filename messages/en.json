@@ -191,7 +191,8 @@
     "resultNotConfirmed": "The bank did not confirm a captured payment. Please contact the team if this seems wrong.",
     "resultNotFound": "We could not find this payment request.",
     "resultDisabled": "Payments are disabled. This return page is ready for MPGS once credentials are enabled.",
-    "contactTeam": "Contact the team"
+    "contactTeam": "Contact the team",
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
   },
   "bookingPage": {
     "heroLabel": "Journey checkout",

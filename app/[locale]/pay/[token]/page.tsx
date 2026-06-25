@@ -23,6 +23,15 @@ export default async function PayPage({ params }: PayPageProps) {
   const paid = payment.status === "captured" || payment.bookings.status === "paid";
   const canPay = env.paymentsEnabled && !expired && !paid;
 
+  // Prices are shown in USD; the card is billed in the gateway's currency (LKR).
+  const displayAmount = payment.bookings.quoted_amount ?? payment.amount;
+  const displayCurrency = payment.bookings.currency ?? payment.currency;
+  const convertedCharge = displayCurrency !== payment.currency;
+  const chargedLabel = `${payment.currency} ${payment.amount.toLocaleString(
+    "en-US",
+    { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+  )}`;
+
   return (
     <SiteShell>
       <main>
@@ -43,8 +52,15 @@ export default async function PayPage({ params }: PayPageProps) {
               </div>
               <div className="booking-total-row">
                 <span>{t("amount")}</span>
-                <strong>{payment.currency} {payment.amount.toFixed(2)}</strong>
+                <strong>
+                  {displayCurrency} {displayAmount.toFixed(2)}
+                </strong>
               </div>
+              {convertedCharge ? (
+                <p className="pay-charge-note">
+                  {t("chargeNote", { amount: chargedLabel })}
+                </p>
+              ) : null}
               <div className="booking-total-row">
                 <span>{t("status")}</span>
                 <strong>{paid ? t("paid") : expired ? t("expired") : payment.status}</strong>

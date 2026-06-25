@@ -14,6 +14,8 @@ export type PaymentWithBooking = PaymentRow & {
     traveller_name: string;
     email: string;
     status: string;
+    quoted_amount: number | null;
+    currency: string;
     tour_packages?: {
       title: string;
     } | null;
@@ -24,7 +26,7 @@ export async function getPaymentByToken(token: string) {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase
     .from("payments")
-    .select("*, bookings(id, reference, traveller_name, email, status, tour_packages(title))")
+    .select("*, bookings(id, reference, traveller_name, email, status, quoted_amount, currency, tour_packages(title))")
     .eq("pay_token", token)
     .maybeSingle();
 
@@ -39,7 +41,7 @@ export async function getPaymentByOrderId(orderId: string) {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase
     .from("payments")
-    .select("*, bookings(id, reference, traveller_name, email, status, tour_packages(title))")
+    .select("*, bookings(id, reference, traveller_name, email, status, quoted_amount, currency, tour_packages(title))")
     .eq("mpgs_order_id", orderId)
     .maybeSingle();
 
