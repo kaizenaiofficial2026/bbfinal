@@ -6259,8 +6259,11 @@ body.menu-open .cookie-consent {
 .auth-shell {
   min-height: 100vh;
   min-height: 100dvh;
-  display: grid;
-  place-items: center;
+  /* flex + `margin: auto` on the card centres it when it fits, but lets a tall
+     card (the long register form on a short/13" laptop) overflow and scroll the
+     PAGE naturally — grid/justify centring would clip the top instead, and an
+     inner card scroll is fought by the page's Lenis smooth-scroll. */
+  display: flex;
   padding: 32px 20px;
   background:
     radial-gradient(circle at 15% 12%, rgba(179, 146, 79, 0.12), transparent 45%),
@@ -6273,10 +6276,7 @@ body.menu-open .cookie-consent {
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   width: min(100%, 980px);
-  /* Never grow past the viewport (the long register form used to push the
-     whole page into a scroll on desktop). The form panel scrolls internally
-     instead, so the card itself stays put. */
-  max-height: calc(100dvh - 72px);
+  margin: auto;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 24px;
@@ -6363,10 +6363,6 @@ body.menu-open .cookie-consent {
   flex-direction: column;
   gap: 14px;
   padding: 44px 44px 40px;
-  /* min-height:0 lets this grid cell shrink so its own overflow can scroll
-     (instead of stretching the card past the viewport). */
-  min-height: 0;
-  overflow-y: auto;
 }
 
 .auth-panel-brand {
@@ -6519,19 +6515,9 @@ body.menu-open .cookie-consent {
 }
 
 @media (max-width: 860px) {
-  /* Top-align the card and let it grow with content so the long register form
-     scrolls the PAGE naturally on mobile, instead of being trapped in a
-     fixed-height card with an awkward inner scrollbar (the height cap below is
-     a desktop-only nicety). */
-  .auth-shell {
-    align-items: start;
-  }
-
   .auth-card {
     grid-template-columns: 1fr;
     width: min(100%, 460px);
-    max-height: none;
-    overflow: visible;
   }
 
   .auth-aside {
@@ -6543,10 +6529,8 @@ body.menu-open .cookie-consent {
     margin-bottom: 2px;
   }
 
-  /* No inner scroll on mobile (page scrolls); extra top room so the back-home
-     arrow doesn't crowd the in-panel logo. */
+  /* Extra top room so the back-home arrow doesn't crowd the in-panel logo. */
   .auth-panel {
-    overflow-y: visible;
     padding: 60px 24px 30px;
   }
 }
