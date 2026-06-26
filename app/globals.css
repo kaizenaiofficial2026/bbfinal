@@ -465,6 +465,11 @@ p {
   color: var(--muted);
 }
 
+/* Only the progress percentage remains — centre it. */
+.preloader-meta--solo {
+  justify-content: center;
+}
+
 /* Header */
 .site-header {
   position: fixed;
@@ -5166,6 +5171,12 @@ html.lenis body {
   flex: 0 0 auto;
 }
 
+.admin-login-logo {
+  width: 150px;
+  height: auto;
+  margin: 0 auto 4px;
+}
+
 .admin-metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -6262,6 +6273,10 @@ body.menu-open .cookie-consent {
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   width: min(100%, 980px);
+  /* Never grow past the viewport (the long register form used to push the
+     whole page into a scroll on desktop). The form panel scrolls internally
+     instead, so the card itself stays put. */
+  max-height: calc(100dvh - 72px);
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 24px;
@@ -6348,6 +6363,10 @@ body.menu-open .cookie-consent {
   flex-direction: column;
   gap: 14px;
   padding: 44px 44px 40px;
+  /* min-height:0 lets this grid cell shrink so its own overflow can scroll
+     (instead of stretching the card past the viewport). */
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .auth-panel-brand {

@@ -17,13 +17,13 @@ import {
 import { revalidateDestinations } from "@/lib/data/destinations";
 import { revalidatePackages } from "@/lib/data/packages";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
-import { getRequestIpHash } from "@/lib/security/request";
+import { getRequestIpHash, scopedRateKey } from "@/lib/security/request";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 
 /** English rate-limit copy with an accurate wait time (admin UI is en-only). */
 function rateLimitMessage(retryAfterSeconds?: number) {
   const minutes = toRetryMinutes(retryAfterSeconds);
-  return `You've made too many attempts. Please wait about ${minutes} minute(s) before trying again.`;
+  return `You've been rate limited. Please wait about ${minutes} minute(s) before trying again.`;
 }
 import {
   requestResetSchema,
@@ -120,7 +120,7 @@ export async function requestAdminResetAction(formData: FormData) {
   const ipHash = await getRequestIpHash();
   const rate = await checkAndRecordRateLimit(
     "admin-password-reset-request",
-    ipHash,
+    scopedRateKey(ipHash, parsed.data.email),
     { max: 5, windowMinutes: 30 },
   );
   if (!rate.allowed) {
@@ -157,7 +157,7 @@ export async function resetAdminPasswordAction(formData: FormData) {
   const ipHash = await getRequestIpHash();
   const rate = await checkAndRecordRateLimit(
     "admin-password-reset-verify",
-    ipHash,
+    scopedRateKey(ipHash, email),
     { max: 10, windowMinutes: 15 },
   );
   if (!rate.allowed) {
@@ -413,7 +413,7 @@ export async function sendAdminPasswordOtpAction() {
   const ipHash = await getRequestIpHash();
   const rate = await checkAndRecordRateLimit(
     "admin-password-change-otp",
-    ipHash,
+    scopedRateKey(ipHash, email),
     { max: 5, windowMinutes: 30 },
   );
   if (!rate.allowed) {
@@ -455,10 +455,11 @@ export async function changeAdminPasswordAction(formData: FormData) {
   }
 
   const ipHash = await getRequestIpHash();
-  const rate = await checkAndRecordRateLimit("admin-password-change", ipHash, {
-    max: 10,
-    windowMinutes: 15,
-  });
+  const rate = await checkAndRecordRateLimit(
+    "admin-password-change",
+    scopedRateKey(ipHash, email),
+    { max: 10, windowMinutes: 15 },
+  );
   if (!rate.allowed) {
     return back(rateLimitMessage(rate.retryAfterSeconds));
   }

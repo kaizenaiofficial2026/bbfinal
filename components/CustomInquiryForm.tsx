@@ -40,7 +40,8 @@ const InquiryErrorsContext = createContext<{
   clearError: (name: string) => void;
 }>({ errors: {}, clearError: () => {} });
 
-// Required visible fields per inquiry type (dates handled separately below).
+// Every visible field per inquiry type is mandatory (dates handled separately
+// below; airticket return date is required only for a round trip).
 const REQUIRED: Record<InquiryType, string[]> = {
   package: ["package"],
   hotel: [
@@ -50,6 +51,7 @@ const REQUIRED: Record<InquiryType, string[]> = {
     "mealPlan",
     "numberOfRooms",
     "adults",
+    "children",
     "extraBed",
   ],
   airticket: ["airline", "route", "wayType", "flightClass", "pax", "extraBaggage"],
@@ -62,7 +64,14 @@ const REQUIRED: Record<InquiryType, string[]> = {
     "extraBaggage",
   ],
 };
-const GUEST_REQUIRED = ["firstName", "lastName", "email", "mobile"];
+const GUEST_REQUIRED = [
+  "firstName",
+  "lastName",
+  "countryCity",
+  "passportNumber",
+  "email",
+  "mobile",
+];
 
 // Thin adapter over the shared custom dropdown (components/Select).
 function Select({
@@ -203,9 +212,13 @@ export default function CustomInquiryForm() {
     } else if (type === "airticket") {
       const arrival = get("arrival");
       const departure = get("departure");
+      const wayType = get("wayType");
       if (!arrival) next.arrival = t("errDepartureRequired");
       else if (isPastDate(arrival, today)) next.arrival = t("errDatePast");
-      if (departure && arrival && !isValidRange(arrival, departure))
+      // Return date is mandatory for a round trip, optional one-way.
+      if (wayType === "Both way" && !departure)
+        next.departure = t("errReturnRequired");
+      else if (departure && arrival && !isValidRange(arrival, departure))
         next.departure = t("errReturnBeforeDeparture");
     }
 
@@ -294,10 +307,10 @@ export default function CustomInquiryForm() {
                   <Select name="roomType" label={t("roomType")} options={ROOM_TYPES} placeholder={t("selectPlaceholder")} />
                   <Select name="mealPlan" label={t("mealPlan")} options={MEAL_PLANS} placeholder={t("selectPlaceholder")} />
                   <Field name="numberOfRooms" label={t("numberOfRooms")} type="number" min={1} placeholder="1" />
-                  <Field name="arrival" label={t("expectedArrival")} type="date" required={false} />
-                  <Field name="departure" label={t("expectedDeparture")} type="date" required={false} />
+                  <Field name="arrival" label={t("expectedArrival")} type="date" />
+                  <Field name="departure" label={t("expectedDeparture")} type="date" />
                   <Field name="adults" label={t("adults")} type="number" min={1} placeholder="2" />
-                  <Field name="children" label={t("children")} type="number" min={0} placeholder="0" required={false} />
+                  <Field name="children" label={t("children")} type="number" min={0} placeholder="0" />
                   <Select name="extraBed" label={t("extraBed")} options={YES_NO} placeholder={t("selectPlaceholder")} />
                 </>
               ) : null}
@@ -307,7 +320,7 @@ export default function CustomInquiryForm() {
                   <Field name="airline" label={t("airline")} placeholder={t("airlinePlaceholder")} />
                   <Field name="route" label={t("route")} placeholder={t("routePlaceholder")} />
                   <Select name="wayType" label={t("trip")} options={ONE_OR_BOTH_WAY} placeholder={t("selectPlaceholder")} />
-                  <Field name="arrival" label={t("departureDate")} type="date" required={false} />
+                  <Field name="arrival" label={t("departureDate")} type="date" />
                   <Field name="departure" label={t("returnDate")} type="date" required={false} />
                   <Select name="flightClass" label={t("flightClass")} options={FLIGHT_CLASSES} placeholder={t("selectPlaceholder")} />
                   <Field name="pax" label={t("passengers")} type="number" min={1} placeholder="1" />
@@ -333,8 +346,8 @@ export default function CustomInquiryForm() {
             <div className="form-grid">
               <Field name="firstName" label={t("firstName")} />
               <Field name="lastName" label={t("lastName")} />
-              <Field name="countryCity" label={t("countryCity")} required={false} placeholder={t("countryCityPlaceholder")} />
-              <Field name="passportNumber" label={t("passportNumber")} required={false} />
+              <Field name="countryCity" label={t("countryCity")} placeholder={t("countryCityPlaceholder")} />
+              <Field name="passportNumber" label={t("passportNumber")} />
               <Field name="email" label={t("email")} type="email" />
               <Field name="mobile" label={t("mobile")} type="tel" placeholder="+91 ..." />
             </div>

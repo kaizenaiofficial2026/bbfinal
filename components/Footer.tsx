@@ -18,6 +18,7 @@ export default function Footer() {
               alt="Beyond Borders"
               width={154}
               height={75}
+              unoptimized
             />
             <p>{t("blurb")}</p>
             <div className="socials" aria-label="Social links">

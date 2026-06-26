@@ -63,6 +63,7 @@ export default function AdminTopbar() {
             width={120}
             height={58}
             priority
+            unoptimized
           />
         </Link>
         <button

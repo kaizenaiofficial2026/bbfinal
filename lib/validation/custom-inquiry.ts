@@ -4,8 +4,12 @@ import { z } from "zod";
 const guest = {
   firstName: z.string().trim().min(1, "First name is required.").max(120),
   lastName: z.string().trim().min(1, "Last name is required.").max(120),
-  countryCity: z.string().trim().max(160).optional().or(z.literal("")),
-  passportNumber: z.string().trim().max(60).optional().or(z.literal("")),
+  countryCity: z.string().trim().min(1, "Country & city are required.").max(160),
+  passportNumber: z
+    .string()
+    .trim()
+    .min(1, "Passport number is required.")
+    .max(60),
   email: z.email("Please enter a valid email address.").max(180),
   mobile: z.string().trim().min(4, "Please enter a mobile number.").max(40),
   company: z.string().max(0).optional().or(z.literal("")), // honeypot
@@ -54,7 +58,12 @@ export const customInquirySchema = z.discriminatedUnion("inquiryType", [
       pax: z.coerce.number().int().min(1).max(50),
       extraBaggage: yesNo,
     })
-    // `arrival` is the departure date; `departure` is the optional return date.
+    // `arrival` is the departure date; `departure` is the return date —
+    // mandatory for a round trip, optional one-way.
+    .refine((d) => d.wayType !== "Both way" || !!d.departure, {
+      message: "A return date is required for a round trip.",
+      path: ["departure"],
+    })
     .refine((d) => !d.departure || d.departure >= d.arrival, {
       message: "The return date can't be before the departure date.",
       path: ["departure"],

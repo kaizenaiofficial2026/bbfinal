@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
+import AuthErrorToast from "@/components/AuthErrorToast";
 import SubmitButton from "@/components/SubmitButton";
 import { requestCustomerResetAction } from "../account/password-actions";
 
@@ -30,6 +31,7 @@ export default async function ForgotPasswordPage({
         </p>
       }
     >
+      <AuthErrorToast error={error} />
       <form className="auth-form" action={requestCustomerResetAction}>
         <div className="auth-field">
           <label htmlFor="fp-email">{t("email")}</label>

@@ -4,7 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { localeRedirect } from "@/lib/i18n/redirect";
 import { env } from "@/lib/env";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
-import { getRequestIpHash } from "@/lib/security/request";
+import { getRequestIpHash, scopedRateKey } from "@/lib/security/request";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 import {
   requestResetSchema,
@@ -43,10 +43,11 @@ export async function requestCustomerResetAction(formData: FormData) {
   }
 
   const ipHash = await getRequestIpHash();
-  const rate = await checkAndRecordRateLimit("password-reset-request", ipHash, {
-    max: 5,
-    windowMinutes: 30,
-  });
+  const rate = await checkAndRecordRateLimit(
+    "password-reset-request",
+    scopedRateKey(ipHash, parsed.data.email),
+    { max: 5, windowMinutes: 30 },
+  );
   if (!rate.allowed) {
     const message = t("rateLimited", {
       minutes: toRetryMinutes(rate.retryAfterSeconds),
@@ -90,10 +91,11 @@ export async function resetCustomerPasswordAction(formData: FormData) {
   }
 
   const ipHash = await getRequestIpHash();
-  const rate = await checkAndRecordRateLimit("password-reset-verify", ipHash, {
-    max: 10,
-    windowMinutes: 15,
-  });
+  const rate = await checkAndRecordRateLimit(
+    "password-reset-verify",
+    scopedRateKey(ipHash, email),
+    { max: 10, windowMinutes: 15 },
+  );
   if (!rate.allowed) {
     return back(
       t("rateLimited", { minutes: toRetryMinutes(rate.retryAfterSeconds) }),
@@ -167,7 +169,7 @@ export async function startCustomerPasswordChangeAction(
   const ipHash = await getRequestIpHash();
   const rate = await checkAndRecordRateLimit(
     "customer-password-change-otp",
-    ipHash,
+    scopedRateKey(ipHash, email),
     { max: 5, windowMinutes: 30 },
   );
   if (!rate.allowed) {
@@ -199,7 +201,7 @@ export async function resendCustomerPasswordOtpAction(
   const ipHash = await getRequestIpHash();
   const rate = await checkAndRecordRateLimit(
     "customer-password-change-otp",
-    ipHash,
+    scopedRateKey(ipHash, email),
     { max: 5, windowMinutes: 30 },
   );
   if (!rate.allowed) {
@@ -244,7 +246,7 @@ export async function changeCustomerPasswordAction(
   const ipHash = await getRequestIpHash();
   const rate = await checkAndRecordRateLimit(
     "customer-password-change",
-    ipHash,
+    scopedRateKey(ipHash, email),
     { max: 10, windowMinutes: 15 },
   );
   if (!rate.allowed) {

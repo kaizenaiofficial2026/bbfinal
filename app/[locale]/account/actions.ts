@@ -11,7 +11,7 @@ import {
 import { registerSchema } from "@/lib/validation/account";
 import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
-import { getRequestIpHash } from "@/lib/security/request";
+import { getRequestIpHash, scopedRateKey } from "@/lib/security/request";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 
 function formString(formData: FormData, key: string) {
@@ -55,10 +55,13 @@ export async function registerAction(formData: FormData) {
   // Throttle account creation per IP — caps automated signup and email-bombing
   // (each register sends mail to an attacker-supplied address + the team inbox).
   const ipHash = await getRequestIpHash();
-  const rate = await checkAndRecordRateLimit("register", ipHash, {
-    max: 5,
-    windowMinutes: 60,
-  });
+  // Scope by the email being registered so a shared office/CGNAT IP doesn't lock
+  // out everyone behind it (the previous IP-only key did exactly that).
+  const rate = await checkAndRecordRateLimit(
+    "register",
+    scopedRateKey(ipHash, parsed.data.email),
+    { max: 5, windowMinutes: 60 },
+  );
   if (!rate.allowed) {
     const message = t("rateLimited", {
       minutes: toRetryMinutes(rate.retryAfterSeconds),
@@ -143,13 +146,16 @@ export async function registerAction(formData: FormData) {
 export async function loginAction(formData: FormData) {
   const locale = await getLocale();
   const next = safeNext(formString(formData, "next"));
+  const email = formString(formData, "email");
 
-  // Throttle sign-in attempts per IP — slows credential stuffing / brute force.
+  // Throttle per (IP, account): slows brute force on an account without locking
+  // out other people who share the same public IP (office Wi-Fi, mobile/CGNAT).
   const ipHash = await getRequestIpHash();
-  const rate = await checkAndRecordRateLimit("login", ipHash, {
-    max: 10,
-    windowMinutes: 15,
-  });
+  const rate = await checkAndRecordRateLimit(
+    "login",
+    scopedRateKey(ipHash, email),
+    { max: 10, windowMinutes: 15 },
+  );
   if (!rate.allowed) {
     const t = await getTranslations("serverActions");
     const message = t("rateLimited", {
@@ -160,7 +166,7 @@ export async function loginAction(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
   const { data: signIn, error } = await supabase.auth.signInWithPassword({
-    email: formString(formData, "email"),
+    email,
     password: formString(formData, "password"),
   });
 

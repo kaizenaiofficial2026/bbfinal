@@ -94,6 +94,7 @@ export default function Header({ account }: { account: HeaderAccount }) {
             width={154}
             height={75}
             priority
+            unoptimized
           />
         </Link>
 

@@ -21,8 +21,7 @@ export default function Preloader() {
         <div className="preloader-rule">
           <span id="preloaderRule" />
         </div>
-        <div className="preloader-meta">
-          <span>Sri Lanka travel design</span>
+        <div className="preloader-meta preloader-meta--solo">
           <span>
             <span id="preloaderNum">0</span>%
           </span>

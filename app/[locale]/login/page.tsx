@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
+import AuthErrorToast from "@/components/AuthErrorToast";
 import PasswordInput from "@/components/PasswordInput";
 import SubmitButton from "@/components/SubmitButton";
 import { loginAction } from "../account/actions";
@@ -38,6 +39,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </>
       }
     >
+      <AuthErrorToast error={error} />
       <form className="auth-form" action={loginAction}>
         {next ? <input type="hidden" name="next" value={next} /> : null}
         {reset ? (

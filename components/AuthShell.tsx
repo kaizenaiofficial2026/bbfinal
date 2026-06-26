@@ -49,6 +49,7 @@ export default async function AuthShell({
               width={150}
               height={73}
               priority
+              unoptimized
             />
           </Link>
           <div className="auth-aside-copy">
@@ -64,6 +65,8 @@ export default async function AuthShell({
               alt="Beyond Borders"
               width={132}
               height={64}
+              priority
+              unoptimized
             />
           </Link>
           <h1 className="auth-title">{title}</h1>

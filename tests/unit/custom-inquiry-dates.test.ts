@@ -4,6 +4,8 @@ import { customInquirySchema } from "@/lib/validation/custom-inquiry";
 const guest = {
   firstName: "Asha",
   lastName: "Perera",
+  countryCity: "Sri Lanka, Colombo",
+  passportNumber: "N1234567",
   email: "asha@example.com",
   mobile: "+94 77 123 4567",
   company: "",
@@ -68,7 +70,7 @@ describe("custom inquiry date validation", () => {
     }
   });
 
-  it("allows an air ticket with no return date", () => {
+  it("allows a one-way air ticket with no return date", () => {
     expect(
       customInquirySchema.safeParse(
         airticket({ wayType: "One way", departure: "" }),
@@ -76,11 +78,32 @@ describe("custom inquiry date validation", () => {
     ).toBe(true);
   });
 
+  it("requires a return date for a round trip", () => {
+    const result = customInquirySchema.safeParse(
+      airticket({ wayType: "Both way", departure: "" }),
+    );
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((issue) => issue.path.includes("departure")),
+      ).toBe(true);
+    }
+  });
+
   it("rejects an air ticket whose return precedes departure", () => {
     expect(
       customInquirySchema.safeParse(
         airticket({ arrival: "2026-07-10", departure: "2026-07-01" }),
       ).success,
+    ).toBe(false);
+  });
+
+  it("rejects an inquiry missing country/city or passport (now required)", () => {
+    expect(
+      customInquirySchema.safeParse(hotel({ countryCity: "" })).success,
+    ).toBe(false);
+    expect(
+      customInquirySchema.safeParse(hotel({ passportNumber: "" })).success,
     ).toBe(false);
   });
 });

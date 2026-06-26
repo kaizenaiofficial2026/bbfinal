@@ -7,16 +7,35 @@ export async function getRequestIpHash() {
   const headerStore = await headers();
   // Prefer the platform-set single client IP (e.g. x-real-ip on Vercel) over the
   // left-most x-forwarded-for entry, which a client can prepend to rotate its
-  // rate-limit key. Fall back to XFF, then to a shared "unknown" bucket.
+  // rate-limit key.
   const realIp = headerStore.get("x-real-ip")?.trim();
   const forwardedFor = headerStore.get("x-forwarded-for") ?? "";
-  const ip = realIp || forwardedFor.split(",")[0]?.trim() || "unknown";
+  const ip = realIp || forwardedFor.split(",")[0]?.trim();
 
-  // Never return null: collapsing IP-less requests into one shared bucket keeps
-  // rate limiting in force (fail-closed) instead of silently disabling it.
+  // No platform IP at all (shouldn't happen on Vercel). FAIL OPEN with a unique
+  // per-request bucket rather than collapsing every header-less request into one
+  // shared "unknown" bucket — that made the limiter effectively global and
+  // locked innocent users out for hours.
+  if (!ip) {
+    return createHash("sha256").update(randomBytes(16)).digest("hex");
+  }
+
   return createHash("sha256")
     .update(`${ip}:${process.env.SUPABASE_SERVICE_ROLE_KEY ?? "local"}`)
     .digest("hex");
+}
+
+/**
+ * Combine the IP hash with a per-account scope (e.g. the email being signed
+ * into). Users behind a SHARED public IP — office Wi-Fi, mobile/CGNAT — then get
+ * their OWN sliding window per account instead of a single collective one, so
+ * one person's attempts can't lock everyone else out. Brute-forcing a single
+ * account is still throttled. Empty scope falls back to the bare IP bucket.
+ */
+export function scopedRateKey(ipHash: string, scope: string) {
+  const trimmed = scope.trim().toLowerCase();
+  if (!trimmed) return ipHash;
+  return createHash("sha256").update(`${ipHash}:${trimmed}`).digest("hex");
 }
 
 export function generateToken(bytes = 32) {

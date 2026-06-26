@@ -596,18 +596,33 @@ export default function SiteEffects() {
         packageGroups.add(group);
         group.classList.add("package-cards-ready");
 
+        let done = false;
+        let safety: ReturnType<typeof setTimeout> | undefined;
+        const reveal = () => {
+          if (done) return;
+          done = true;
+          group.classList.add("is-visible");
+          observer.disconnect();
+          if (safety) clearTimeout(safety);
+        };
+
+        // threshold 0 (any pixel) instead of a fraction: the package grid is
+        // ONE element, and on mobile its single column is far taller than the
+        // viewport, so a 0.18 visible-ratio is never reached and the cards stay
+        // stuck at opacity:0. The timeout is a final safety net so cards always
+        // appear even if IntersectionObserver misfires on a given device.
         const observer = new IntersectionObserver(
           ([entry]) => {
-            if (!entry?.isIntersecting) return;
-            group.classList.add("is-visible");
-            observer.disconnect();
+            if (entry?.isIntersecting) reveal();
           },
-          { threshold: 0.18, rootMargin: "0px 0px -10% 0px" },
+          { threshold: 0, rootMargin: "0px 0px -64px 0px" },
         );
 
         observer.observe(group);
+        safety = setTimeout(reveal, 1600);
         disposers.push(() => {
           observer.disconnect();
+          if (safety) clearTimeout(safety);
           group.classList.remove("package-cards-ready", "is-visible");
         });
       };

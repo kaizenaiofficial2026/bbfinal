@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { signInAction } from "../actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
@@ -15,6 +16,15 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="admin-login">
       <form className="admin-card admin-login-card" action={signInAction}>
+        <Image
+          className="admin-login-logo"
+          src="/assets/images/brand/logo.png"
+          alt="Beyond Borders"
+          width={150}
+          height={73}
+          priority
+          unoptimized
+        />
         <span className="section-kicker">Staff access</span>
         <h1>Admin login</h1>
         {reset ? (

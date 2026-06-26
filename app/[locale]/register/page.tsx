@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
+import AuthErrorToast from "@/components/AuthErrorToast";
 import PasswordInput from "@/components/PasswordInput";
 import SubmitButton from "@/components/SubmitButton";
 import { registerAction } from "../account/actions";
@@ -31,6 +32,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         </p>
       }
     >
+      <AuthErrorToast error={error} />
       <form className="auth-form" action={registerAction}>
         {next ? <input type="hidden" name="next" value={next} /> : null}
         {/* Honeypot — hidden from humans; bots fill it and are rejected. */}

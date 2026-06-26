@@ -383,7 +383,8 @@
     "errDepartureRequired": "Please choose a departure date.",
     "errDepartureBeforeArrival": "Departure can't be before arrival.",
     "errReturnBeforeDeparture": "The return date can't be before the departure date.",
-    "errDatePast": "Please choose a date in the future."
+    "errDatePast": "Please choose a date in the future.",
+    "errReturnRequired": "Please choose a return date."
   },
   "serverActions": {
     "checkForm": "దయచేసి ఫారమ్‌ను తనిఖీ చేయండి.",
@@ -408,6 +409,6 @@
     "resetServerError": "Something went wrong. Please try again.",
     "currentPasswordWrong": "Your current password is incorrect.",
     "accountDeactivated": "Your account has been deactivated. Please contact our team.",
-    "rateLimited": "You've made too many attempts. Please wait about {minutes} minute(s) before trying again."
+    "rateLimited": "You've been rate limited. Please wait about {minutes} minute(s) before trying again."
   }
 }

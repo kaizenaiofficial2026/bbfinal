@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
+import AuthErrorToast from "@/components/AuthErrorToast";
 import PasswordInput from "@/components/PasswordInput";
 import SubmitButton from "@/components/SubmitButton";
 import { resetCustomerPasswordAction } from "../account/password-actions";
@@ -31,6 +32,7 @@ export default async function ResetPasswordPage({
         </p>
       }
     >
+      <AuthErrorToast error={error} />
       <form className="auth-form" action={resetCustomerPasswordAction}>
         <input type="hidden" name="email" value={email} />
         {sent ? (
