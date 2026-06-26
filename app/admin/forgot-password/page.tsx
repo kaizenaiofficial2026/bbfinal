@@ -33,7 +33,7 @@ export default async function AdminForgotPasswordPage({
           <input name="email" type="email" autoComplete="email" required />
         </label>
         <SubmitButton pendingLabel="Sending…">Send reset code</SubmitButton>
-        <p className="admin-muted">
+        <p className="admin-muted admin-login-back-row">
           <Link className="admin-back" href="/admin/login">
             ← Back to login
           </Link>

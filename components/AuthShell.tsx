@@ -10,6 +10,7 @@ type AuthShellProps = {
   children: ReactNode;
   /** The account-switch / helper links rendered under the form. */
   footer?: ReactNode;
+  asideVariant?: "login" | "register" | "forgot";
 };
 
 /**
@@ -23,8 +24,12 @@ export default async function AuthShell({
   subtitle,
   children,
   footer,
+  asideVariant,
 }: AuthShellProps) {
   const t = await getTranslations("auth");
+  const asideClassName = asideVariant
+    ? `auth-aside auth-aside-${asideVariant}`
+    : "auth-aside";
 
   return (
     <main className="auth-shell">
@@ -41,7 +46,7 @@ export default async function AuthShell({
             />
           </svg>
         </Link>
-        <aside className="auth-aside">
+        <aside className={asideClassName}>
           <Link className="auth-aside-brand" href="/" aria-label="Beyond Borders home">
             <Image
               src="/assets/images/brand/logo.png"

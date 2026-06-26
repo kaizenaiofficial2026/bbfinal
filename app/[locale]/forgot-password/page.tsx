@@ -25,6 +25,7 @@ export default async function ForgotPasswordPage({
     <AuthShell
       title={t("forgotTitle")}
       subtitle={t("forgotSummary")}
+      asideVariant="forgot"
       footer={
         <p>
           <Link href="/login">{t("backToLogin")}</Link>

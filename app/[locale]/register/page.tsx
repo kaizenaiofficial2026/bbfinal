@@ -26,6 +26,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
     <AuthShell
       title={t("registerTitle")}
       subtitle={t("registerSummary")}
+      asideVariant="register"
       footer={
         <p>
           {t("haveAccount")} <Link href={loginHref}>{t("signIn")}</Link>

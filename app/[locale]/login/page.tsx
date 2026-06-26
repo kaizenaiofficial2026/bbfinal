@@ -27,6 +27,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <AuthShell
       title={t("loginTitle")}
       subtitle={t("loginSummary")}
+      asideVariant="login"
       footer={
         <>
           <p>

@@ -971,14 +971,14 @@ body.menu-open .menu-toggle span::after {
 }
 
 .about-action-primary {
-  background: #d83f57;
-  box-shadow: 0 18px 42px -22px rgba(216, 63, 87, 0.75);
+  background: var(--gold);
+  box-shadow: 0 18px 42px -22px rgba(179, 146, 79, 0.75);
 }
 
 .about-action-primary:hover {
-  background: #c9354d;
+  background: var(--gold-soft);
   color: var(--paper);
-  box-shadow: 0 22px 48px -22px rgba(216, 63, 87, 0.8);
+  box-shadow: 0 22px 48px -22px rgba(179, 146, 79, 0.8);
 }
 
 .about-action-dark {
@@ -2216,9 +2216,9 @@ body.menu-open .menu-toggle span::after {
 /* Footer */
 .footer {
   padding: 76px 0 32px;
-  background: #453631;
+  background: linear-gradient(180deg, #332821 0%, #1a130e 100%);
   color: #ffffff;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--gold);
 }
 
 .footer-grid {
@@ -2242,6 +2242,8 @@ body.menu-open .menu-toggle span::after {
 }
 
 .footer-logo {
+  position: relative;
+  z-index: 1;
   width: 144px;
   height: auto;
   margin-bottom: 22px;
@@ -2249,9 +2251,36 @@ body.menu-open .menu-toggle span::after {
   opacity: 1;
 }
 
+.footer-brand {
+  position: relative;
+}
+
+.footer-brand::before {
+  content: "";
+  position: absolute;
+  top: -38px;
+  left: -46px;
+  z-index: 0;
+  width: 230px;
+  height: 170px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gold) 5%, transparent) 0%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+
 .footer-brand p {
+  position: relative;
+  z-index: 1;
   max-width: 390px;
   color: rgba(255, 255, 255, 0.85);
+}
+
+.footer-brand .socials {
+  position: relative;
+  z-index: 1;
 }
 
 .footer h3 {
@@ -5159,6 +5188,7 @@ html.lenis body {
 }
 
 .admin-login-card {
+  position: relative;
   width: min(100%, 440px);
   display: flex;
   flex-direction: column;
@@ -5765,6 +5795,15 @@ html.lenis body {
   color: var(--gold-deep);
 }
 
+@media (min-width: 901px) {
+  .admin-login-back-row {
+    position: absolute;
+    top: 0;
+    left: -132px;
+    margin: 0;
+  }
+}
+
 .admin-fieldset {
   display: grid;
   gap: 16px;
@@ -6358,9 +6397,42 @@ body.menu-open .cookie-consent {
   min-height: 560px;
   padding: 40px;
   color: var(--paper);
+  overflow: hidden;
   background:
     radial-gradient(circle at 22% 16%, rgba(255, 255, 255, 0.22), transparent 42%),
     linear-gradient(155deg, var(--gold-soft) 0%, var(--gold-deep) 52%, #2a2417 100%);
+}
+
+.auth-aside-login {
+  background: url("/assets/images/heroes/loginregistercards/logincard.jpg") center / cover no-repeat;
+  isolation: isolate;
+}
+
+.auth-aside-register {
+  background: url("/assets/images/heroes/loginregistercards/registercard.jpg") center / cover no-repeat;
+  isolation: isolate;
+}
+
+.auth-aside-forgot {
+  background: url("/assets/images/heroes/loginregistercards/forget.jpg") center / cover no-repeat;
+  isolation: isolate;
+}
+
+.auth-aside-login::before,
+.auth-aside-register::before,
+.auth-aside-forgot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+}
+
+.auth-aside-brand,
+.auth-aside-copy {
+  position: relative;
+  z-index: 1;
 }
 
 .auth-aside-brand img {
@@ -6567,6 +6639,20 @@ body.menu-open .cookie-consent {
   /* Extra top room so the back-home arrow doesn't crowd the in-panel logo. */
   .auth-panel {
     padding: 60px 24px 30px;
+  }
+}
+
+@media (min-width: 861px) {
+  .auth-card {
+    overflow: visible;
+  }
+
+  .auth-aside {
+    border-radius: 24px 0 0 24px;
+  }
+
+  .auth-back-home {
+    left: -58px;
   }
 }
 
