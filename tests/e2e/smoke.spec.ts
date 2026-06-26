@@ -20,8 +20,26 @@ test.describe("smoke: every public page loads cleanly", () => {
     });
   }
 
-  test("a 404 page is served for unknown routes", async ({ page }) => {
+  test("a branded 404 is served for an unknown in-locale route", async ({
+    page,
+  }) => {
+    // Single-segment unknown path → matches [locale]/[slug] → notFound() →
+    // the localized app/[locale]/not-found boundary.
     const res = await page.goto("/this-route-does-not-exist-xyz");
     expect(res?.status()).toBe(404);
+    await expect(
+      page.getByRole("heading", { name: /isn't on our map/i }),
+    ).toBeVisible();
+  });
+
+  test("a branded 404 is served for a deep unknown route", async ({ page }) => {
+    // Deep / unmatched path escapes the [locale] segment → the root
+    // app/not-found boundary, instead of Next.js's bare default 404.
+    const res = await page.goto("/no/such/page/here");
+    expect(res?.status()).toBe(404);
+    await expect(
+      page.getByRole("heading", { name: /isn't on our map/i }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /back to home/i })).toBeVisible();
   });
 });

@@ -80,6 +80,24 @@ test.describe("admin panel (authenticated)", () => {
       .toBe(false);
   });
 
+  test("a missing admin record shows the in-shell admin 404", async ({
+    page,
+  }) => {
+    // Opening a detail page for a record that doesn't exist makes the page call
+    // notFound() → the app/admin/not-found boundary, rendered inside the admin
+    // shell (sidebar present) rather than the public global 404. The admin shell
+    // streams, so the HTTP status stays 200 — immaterial for an auth-gated,
+    // noindexed area; the branded in-shell page is what matters here.
+    await page.goto("/admin/packages/00000000-0000-0000-0000-000000000000");
+    await expect(
+      page.getByRole("heading", { name: /couldn't find that page/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /back to dashboard/i }),
+    ).toBeVisible();
+    await expect(page.locator(".admin-shell")).toBeVisible();
+  });
+
   test("an admin can delete a destination", async ({ page }) => {
     const slug = `qa-del-dest-${Date.now()}`;
     const { data, error } = await service()
