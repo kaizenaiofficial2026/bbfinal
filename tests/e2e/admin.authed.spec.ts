@@ -79,4 +79,113 @@ test.describe("admin panel (authenticated)", () => {
       )
       .toBe(false);
   });
+
+  test("an admin can delete a destination", async ({ page }) => {
+    const slug = `qa-del-dest-${Date.now()}`;
+    const { data, error } = await service()
+      .from("destinations")
+      .insert({
+        slug,
+        title: "QA Delete Destination",
+        tagline: "Throwaway",
+        summary: "Created by the delete e2e.",
+        status: "draft",
+      })
+      .select("id")
+      .single();
+    expect(error).toBeNull();
+    const id = data!.id as string;
+
+    page.on("dialog", (dialog) => dialog.accept());
+    await page.goto(`/admin/destinations/${id}`);
+    await page.getByRole("button", { name: /delete destination/i }).click();
+    await page.waitForURL(/\/admin\/destinations$/);
+
+    const { data: after } = await service()
+      .from("destinations")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+    expect(after).toBeNull();
+  });
+
+  test("an admin can delete a package that has no bookings", async ({ page }) => {
+    const slug = `qa-del-pkg-${Date.now()}`;
+    const { data, error } = await service()
+      .from("tour_packages")
+      .insert({
+        slug,
+        title: "QA Delete Package",
+        tier: "Signature",
+        hotels: "QA Hotel",
+        destinations_summary: "QA",
+        duration: "3 days",
+        summary: "Created by the delete e2e.",
+        status: "draft",
+      })
+      .select("id")
+      .single();
+    expect(error).toBeNull();
+    const id = data!.id as string;
+
+    page.on("dialog", (dialog) => dialog.accept());
+    await page.goto(`/admin/packages/${id}`);
+    await page.getByRole("button", { name: /delete package/i }).click();
+    await page.waitForURL(/\/admin\/packages$/);
+
+    const { data: after } = await service()
+      .from("tour_packages")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+    expect(after).toBeNull();
+  });
+
+  test("deleting a package with bookings is blocked", async ({ page }) => {
+    const slug = `qa-guard-pkg-${Date.now()}`;
+    const { data: pkg } = await service()
+      .from("tour_packages")
+      .insert({
+        slug,
+        title: "QA Guarded Package",
+        tier: "Signature",
+        hotels: "QA Hotel",
+        destinations_summary: "QA",
+        duration: "3 days",
+        summary: "Has a booking; must not be deletable.",
+        status: "draft",
+      })
+      .select("id")
+      .single();
+    const packageId = pkg!.id as string;
+
+    await service()
+      .from("bookings")
+      .insert({
+        reference: `BB-QA${Date.now().toString().slice(-6)}`,
+        tour_package_id: packageId,
+        traveller_name: "QA Traveller",
+        email: "qa-booking@beyondborders.test",
+        travel_dates: "August 2026",
+        travellers: 2,
+        status: "awaiting_payment",
+      });
+
+    page.on("dialog", (dialog) => dialog.accept());
+    await page.goto(`/admin/packages/${packageId}`);
+    await page.getByRole("button", { name: /delete package/i }).click();
+
+    // Bounced back to the edit page with a "has bookings" alert; still exists.
+    await expect(page.locator(".admin-alert")).toContainText(/booking/i);
+    const { data: still } = await service()
+      .from("tour_packages")
+      .select("id")
+      .eq("id", packageId)
+      .maybeSingle();
+    expect(still).not.toBeNull();
+
+    // Cleanup (booking first — FK — then the package).
+    await service().from("bookings").delete().eq("tour_package_id", packageId);
+    await service().from("tour_packages").delete().eq("id", packageId);
+  });
 });

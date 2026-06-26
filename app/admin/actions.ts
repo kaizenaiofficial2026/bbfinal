@@ -309,6 +309,67 @@ export async function savePackageAction(formData: FormData) {
   redirect("/admin/packages");
 }
 
+export async function deletePackageAction(formData: FormData) {
+  await requireAdmin();
+  const id = formString(formData, "id");
+  if (!id) {
+    redirect("/admin/packages");
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  // Bookings reference tour_packages with NO cascade — refuse to delete a
+  // package that still has bookings (we never want to lose booking history).
+  // The admin can set it to Draft to hide it instead. itinerary_items DO cascade.
+  const { count } = await supabase
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("tour_package_id", id);
+
+  if ((count ?? 0) > 0) {
+    redirect(
+      `/admin/packages/${id}?error=${encodeURIComponent(
+        `This package has ${count} booking(s) and can't be deleted. Set its status to Draft to hide it instead.`,
+      )}`,
+    );
+  }
+
+  const { error } = await supabase.from("tour_packages").delete().eq("id", id);
+  if (error) {
+    redirect(`/admin/packages/${id}?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePackages();
+  revalidatePath("/admin/packages");
+  revalidatePath("/");
+  revalidatePath("/tours");
+  revalidatePath("/booking/[slug]", "page");
+  redirect("/admin/packages");
+}
+
+export async function deleteDestinationAction(formData: FormData) {
+  await requireAdmin();
+  const id = formString(formData, "id");
+  if (!id) {
+    redirect("/admin/destinations");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from("destinations").delete().eq("id", id);
+  if (error) {
+    redirect(
+      `/admin/destinations/${id}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  revalidateDestinations();
+  revalidatePath("/admin/destinations");
+  revalidatePath("/");
+  revalidatePath("/destinations");
+  revalidatePath("/[slug]", "page");
+  redirect("/admin/destinations");
+}
+
 export async function updateEnquiryStatusAction(formData: FormData) {
   await requireAdmin();
   const parsed = enquiryStatusUpdateSchema.parse({

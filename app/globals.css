@@ -5227,6 +5227,41 @@ html.lenis body {
   gap: 16px;
 }
 
+/* Destructive action (delete package / destination). */
+.btn-danger {
+  border: 1px solid #e0b3af;
+  background: #fdecea;
+  color: #b42318;
+}
+
+.btn-danger:hover {
+  background: #f8d7d3;
+  border-color: #c9352b;
+}
+
+.admin-danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 18px 22px;
+  border: 1px solid #f0d2cf;
+  border-radius: var(--radius);
+  background: #fdf6f5;
+}
+
+.admin-danger-zone strong {
+  display: block;
+  color: #b42318;
+}
+
+.admin-danger-zone .form-hint {
+  margin: 4px 0 0;
+  max-width: 52ch;
+}
+
 .admin-form label,
 .admin-inline-form label,
 .admin-login-card label {
