@@ -147,6 +147,10 @@ export default function Select({
           role="listbox"
           aria-labelledby={labelId}
           tabIndex={-1}
+          // The page runs Lenis smooth-scroll, which hijacks wheel events; this
+          // tells Lenis to let the browser scroll the open menu natively so its
+          // own overflow works (otherwise the wheel scrolls the page instead).
+          data-lenis-prevent
         >
           {normalizedOptions.map((opt, i) => (
             <li
