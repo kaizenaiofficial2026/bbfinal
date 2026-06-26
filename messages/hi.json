@@ -328,6 +328,11 @@
     "sendEnquiry": "पूछताछ भेजें"
   },
   "customQuote": {
+    "next": "Next",
+    "back": "Back",
+    "stepLabel": "Step {current} of {total}",
+    "allRequired": "All fields are required.",
+
     "heroTitle": "कस्टम कोट का अनुरोध करें",
     "heroLabel": "विशेष यात्राएं",
     "heroSummary": "हमें बताएं कि आपको क्या चाहिए — एक पैकेज, होटल, हवाई टिकट या परिवहन — और हमारी टीम एक अनुकूलित कोट के साथ जवाब देगी।",

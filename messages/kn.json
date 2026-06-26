@@ -328,6 +328,11 @@
     "sendEnquiry": "ವಿಚಾರಣೆ ಕಳುಹಿಸಿ"
   },
   "customQuote": {
+    "next": "Next",
+    "back": "Back",
+    "stepLabel": "Step {current} of {total}",
+    "allRequired": "All fields are required.",
+
     "heroTitle": "ಕಸ್ಟಮ್ ಕೋಟ್ ವಿನಂತಿಸಿ",
     "heroLabel": "ವಿಶೇಷ ಪ್ರಯಾಣಗಳು",
     "heroSummary": "ನಿಮಗೆ ಏನು ಬೇಕು ಎಂದು ನಮಗೆ ತಿಳಿಸಿ — ಪ್ಯಾಕೇಜ್, ಹೋಟೆಲ್, ವಿಮಾನ ಟಿಕೆಟ್ ಅಥವಾ ಸಾಗಣೆ — ಮತ್ತು ನಮ್ಮ ತಂಡ ಕಸ್ಟಮ್ ಕೋಟ್‌ನೊಂದಿಗೆ ಉತ್ತರಿಸುತ್ತದೆ.",

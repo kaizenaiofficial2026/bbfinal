@@ -1,7 +1,13 @@
 import { Text } from "@react-email/components";
 import { detail, EmailShell, paragraph } from "./shared";
 
-export type InquiryLine = { label: string; value: string };
+export type InquiryLine = {
+  label: string;
+  value: string;
+  // A section header (e.g. "Hotel") rendered in bold with no value. Used by the
+  // combined multi-service inquiry to group its sections.
+  heading?: boolean;
+};
 
 const TYPE_LABELS: Record<string, string> = {
   package: "Package",
@@ -38,12 +44,20 @@ export function CustomInquiryStaffNotification({
         {fullName} submitted a {typeLabel.toLowerCase()} inquiry.
       </Text>
       <Text style={detail}>
-        {lines.map((line) => (
-          <span key={line.label}>
-            {line.label}: {line.value}
-            <br />
-          </span>
-        ))}
+        {lines.map((line, index) =>
+          line.heading ? (
+            <span key={index}>
+              {index > 0 ? <br /> : null}
+              <strong>{line.label}</strong>
+              <br />
+            </span>
+          ) : (
+            <span key={index}>
+              {line.label}: {line.value}
+              <br />
+            </span>
+          ),
+        )}
       </Text>
       <Text style={detail}>
         Name: {fullName}

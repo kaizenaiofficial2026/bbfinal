@@ -27,8 +27,6 @@ import BaseSelect from "./Select";
 import Spinner from "./Spinner";
 import { useSubmitFeedback } from "./useSubmitFeedback";
 
-type InquiryType = "package" | "hotel" | "airticket" | "transport";
-
 // Submitted values (echoed back by the action on a failed submit) reach the
 // module-level Field/Select helpers via context, so the form repopulates
 // instead of wiping every field.
@@ -40,30 +38,29 @@ const InquiryErrorsContext = createContext<{
   clearError: (name: string) => void;
 }>({ errors: {}, clearError: () => {} });
 
-// Every visible field per inquiry type is mandatory (dates handled separately
-// below; airticket return date is required only for a round trip).
-const REQUIRED: Record<InquiryType, string[]> = {
-  package: ["package"],
-  hotel: [
+// The inquiry is a 4-step wizard collecting every service. All four steps are
+// mandatory; each step's required fields are listed here (the airticket return
+// date is validated separately — required only for a round trip). Field names
+// are namespaced per section because every step shares one <form>.
+const STEP_FIELDS: string[][] = [
+  ["package"],
+  [
     "hotel",
-    "roomCategory",
-    "roomType",
-    "mealPlan",
-    "numberOfRooms",
-    "adults",
-    "children",
-    "extraBed",
+    "hotelRoomCategory",
+    "hotelRoomType",
+    "hotelMealPlan",
+    "hotelRooms",
+    "hotelArrival",
+    "hotelDeparture",
+    "hotelAdults",
+    "hotelChildren",
+    "hotelExtraBed",
   ],
-  airticket: ["airline", "route", "wayType", "flightClass", "pax", "extraBaggage"],
-  transport: [
-    "carType",
-    "hireType",
-    "numberOfVehicles",
-    "numberOfDays",
-    "pax",
-    "extraBaggage",
-  ],
-};
+  ["airline", "airRoute", "airWayType", "airDepartDate", "airClass", "airPax", "airExtraBaggage"],
+  ["carType", "hireType", "transportVehicles", "transportDays", "transportPax", "transportExtraBaggage"],
+];
+
+// Guest details live on the final step alongside Transport.
 const GUEST_REQUIRED = [
   "firstName",
   "lastName",
@@ -72,6 +69,8 @@ const GUEST_REQUIRED = [
   "email",
   "mobile",
 ];
+
+const LAST_STEP = STEP_FIELDS.length - 1;
 
 // Thin adapter over the shared custom dropdown (components/Select).
 function Select({
@@ -162,7 +161,7 @@ export default function CustomInquiryForm() {
     initialInquiryState.note,
   );
   const [startedAt] = useState(() => Date.now());
-  const [type, setType] = useState<InquiryType>("package");
+  const [step, setStep] = useState(0);
   const [hotel, setHotel] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -180,11 +179,11 @@ export default function CustomInquiryForm() {
     [errors, clearError],
   );
 
-  const types: { value: InquiryType; label: string }[] = [
-    { value: "package", label: t("typePackage") },
-    { value: "hotel", label: t("typeHotel") },
-    { value: "airticket", label: t("typeAirticket") },
-    { value: "transport", label: t("typeTransport") },
+  const steps = [
+    { key: "package", label: t("typePackage") },
+    { key: "hotel", label: t("typeHotel") },
+    { key: "airticket", label: t("typeAirticket") },
+    { key: "transport", label: t("typeTransport") },
   ];
 
   const roomCategories = useMemo(
@@ -192,50 +191,86 @@ export default function CustomInquiryForm() {
     [hotel],
   );
 
-  const validate = (fd: FormData): Record<string, string> => {
+  // Validate one step's fields (plus the date rules that apply to it). The last
+  // step also validates the guest details that sit on it.
+  const validateStep = (
+    s: number,
+    fd: FormData,
+  ): Record<string, string> => {
     const get = (name: string) => String(fd.get(name) ?? "").trim();
     const next: Record<string, string> = {};
-
-    for (const name of [...GUEST_REQUIRED, ...REQUIRED[type]]) {
+    const fields =
+      s === LAST_STEP ? [...STEP_FIELDS[s], ...GUEST_REQUIRED] : STEP_FIELDS[s];
+    for (const name of fields) {
       if (!get(name)) next[name] = t("errRequired");
     }
 
     const today = todayIso();
-    if (type === "hotel") {
-      const arrival = get("arrival");
-      const departure = get("departure");
-      if (!arrival) next.arrival = t("errArrivalRequired");
-      else if (isPastDate(arrival, today)) next.arrival = t("errDatePast");
-      if (!departure) next.departure = t("errDepartureRequired");
-      else if (arrival && !isValidRange(arrival, departure))
-        next.departure = t("errDepartureBeforeArrival");
-    } else if (type === "airticket") {
-      const arrival = get("arrival");
-      const departure = get("departure");
-      const wayType = get("wayType");
-      if (!arrival) next.arrival = t("errDepartureRequired");
-      else if (isPastDate(arrival, today)) next.arrival = t("errDatePast");
-      // Return date is mandatory for a round trip, optional one-way.
-      if (wayType === "Both way" && !departure)
-        next.departure = t("errReturnRequired");
-      else if (departure && arrival && !isValidRange(arrival, departure))
-        next.departure = t("errReturnBeforeDeparture");
+    if (s === 1) {
+      const arrival = get("hotelArrival");
+      const departure = get("hotelDeparture");
+      if (arrival && isPastDate(arrival, today))
+        next.hotelArrival = t("errDatePast");
+      if (arrival && departure && !isValidRange(arrival, departure))
+        next.hotelDeparture = t("errDepartureBeforeArrival");
+    } else if (s === 2) {
+      const depart = get("airDepartDate");
+      const ret = get("airReturnDate");
+      const way = get("airWayType");
+      if (depart && isPastDate(depart, today))
+        next.airDepartDate = t("errDatePast");
+      if (way === "Both way" && !ret) next.airReturnDate = t("errReturnRequired");
+      else if (ret && depart && !isValidRange(depart, ret))
+        next.airReturnDate = t("errReturnBeforeDeparture");
     }
 
     return next;
   };
 
+  const scrollToFirstError = (form: HTMLFormElement) => {
+    requestAnimationFrame(() => {
+      form
+        .querySelector(".is-invalid")
+        ?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    });
+  };
+
+  const goNext = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const form = event.currentTarget.form;
+    if (!form) return;
+    const found = validateStep(step, new FormData(form));
+    if (Object.keys(found).length > 0) {
+      setErrors(found);
+      scrollToFirstError(form);
+      return;
+    }
+    setErrors({});
+    setStep((s) => Math.min(s + 1, LAST_STEP));
+    form.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  };
+
+  const goBack = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setErrors({});
+    setStep((s) => Math.max(s - 1, 0));
+    event.currentTarget.form?.scrollIntoView?.({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  // Final submit: re-validate every step. If anything is wrong, cancel the
+  // submit, jump to the first incomplete step and surface the errors.
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     const form = event.currentTarget;
-    const found = validate(new FormData(form));
-    if (Object.keys(found).length > 0) {
+    const fd = new FormData(form);
+    const perStep = STEP_FIELDS.map((_, s) => validateStep(s, fd));
+    const all = Object.assign({}, ...perStep);
+    if (Object.keys(all).length > 0) {
       event.preventDefault();
-      setErrors(found);
-      requestAnimationFrame(() => {
-        form
-          .querySelector(".is-invalid")
-          ?.scrollIntoView({ behavior: "smooth", block: "center" });
-      });
+      setErrors(all);
+      const firstBad = perStep.findIndex((e) => Object.keys(e).length > 0);
+      if (firstBad >= 0 && firstBad !== step) setStep(firstBad);
+      scrollToFirstError(form);
     }
   };
 
@@ -248,7 +283,6 @@ export default function CustomInquiryForm() {
           onSubmit={handleSubmit}
           noValidate
         >
-          <input type="hidden" name="inquiryType" value={type} />
           <input type="hidden" name="startedAt" value={startedAt} />
           <div className="visually-hidden" aria-hidden="true">
             <label htmlFor="ci-company">{t("company")}</label>
@@ -261,121 +295,156 @@ export default function CustomInquiryForm() {
             />
           </div>
 
-          <div className="booking-form-section">
-            <span className="booking-form-label">{t("whatQuote")}</span>
-            <div className="inquiry-type-tabs">
-              {types.map((tab) => (
-                <button
-                  key={tab.value}
-                  type="button"
-                  className={`btn ${type === tab.value ? "btn-primary" : "btn-secondary"}`}
-                  aria-pressed={type === tab.value}
-                  onClick={() => {
-                    setType(tab.value);
-                    setErrors({});
-                  }}
+          <div className="inquiry-wizard-head">
+            <ol className="inquiry-steps">
+              {steps.map((s, i) => (
+                <li
+                  key={s.key}
+                  className={`inquiry-step${i === step ? " is-active" : ""}${
+                    i < step ? " is-done" : ""
+                  }`}
+                  aria-current={i === step ? "step" : undefined}
                 >
-                  {tab.label}
-                </button>
+                  <span className="inquiry-step-index">
+                    {i < step ? "✓" : i + 1}
+                  </span>
+                  <span className="inquiry-step-name">{s.label}</span>
+                </li>
               ))}
-            </div>
-          </div>
-
-          <div className="booking-form-section">
-            <span className="booking-form-label">{t("inquiryDetails")}</span>
-            <div className="form-grid">
-              {type === "package" ? (
-                <Select name="package" label={t("package")} options={PACKAGE_OPTIONS} placeholder={t("choosePackage")} />
-              ) : null}
-
-              {type === "hotel" ? (
-                <>
-                  <Select
-                    name="hotel"
-                    label={t("hotel")}
-                    options={HOTELS.map((h) => h.name)}
-                    placeholder={t("chooseHotel")}
-                    onChange={setHotel}
-                  />
-                  <Select
-                    key={hotel}
-                    name="roomCategory"
-                    label={t("roomCategory")}
-                    options={roomCategories}
-                    placeholder={hotel ? t("chooseRoomCategory") : t("selectHotelFirst")}
-                  />
-                  <Select name="roomType" label={t("roomType")} options={ROOM_TYPES} placeholder={t("selectPlaceholder")} />
-                  <Select name="mealPlan" label={t("mealPlan")} options={MEAL_PLANS} placeholder={t("selectPlaceholder")} />
-                  <Field name="numberOfRooms" label={t("numberOfRooms")} type="number" min={1} placeholder="1" />
-                  <Field name="arrival" label={t("expectedArrival")} type="date" />
-                  <Field name="departure" label={t("expectedDeparture")} type="date" />
-                  <Field name="adults" label={t("adults")} type="number" min={1} placeholder="2" />
-                  <Field name="children" label={t("children")} type="number" min={0} placeholder="0" />
-                  <Select name="extraBed" label={t("extraBed")} options={YES_NO} placeholder={t("selectPlaceholder")} />
-                </>
-              ) : null}
-
-              {type === "airticket" ? (
-                <>
-                  <Field name="airline" label={t("airline")} placeholder={t("airlinePlaceholder")} />
-                  <Field name="route" label={t("route")} placeholder={t("routePlaceholder")} />
-                  <Select name="wayType" label={t("trip")} options={ONE_OR_BOTH_WAY} placeholder={t("selectPlaceholder")} />
-                  <Field name="arrival" label={t("departureDate")} type="date" />
-                  <Field name="departure" label={t("returnDate")} type="date" required={false} />
-                  <Select name="flightClass" label={t("flightClass")} options={FLIGHT_CLASSES} placeholder={t("selectPlaceholder")} />
-                  <Field name="pax" label={t("passengers")} type="number" min={1} placeholder="1" />
-                  <Select name="extraBaggage" label={t("extraBaggage")} options={YES_NO} placeholder={t("selectPlaceholder")} />
-                </>
-              ) : null}
-
-              {type === "transport" ? (
-                <>
-                  <Select name="carType" label={t("carType")} options={CAR_TYPES} placeholder={t("selectPlaceholder")} />
-                  <Select name="hireType" label={t("hireType")} options={HIRE_TYPES} placeholder={t("selectPlaceholder")} />
-                  <Field name="numberOfVehicles" label={t("numberOfVehicles")} type="number" min={1} placeholder="1" />
-                  <Field name="numberOfDays" label={t("numberOfDays")} type="number" min={1} placeholder="1" />
-                  <Field name="pax" label={t("passengers")} type="number" min={1} placeholder="2" />
-                  <Select name="extraBaggage" label={t("extraBaggage")} options={YES_NO} placeholder={t("selectPlaceholder")} />
-                </>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="booking-form-section">
-            <span className="booking-form-label">{t("yourDetails")}</span>
-            <div className="form-grid">
-              <Field name="firstName" label={t("firstName")} />
-              <Field name="lastName" label={t("lastName")} />
-              <Field name="countryCity" label={t("countryCity")} placeholder={t("countryCityPlaceholder")} />
-              <Field name="passportNumber" label={t("passportNumber")} />
-              <Field name="email" label={t("email")} type="email" />
-              <Field name="mobile" label={t("mobile")} type="tel" placeholder="+91 ..." />
-            </div>
-          </div>
-
-          <div className="booking-submit-row">
-            <button
-              className="btn btn-primary"
-              type="submit"
-              disabled={pending}
-              aria-busy={pending}
-            >
-              {pending ? <Spinner /> : null}
-              {pending ? t("sending") : t("submitInquiry")}
-            </button>
-            <p
-              className={`form-note${
-                feedback === "error"
-                  ? " is-error"
-                  : feedback === "success"
-                    ? " is-success"
-                    : ""
-              }`}
-              aria-live="polite"
-            >
-              {state.note}
+            </ol>
+            <p className="inquiry-step-caption">
+              {t("stepLabel", { current: step + 1, total: steps.length })} ·{" "}
+              {t("allRequired")}
             </p>
           </div>
+
+          {/* Step 1 — Package */}
+          <div className="booking-form-section" hidden={step !== 0}>
+            <span className="booking-form-label">{t("typePackage")}</span>
+            <div className="form-grid">
+              <Select
+                name="package"
+                label={t("package")}
+                options={PACKAGE_OPTIONS}
+                placeholder={t("choosePackage")}
+              />
+            </div>
+          </div>
+
+          {/* Step 2 — Hotel */}
+          <div className="booking-form-section" hidden={step !== 1}>
+            <span className="booking-form-label">{t("typeHotel")}</span>
+            <div className="form-grid">
+              <Select
+                name="hotel"
+                label={t("hotel")}
+                options={HOTELS.map((h) => h.name)}
+                placeholder={t("chooseHotel")}
+                onChange={setHotel}
+              />
+              <Select
+                key={hotel}
+                name="hotelRoomCategory"
+                label={t("roomCategory")}
+                options={roomCategories}
+                placeholder={hotel ? t("chooseRoomCategory") : t("selectHotelFirst")}
+              />
+              <Select name="hotelRoomType" label={t("roomType")} options={ROOM_TYPES} placeholder={t("selectPlaceholder")} />
+              <Select name="hotelMealPlan" label={t("mealPlan")} options={MEAL_PLANS} placeholder={t("selectPlaceholder")} />
+              <Field name="hotelRooms" label={t("numberOfRooms")} type="number" min={1} placeholder="1" />
+              <Field name="hotelArrival" label={t("expectedArrival")} type="date" />
+              <Field name="hotelDeparture" label={t("expectedDeparture")} type="date" />
+              <Field name="hotelAdults" label={t("adults")} type="number" min={1} placeholder="2" />
+              <Field name="hotelChildren" label={t("children")} type="number" min={0} placeholder="0" />
+              <Select name="hotelExtraBed" label={t("extraBed")} options={YES_NO} placeholder={t("selectPlaceholder")} />
+            </div>
+          </div>
+
+          {/* Step 3 — Air ticket */}
+          <div className="booking-form-section" hidden={step !== 2}>
+            <span className="booking-form-label">{t("typeAirticket")}</span>
+            <div className="form-grid">
+              <Field name="airline" label={t("airline")} placeholder={t("airlinePlaceholder")} />
+              <Field name="airRoute" label={t("route")} placeholder={t("routePlaceholder")} />
+              <Select name="airWayType" label={t("trip")} options={ONE_OR_BOTH_WAY} placeholder={t("selectPlaceholder")} />
+              <Field name="airDepartDate" label={t("departureDate")} type="date" />
+              <Field name="airReturnDate" label={t("returnDate")} type="date" required={false} />
+              <Select name="airClass" label={t("flightClass")} options={FLIGHT_CLASSES} placeholder={t("selectPlaceholder")} />
+              <Field name="airPax" label={t("passengers")} type="number" min={1} placeholder="1" />
+              <Select name="airExtraBaggage" label={t("extraBaggage")} options={YES_NO} placeholder={t("selectPlaceholder")} />
+            </div>
+          </div>
+
+          {/* Step 4 — Transport + your details */}
+          <div hidden={step !== 3}>
+            <div className="booking-form-section">
+              <span className="booking-form-label">{t("typeTransport")}</span>
+              <div className="form-grid">
+                <Select name="carType" label={t("carType")} options={CAR_TYPES} placeholder={t("selectPlaceholder")} />
+                <Select name="hireType" label={t("hireType")} options={HIRE_TYPES} placeholder={t("selectPlaceholder")} />
+                <Field name="transportVehicles" label={t("numberOfVehicles")} type="number" min={1} placeholder="1" />
+                <Field name="transportDays" label={t("numberOfDays")} type="number" min={1} placeholder="1" />
+                <Field name="transportPax" label={t("passengers")} type="number" min={1} placeholder="2" />
+                <Select name="transportExtraBaggage" label={t("extraBaggage")} options={YES_NO} placeholder={t("selectPlaceholder")} />
+              </div>
+            </div>
+
+            <div className="booking-form-section">
+              <span className="booking-form-label">{t("yourDetails")}</span>
+              <div className="form-grid">
+                <Field name="firstName" label={t("firstName")} />
+                <Field name="lastName" label={t("lastName")} />
+                <Field name="countryCity" label={t("countryCity")} placeholder={t("countryCityPlaceholder")} />
+                <Field name="passportNumber" label={t("passportNumber")} />
+                <Field name="email" label={t("email")} type="email" />
+                <Field name="mobile" label={t("mobile")} type="tel" placeholder="+91 ..." />
+              </div>
+            </div>
+          </div>
+
+          <div className="inquiry-nav">
+            {step > 0 ? (
+              <button
+                className="btn btn-line"
+                type="button"
+                onClick={goBack}
+                disabled={pending}
+              >
+                {t("back")}
+              </button>
+            ) : (
+              <span />
+            )}
+
+            {step < LAST_STEP ? (
+              <button className="btn btn-primary" type="button" onClick={goNext}>
+                {t("next")}
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary"
+                type="submit"
+                disabled={pending}
+                aria-busy={pending}
+              >
+                {pending ? <Spinner /> : null}
+                {pending ? t("sending") : t("submitInquiry")}
+              </button>
+            )}
+          </div>
+
+          <p
+            className={`form-note${
+              feedback === "error"
+                ? " is-error"
+                : feedback === "success"
+                  ? " is-success"
+                  : ""
+            }`}
+            aria-live="polite"
+          >
+            {state.note}
+          </p>
         </form>
       </InquiryErrorsContext.Provider>
     </InquiryValuesContext.Provider>

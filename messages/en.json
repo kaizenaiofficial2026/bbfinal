@@ -328,6 +328,11 @@
     "sendEnquiry": "Send Enquiry"
   },
   "customQuote": {
+    "next": "Next",
+    "back": "Back",
+    "stepLabel": "Step {current} of {total}",
+    "allRequired": "All fields are required.",
+
     "heroTitle": "Request a custom quote",
     "heroLabel": "Bespoke journeys",
     "heroSummary": "Tell us what you need — a package, hotel, air ticket or transport — and our team will reply with a tailored quote.",

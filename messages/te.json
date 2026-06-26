@@ -328,6 +328,11 @@
     "sendEnquiry": "విచారణ పంపండి"
   },
   "customQuote": {
+    "next": "Next",
+    "back": "Back",
+    "stepLabel": "Step {current} of {total}",
+    "allRequired": "All fields are required.",
+
     "heroTitle": "కస్టమ్ కోట్‌ను అభ్యర్థించండి",
     "heroLabel": "ప్రత్యేక ప్రయాణాలు",
     "heroSummary": "మీకు ఏమి కావాలో మాకు చెప్పండి — ప్యాకేజీ, హోటల్, విమాన టికెట్ లేదా రవాణా — మరియు మా బృందం అనుకూల కోట్‌తో సమాధానమిస్తుంది.",

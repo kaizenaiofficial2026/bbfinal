@@ -71,7 +71,7 @@ export const changePasswordSchema = z
     path: ["confirm"],
   });
 
-// Step 1 of the customer wizard: verify current + new password (no code yet).
+// Step 1 of the customer/admin wizard: verify current + new password (no code yet).
 export const startChangePasswordSchema = z
   .object({
     oldPassword: z.string().min(1, "Enter your current password."),

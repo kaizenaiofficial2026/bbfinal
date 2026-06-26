@@ -3,6 +3,11 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getAdminUser, requireAdmin } from "@/lib/admin/auth";
+import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
+import {
+  acquireAdminLoginLock,
+  releaseAdminLoginLock,
+} from "@/lib/admin/login-lock";
 import { sendAccountVerifiedEmail } from "@/lib/email/send";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -13,18 +18,13 @@ import {
   enquiryStatusUpdateSchema,
   lines,
   packageAdminSchema,
+  startChangePasswordSchema,
 } from "@/lib/validation/admin";
 import { revalidateDestinations } from "@/lib/data/destinations";
 import { revalidatePackages } from "@/lib/data/packages";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { getRequestIpHash, scopedRateKey } from "@/lib/security/request";
 import { toRetryMinutes } from "@/lib/security/retry-after";
-
-/** English rate-limit copy with an accurate wait time (admin UI is en-only). */
-function rateLimitMessage(retryAfterSeconds?: number) {
-  const minutes = toRetryMinutes(retryAfterSeconds);
-  return `You've been rate limited. Please wait about ${minutes} minute(s) before trying again.`;
-}
 import {
   requestResetSchema,
   resetPasswordSchema,
@@ -33,6 +33,33 @@ import {
   createAndSendResetCode,
   verifyAndReset,
 } from "@/lib/auth/password-reset";
+import type { AdminPasswordStepState } from "./settings/password-change-state";
+
+/** English rate-limit copy with an accurate wait time (admin UI is en-only). */
+function rateLimitMessage(retryAfterSeconds?: number) {
+  const minutes = toRetryMinutes(retryAfterSeconds);
+  return `You've been rate limited. Please wait about ${minutes} minute(s) before trying again.`;
+}
+
+function adminCodeSentMessage() {
+  return `We sent a 6-digit code to ${ADMIN_SECURITY_INBOX}. It expires in 15 minutes.`;
+}
+
+function adminResetFailureMessage(reason: "invalid" | "expired" | "too_many" | "server") {
+  const messages: Record<typeof reason, string> = {
+    invalid: "That code is invalid. Please check and try again.",
+    expired: "That code has expired. Please request a new one.",
+    too_many: "Too many attempts. Please request a new code.",
+    server: "Something went wrong. Please try again.",
+  };
+
+  return messages[reason];
+}
+
+async function sendAdminPasswordCode(email: string) {
+  const resetUrl = `${env.siteUrl}/admin/reset-password?email=${encodeURIComponent(email)}`;
+  await createAndSendResetCode({ email, audience: "admin", resetUrl });
+}
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
@@ -99,11 +126,23 @@ export async function signInAction(formData: FormData) {
     );
   }
 
+  const lockAcquired = await acquireAdminLoginLock(user.id, user.email ?? email);
+  if (!lockAcquired) {
+    await supabase.auth.signOut();
+    redirect("/admin/login?locked=1");
+  }
+
   redirect("/admin");
 }
 
 export async function signOutAction() {
   const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    await releaseAdminLoginLock(user.id);
+  }
   await supabase.auth.signOut();
   redirect("/admin/login");
 }
@@ -130,8 +169,7 @@ export async function requestAdminResetAction(formData: FormData) {
   }
 
   const email = parsed.data.email;
-  const resetUrl = `${env.siteUrl}/admin/reset-password?email=${encodeURIComponent(email)}`;
-  await createAndSendResetCode({ email, audience: "admin", resetUrl });
+  await sendAdminPasswordCode(email);
 
   redirect(`/admin/reset-password?email=${encodeURIComponent(email)}&sent=1`);
 }
@@ -172,13 +210,7 @@ export async function resetAdminPasswordAction(formData: FormData) {
   });
 
   if (!result.ok) {
-    const messages: Record<typeof result.reason, string> = {
-      invalid: "That code is invalid. Please check and try again.",
-      expired: "That code has expired. Please request a new one.",
-      too_many: "Too many attempts. Please request a new code.",
-      server: "Something went wrong. Please try again.",
-    };
-    return back(messages[result.reason]);
+    return back(adminResetFailureMessage(result.reason));
   }
 
   redirect("/admin/login?reset=1");
@@ -461,14 +493,40 @@ export async function setCustomerActiveAction(formData: FormData) {
   revalidatePath("/admin/users");
 }
 
-/** Email the logged-in admin a one-time code for the change-password form. */
-export async function sendAdminPasswordOtpAction() {
+/**
+ * Step 1: verify the current password + new-password pair, then email a code
+ * to the reservations inbox. Returns state so the admin wizard can advance
+ * inline, matching the customer password-change flow.
+ */
+export async function startAdminPasswordChangeAction(
+  _prev: AdminPasswordStepState,
+  formData: FormData,
+): Promise<AdminPasswordStepState> {
   const user = await requireAdmin();
   const email = user.email;
   if (!email) {
-    redirect(
-      `/admin/settings?error=${encodeURIComponent("Your account has no email on file.")}`,
-    );
+    return { ok: false, note: "Your account has no email on file." };
+  }
+
+  const parsed = startChangePasswordSchema.safeParse({
+    oldPassword: formString(formData, "oldPassword"),
+    password: formString(formData, "password"),
+    confirm: formString(formData, "confirm"),
+  });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      note: parsed.error.issues[0]?.message ?? "Please check the form.",
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password: parsed.data.oldPassword,
+  });
+  if (signInError) {
+    return { ok: false, note: "Your current password is incorrect." };
   }
 
   const ipHash = await getRequestIpHash();
@@ -478,31 +536,60 @@ export async function sendAdminPasswordOtpAction() {
     { max: 5, windowMinutes: 30 },
   );
   if (!rate.allowed) {
-    redirect(
-      `/admin/settings?error=${encodeURIComponent(rateLimitMessage(rate.retryAfterSeconds))}`,
-    );
+    return {
+      ok: false,
+      note: rateLimitMessage(rate.retryAfterSeconds),
+    };
   }
 
-  const resetUrl = `${env.siteUrl}/admin/reset-password?email=${encodeURIComponent(email)}`;
-  await createAndSendResetCode({ email, audience: "admin", resetUrl });
+  await sendAdminPasswordCode(email);
 
-  redirect("/admin/settings?sent=1");
+  return { ok: true, note: adminCodeSentMessage() };
+}
+
+/** Step 2 "resend": email a fresh admin code to the reservations inbox. */
+export async function resendAdminPasswordOtpAction(
+  _prev: AdminPasswordStepState,
+  _formData: FormData,
+): Promise<AdminPasswordStepState> {
+  const user = await requireAdmin();
+  const email = user.email;
+  if (!email) {
+    return { ok: false, note: "Your account has no email on file." };
+  }
+
+  const ipHash = await getRequestIpHash();
+  const rate = await checkAndRecordRateLimit(
+    "admin-password-change-otp",
+    scopedRateKey(ipHash, email),
+    { max: 5, windowMinutes: 30 },
+  );
+  if (!rate.allowed) {
+    return {
+      ok: false,
+      note: rateLimitMessage(rate.retryAfterSeconds),
+    };
+  }
+
+  await sendAdminPasswordCode(email);
+
+  return { ok: true, note: adminCodeSentMessage() };
 }
 
 /**
  * Change the logged-in admin's password. Requires the current password AND a
- * one-time code emailed to the admin, then refreshes the session so they stay
- * signed in with the new credentials.
+ * one-time code emailed to the reservations inbox, then refreshes the session
+ * so they stay signed in with the new credentials.
  */
-export async function changeAdminPasswordAction(formData: FormData) {
+export async function changeAdminPasswordAction(
+  _prev: AdminPasswordStepState,
+  formData: FormData,
+): Promise<AdminPasswordStepState> {
   const user = await requireAdmin();
   const email = user.email;
 
-  const back = (message: string): never =>
-    redirect(`/admin/settings?error=${encodeURIComponent(message)}`);
-
   if (!email) {
-    return back("Your account has no email on file.");
+    return { ok: false, note: "Your account has no email on file." };
   }
 
   const parsed = changePasswordSchema.safeParse({
@@ -512,7 +599,10 @@ export async function changeAdminPasswordAction(formData: FormData) {
     code: formString(formData, "code"),
   });
   if (!parsed.success) {
-    return back(parsed.error.issues[0]?.message ?? "Please check the form.");
+    return {
+      ok: false,
+      note: parsed.error.issues[0]?.message ?? "Please check the form.",
+    };
   }
 
   const ipHash = await getRequestIpHash();
@@ -522,7 +612,7 @@ export async function changeAdminPasswordAction(formData: FormData) {
     { max: 10, windowMinutes: 15 },
   );
   if (!rate.allowed) {
-    return back(rateLimitMessage(rate.retryAfterSeconds));
+    return { ok: false, note: rateLimitMessage(rate.retryAfterSeconds) };
   }
 
   // 1) Confirm the current password by re-authenticating.
@@ -532,7 +622,7 @@ export async function changeAdminPasswordAction(formData: FormData) {
     password: parsed.data.oldPassword,
   });
   if (signInError) {
-    return back("Your current password is incorrect.");
+    return { ok: false, note: "Your current password is incorrect." };
   }
 
   // 2) Verify the emailed code and apply the new password.
@@ -543,13 +633,7 @@ export async function changeAdminPasswordAction(formData: FormData) {
     audience: "admin",
   });
   if (!result.ok) {
-    const messages: Record<typeof result.reason, string> = {
-      invalid: "That code is invalid. Please check and try again.",
-      expired: "That code has expired. Please request a new one.",
-      too_many: "Too many attempts. Please request a new code.",
-      server: "Something went wrong. Please try again.",
-    };
-    return back(messages[result.reason]);
+    return { ok: false, note: adminResetFailureMessage(result.reason) };
   }
 
   // 3) Refresh the session with the new password so the admin stays signed in.
@@ -558,5 +642,5 @@ export async function changeAdminPasswordAction(formData: FormData) {
     password: parsed.data.password,
   });
 
-  redirect("/admin/settings?changed=1");
+  return { ok: true, note: "Your password has been updated." };
 }

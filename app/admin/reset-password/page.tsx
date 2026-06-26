@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { resetAdminPasswordAction } from "../actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
 
 type AdminResetPasswordPageProps = {
   searchParams: Promise<{ email?: string; error?: string; sent?: string }>;
@@ -22,7 +23,7 @@ export default async function AdminResetPasswordPage({
         {sent ? (
           <p className="admin-note-success" role="status">
             If that email belongs to a staff account, we&apos;ve sent a 6-digit
-            code. Enter it below.
+            code to {ADMIN_SECURITY_INBOX}. Enter it below.
           </p>
         ) : null}
         {error ? (

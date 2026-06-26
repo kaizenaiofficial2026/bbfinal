@@ -2,10 +2,12 @@ import { Button, Text } from "@react-email/components";
 import { detail, EmailShell, paragraph } from "./shared";
 
 export function PasswordResetCode({
+  accountEmail,
   code,
   resetUrl,
   ttlMinutes,
 }: {
+  accountEmail?: string;
   code: string;
   resetUrl: string;
   ttlMinutes: number;
@@ -19,6 +21,9 @@ export function PasswordResetCode({
         We received a request to reset your Beyond Borders password. Enter the
         code below to set a new one. It expires in {ttlMinutes} minutes.
       </Text>
+      {accountEmail ? (
+        <Text style={paragraph}>This code is for {accountEmail}.</Text>
+      ) : null}
       <Text style={codeBox}>{code}</Text>
       <Text style={paragraph}>
         Open the reset page and enter this code:

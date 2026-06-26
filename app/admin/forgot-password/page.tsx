@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requestAdminResetAction } from "../actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
 
 type AdminForgotPasswordPageProps = {
   searchParams: Promise<{ error?: string }>;
@@ -20,8 +21,8 @@ export default async function AdminForgotPasswordPage({
         <span className="section-kicker">Staff access</span>
         <h1>Reset password</h1>
         <p className="form-hint">
-          Enter your staff email and we&apos;ll send a 6-digit code to reset
-          your password.
+          Enter your staff email and we&apos;ll send the 6-digit reset code to{" "}
+          {ADMIN_SECURITY_INBOX}.
         </p>
         {error ? (
           <p className="admin-alert" role="alert">
