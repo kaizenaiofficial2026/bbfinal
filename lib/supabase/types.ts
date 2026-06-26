@@ -237,6 +237,21 @@ export type Database = {
           Pick<Database["public"]["Tables"]["profiles"]["Row"], "id">;
         Update: Partial<Database["public"]["Tables"]["profiles"]["Row"]>;
       };
+      admin_login_lock: {
+        Row: {
+          id: boolean;
+          user_id: string;
+          email: string;
+          acquired_at: string;
+          expires_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["admin_login_lock"]["Row"]> &
+          Pick<
+            Database["public"]["Tables"]["admin_login_lock"]["Row"],
+            "user_id" | "email" | "expires_at"
+          >;
+        Update: Partial<Database["public"]["Tables"]["admin_login_lock"]["Row"]>;
+      };
       site_settings: {
         Row: {
           id: string;
@@ -251,7 +266,16 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      acquire_admin_login_lock: {
+        Args: {
+          p_user_id: string;
+          p_email: string;
+          p_expires_at: string;
+        };
+        Returns: boolean;
+      };
+    };
     Enums: {
       content_status: DestinationStatus;
       enquiry_status: EnquiryStatus;

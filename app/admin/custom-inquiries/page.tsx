@@ -25,12 +25,20 @@ export default async function AdminCustomInquiriesPage() {
       ) : (
         inquiries.map((inquiry) => {
           const details = (inquiry.details ?? {}) as Record<string, unknown>;
+          // New combined inquiries store details grouped by section
+          // ({ Hotel: { ... } }); older single-type ones are flat ({ Hotel: "…" }).
+          const isCombined = Object.values(details).some(
+            (value) => value !== null && typeof value === "object",
+          );
           return (
             <article className="admin-card admin-stack" key={inquiry.id}>
               <div className="admin-card-head">
                 <h2>
-                  {TYPE_LABELS[inquiry.inquiry_type] ?? inquiry.inquiry_type} ·{" "}
-                  {inquiry.first_name} {inquiry.last_name}
+                  {isCombined
+                    ? "Custom inquiry"
+                    : (TYPE_LABELS[inquiry.inquiry_type] ??
+                      inquiry.inquiry_type)}{" "}
+                  · {inquiry.first_name} {inquiry.last_name}
                 </h2>
                 <StatusBadge status={inquiry.status} />
               </div>
@@ -45,21 +53,35 @@ export default async function AdminCustomInquiriesPage() {
                   <strong>Passport</strong>
                   <span>{inquiry.passport_number || "—"}</span>
                 </p>
-                {Object.entries(details).map(([key, value]) => (
-                  <p key={key}>
-                    <strong>{key}</strong>
-                    <span>
-                      {typeof value === "object" && value !== null
-                        ? JSON.stringify(value)
-                        : String(value)}
-                    </span>
-                  </p>
-                ))}
                 <p>
                   <strong>Submitted</strong>
                   <span>{formatDateTime(inquiry.created_at)}</span>
                 </p>
               </div>
+              {Object.entries(details).map(([key, value]) =>
+                value !== null && typeof value === "object" ? (
+                  <div className="admin-detail-group" key={key}>
+                    <h3 className="admin-detail-group-title">{key}</h3>
+                    <div className="admin-detail">
+                      {Object.entries(value as Record<string, unknown>).map(
+                        ([subKey, subValue]) => (
+                          <p key={subKey}>
+                            <strong>{subKey}</strong>
+                            <span>{String(subValue)}</span>
+                          </p>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="admin-detail" key={key}>
+                    <p>
+                      <strong>{key}</strong>
+                      <span>{String(value)}</span>
+                    </p>
+                  </div>
+                ),
+              )}
             </article>
           );
         })

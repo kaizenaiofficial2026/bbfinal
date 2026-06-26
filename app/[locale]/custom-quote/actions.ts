@@ -21,58 +21,71 @@ function fs(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
 }
 
-type Pair = [string, string | number];
+type Section = { title: string; fields: [string, string | number][] };
 
-function entries(pairs: Pair[]) {
-  const details: Record<string, string | number> = {};
-  const lines = pairs.map(([label, value]) => {
-    details[label] = value;
-    return { label, value: String(value) };
-  });
-  return { details, lines };
-}
-
-// Map each inquiry type to its labelled detail fields (for storage + email).
-function buildDetails(data: CustomInquiryInput) {
-  switch (data.inquiryType) {
-    case "package":
-      return entries([["Package", data.package]]);
-    case "hotel":
-      return entries([
+// One submission now covers all four services. `details` is stored grouped by
+// section (jsonb), and the email `lines` flatten the same sections with a bold
+// heading row before each (heading lines carry an empty value).
+function buildSections(data: CustomInquiryInput): Section[] {
+  return [
+    { title: "Package", fields: [["Package", data.package]] },
+    {
+      title: "Hotel",
+      fields: [
         ["Hotel", data.hotel],
-        ["Room Category", data.roomCategory],
-        ["Room Type", data.roomType],
-        ["Meal Plan", data.mealPlan],
-        ["Number of Rooms", data.numberOfRooms],
-        ["Arrival", data.arrival],
-        ["Departure", data.departure],
-        ["Adults", data.adults],
-        ["Children", data.children],
-        ["Extra Bed", data.extraBed],
-      ]);
-    case "airticket":
-      return entries([
+        ["Room Category", data.hotelRoomCategory],
+        ["Room Type", data.hotelRoomType],
+        ["Meal Plan", data.hotelMealPlan],
+        ["Number of Rooms", data.hotelRooms],
+        ["Arrival", data.hotelArrival],
+        ["Departure", data.hotelDeparture],
+        ["Adults", data.hotelAdults],
+        ["Children", data.hotelChildren],
+        ["Extra Bed", data.hotelExtraBed],
+      ],
+    },
+    {
+      title: "Air ticket",
+      fields: [
         ["Airline", data.airline],
-        ["Route", data.route],
-        ["Trip", data.wayType],
-        ["Departure date", data.arrival],
-        ["Return date", data.departure || "—"],
-        ["Class", data.flightClass],
-        ["Passengers", data.pax],
-        ["Extra Baggage", data.extraBaggage],
-      ]);
-    case "transport":
-      return entries([
+        ["Route", data.airRoute],
+        ["Trip", data.airWayType],
+        ["Departure date", data.airDepartDate],
+        ["Return date", data.airReturnDate || "—"],
+        ["Class", data.airClass],
+        ["Passengers", data.airPax],
+        ["Extra Baggage", data.airExtraBaggage],
+      ],
+    },
+    {
+      title: "Transport",
+      fields: [
         ["Car Type", data.carType],
         ["Hire Type", data.hireType],
-        ["Number of Vehicles", data.numberOfVehicles],
-        ["Number of Days", data.numberOfDays],
-        ["Passengers", data.pax],
-        ["Extra Baggage", data.extraBaggage],
-      ]);
-    default:
-      return entries([]);
+        ["Number of Vehicles", data.transportVehicles],
+        ["Number of Days", data.transportDays],
+        ["Passengers", data.transportPax],
+        ["Extra Baggage", data.transportExtraBaggage],
+      ],
+    },
+  ];
+}
+
+function buildDetails(data: CustomInquiryInput) {
+  const sections = buildSections(data);
+
+  const details: Record<string, Record<string, string | number>> = {};
+  const lines: { label: string; value: string; heading?: boolean }[] = [];
+
+  for (const section of sections) {
+    details[section.title] = Object.fromEntries(section.fields);
+    lines.push({ label: section.title, value: "", heading: true });
+    for (const [label, value] of section.fields) {
+      lines.push({ label, value: String(value) });
+    }
   }
+
+  return { details, lines };
 }
 
 export async function submitCustomInquiry(
@@ -83,11 +96,15 @@ export async function submitCustomInquiry(
 
   // Every visible field, echoed back so a failed submit doesn't wipe the form.
   const FIELDS = [
-    "inquiryType", "firstName", "lastName", "countryCity", "passportNumber",
-    "email", "mobile", "package", "hotel", "roomCategory", "roomType",
-    "mealPlan", "numberOfRooms", "arrival", "departure", "adults", "children",
-    "extraBed", "airline", "route", "wayType", "flightClass", "pax",
-    "extraBaggage", "carType", "hireType", "numberOfVehicles", "numberOfDays",
+    "firstName", "lastName", "countryCity", "passportNumber", "email", "mobile",
+    "package",
+    "hotel", "hotelRoomCategory", "hotelRoomType", "hotelMealPlan", "hotelRooms",
+    "hotelArrival", "hotelDeparture", "hotelAdults", "hotelChildren",
+    "hotelExtraBed",
+    "airline", "airRoute", "airWayType", "airDepartDate", "airReturnDate",
+    "airClass", "airPax", "airExtraBaggage",
+    "carType", "hireType", "transportVehicles", "transportDays", "transportPax",
+    "transportExtraBaggage",
   ] as const;
   const values = Object.fromEntries(
     FIELDS.map((key) => [key, fs(formData, key)]),
@@ -139,7 +156,10 @@ export async function submitCustomInquiry(
     const { details, lines } = buildDetails(data);
 
     await createCustomInquiry({
-      inquiry_type: data.inquiryType,
+      // Every submission now spans all four services. The enum column keeps a
+      // valid value ("package" is always present); the admin derives the
+      // "Custom inquiry" label from the grouped `details` instead.
+      inquiry_type: "package",
       first_name: data.firstName,
       last_name: data.lastName,
       country_city: data.countryCity || null,
@@ -151,7 +171,7 @@ export async function submitCustomInquiry(
     });
 
     await sendCustomInquiryEmails({
-      inquiryType: data.inquiryType,
+      inquiryType: "custom",
       firstName: data.firstName,
       fullName: `${data.firstName} ${data.lastName}`,
       email,

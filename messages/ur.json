@@ -328,6 +328,11 @@
     "sendEnquiry": "استفسار بھیجیں"
   },
   "customQuote": {
+    "next": "Next",
+    "back": "Back",
+    "stepLabel": "Step {current} of {total}",
+    "allRequired": "All fields are required.",
+
     "heroTitle": "حسبِ ضرورت کوٹ کی درخواست کریں",
     "heroLabel": "خصوصی سفر",
     "heroSummary": "ہمیں بتائیں کہ آپ کو کیا چاہیے — ایک پیکیج، ہوٹل، ہوائی ٹکٹ یا ٹرانسپورٹ — اور ہماری ٹیم ایک حسبِ ضرورت کوٹ کے ساتھ جواب دے گی۔",

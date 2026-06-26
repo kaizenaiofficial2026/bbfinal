@@ -1,20 +1,17 @@
 import Link from "next/link";
-import {
-  changeAdminPasswordAction,
-  sendAdminPasswordOtpAction,
-} from "../actions";
+import AdminPasswordWizard from "./AdminPasswordWizard";
 import { requireAdmin } from "@/lib/admin/auth";
-import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
 
 type SettingsPageProps = {
-  searchParams: Promise<{ error?: string; sent?: string; changed?: string }>;
+  searchParams: Promise<{ error?: string }>;
 };
 
 export default async function AdminSettingsPage({
   searchParams,
 }: SettingsPageProps) {
   const user = await requireAdmin();
-  const { error, sent, changed } = await searchParams;
+  const { error } = await searchParams;
   const email = user.email ?? "";
 
   return (
@@ -25,17 +22,6 @@ export default async function AdminSettingsPage({
       </div>
 
       <section className="admin-card admin-stack">
-        {changed ? (
-          <p className="admin-note-success" role="status">
-            Your password has been updated.
-          </p>
-        ) : null}
-        {sent ? (
-          <p className="admin-note-success" role="status">
-            We emailed a 6-digit code to {email}. Enter it below — it expires in
-            15 minutes.
-          </p>
-        ) : null}
         {error ? (
           <p className="admin-alert" role="alert">
             {error}
@@ -43,61 +29,11 @@ export default async function AdminSettingsPage({
         ) : null}
 
         <p className="form-hint">
-          Changing your password needs a one-time code. Send the code to your
-          email, then enter your current password, a new password, and the code.
+          Signed in as {email}. Changing your password needs a one-time code
+          sent to {ADMIN_SECURITY_INBOX}.
         </p>
 
-        <form action={sendAdminPasswordOtpAction}>
-          <SubmitButton pendingLabel="Sending…" className="btn btn-line">
-            Send verification code
-          </SubmitButton>
-        </form>
-
-        <form className="admin-form" action={changeAdminPasswordAction}>
-          <label>
-            Current password
-            <input
-              name="oldPassword"
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-          </label>
-          <div className="admin-grid-2">
-            <label>
-              New password
-              <input
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                required
-              />
-            </label>
-            <label>
-              Confirm new password
-              <input
-                name="confirm"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                required
-              />
-            </label>
-          </div>
-          <label>
-            Verification code
-            <input
-              name="code"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              pattern="\d{6}"
-              maxLength={6}
-              required
-            />
-          </label>
-          <SubmitButton pendingLabel="Updating…">Change password</SubmitButton>
-        </form>
+        <AdminPasswordWizard />
 
         <p className="admin-muted">
           <Link className="admin-back" href="/admin/forgot-password">

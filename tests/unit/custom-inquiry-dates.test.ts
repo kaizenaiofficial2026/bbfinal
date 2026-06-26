@@ -11,61 +11,66 @@ const guest = {
   company: "",
 };
 
-function hotel(overrides: Record<string, unknown> = {}) {
+// A fully-filled combined inquiry (every section is mandatory).
+function combined(overrides: Record<string, unknown> = {}) {
   return {
-    inquiryType: "hotel",
     ...guest,
+    // Package
+    package: "Glamour of Sri Lanka - USD 499",
+    // Hotel
     hotel: "Cinnamon Grand",
-    roomCategory: "Deluxe",
-    roomType: "Double",
-    mealPlan: "Half Board",
-    numberOfRooms: 1,
-    arrival: "2026-07-01",
-    departure: "2026-07-10",
-    adults: 2,
-    children: 0,
-    extraBed: "No",
-    ...overrides,
-  };
-}
-
-function airticket(overrides: Record<string, unknown> = {}) {
-  return {
-    inquiryType: "airticket",
-    ...guest,
+    hotelRoomCategory: "Deluxe",
+    hotelRoomType: "Double",
+    hotelMealPlan: "Half Board",
+    hotelRooms: 1,
+    hotelArrival: "2026-07-01",
+    hotelDeparture: "2026-07-10",
+    hotelAdults: 2,
+    hotelChildren: 0,
+    hotelExtraBed: "No",
+    // Air ticket
     airline: "SriLankan",
-    route: "CMB-DXB",
-    wayType: "Both way",
-    arrival: "2026-07-01",
-    departure: "2026-07-10",
-    flightClass: "Economy",
-    pax: 1,
-    extraBaggage: "No",
+    airRoute: "CMB-DXB",
+    airWayType: "Both way",
+    airDepartDate: "2026-07-01",
+    airReturnDate: "2026-07-10",
+    airClass: "Economy",
+    airPax: 1,
+    airExtraBaggage: "No",
+    // Transport
+    carType: "Normal Car",
+    hireType: "Drop",
+    transportVehicles: 1,
+    transportDays: 3,
+    transportPax: 2,
+    transportExtraBaggage: "No",
     ...overrides,
   };
 }
 
-describe("custom inquiry date validation", () => {
-  it("accepts a hotel stay with departure after arrival", () => {
-    expect(customInquirySchema.safeParse(hotel()).success).toBe(true);
+describe("combined custom inquiry validation", () => {
+  it("accepts a fully-filled inquiry", () => {
+    expect(customInquirySchema.safeParse(combined()).success).toBe(true);
   });
 
-  it("accepts a same-day arrival and departure", () => {
+  it("accepts a same-day hotel arrival and departure", () => {
     expect(
       customInquirySchema.safeParse(
-        hotel({ arrival: "2026-07-05", departure: "2026-07-05" }),
+        combined({ hotelArrival: "2026-07-05", hotelDeparture: "2026-07-05" }),
       ).success,
     ).toBe(true);
   });
 
-  it("rejects a hotel departure before arrival, flagging the departure field", () => {
+  it("rejects a hotel departure before arrival, flagging hotelDeparture", () => {
     const result = customInquirySchema.safeParse(
-      hotel({ arrival: "2026-07-10", departure: "2026-07-01" }),
+      combined({ hotelArrival: "2026-07-10", hotelDeparture: "2026-07-01" }),
     );
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(
-        result.error.issues.some((issue) => issue.path.includes("departure")),
+        result.error.issues.some((issue) =>
+          issue.path.includes("hotelDeparture"),
+        ),
       ).toBe(true);
     }
   });
@@ -73,19 +78,21 @@ describe("custom inquiry date validation", () => {
   it("allows a one-way air ticket with no return date", () => {
     expect(
       customInquirySchema.safeParse(
-        airticket({ wayType: "One way", departure: "" }),
+        combined({ airWayType: "One way", airReturnDate: "" }),
       ).success,
     ).toBe(true);
   });
 
-  it("requires a return date for a round trip", () => {
+  it("requires a return date for a round trip, flagging airReturnDate", () => {
     const result = customInquirySchema.safeParse(
-      airticket({ wayType: "Both way", departure: "" }),
+      combined({ airWayType: "Both way", airReturnDate: "" }),
     );
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(
-        result.error.issues.some((issue) => issue.path.includes("departure")),
+        result.error.issues.some((issue) =>
+          issue.path.includes("airReturnDate"),
+        ),
       ).toBe(true);
     }
   });
@@ -93,17 +100,26 @@ describe("custom inquiry date validation", () => {
   it("rejects an air ticket whose return precedes departure", () => {
     expect(
       customInquirySchema.safeParse(
-        airticket({ arrival: "2026-07-10", departure: "2026-07-01" }),
+        combined({ airDepartDate: "2026-07-10", airReturnDate: "2026-07-01" }),
       ).success,
     ).toBe(false);
   });
 
-  it("rejects an inquiry missing country/city or passport (now required)", () => {
+  it("rejects an inquiry missing country/city or passport", () => {
     expect(
-      customInquirySchema.safeParse(hotel({ countryCity: "" })).success,
+      customInquirySchema.safeParse(combined({ countryCity: "" })).success,
     ).toBe(false);
     expect(
-      customInquirySchema.safeParse(hotel({ passportNumber: "" })).success,
+      customInquirySchema.safeParse(combined({ passportNumber: "" })).success,
+    ).toBe(false);
+  });
+
+  it("rejects an inquiry with an unfilled section (e.g. no hotel)", () => {
+    expect(
+      customInquirySchema.safeParse(combined({ hotel: "" })).success,
+    ).toBe(false);
+    expect(
+      customInquirySchema.safeParse(combined({ carType: "" })).success,
     ).toBe(false);
   });
 });

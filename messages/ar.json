@@ -328,6 +328,11 @@
     "sendEnquiry": "إرسال الاستفسار"
   },
   "customQuote": {
+    "next": "Next",
+    "back": "Back",
+    "stepLabel": "Step {current} of {total}",
+    "allRequired": "All fields are required.",
+
     "heroTitle": "اطلب عرض سعر مخصص",
     "heroLabel": "رحلات مصممة خصيصًا",
     "heroSummary": "أخبرنا بما تحتاجه — باقة أو فندق أو تذكرة طيران أو نقل — وسيرد فريقنا بعرض سعر مخصص.",

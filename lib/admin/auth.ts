@@ -10,6 +10,7 @@ import {
   canUseSupabaseService,
   createSupabaseServiceClient,
 } from "@/lib/supabase/service";
+import { refreshAdminLoginLock } from "@/lib/admin/login-lock";
 
 /**
  * Ensure an allowlisted staff member has a `profiles` row. The app-layer
@@ -76,6 +77,8 @@ export async function requireAdmin() {
   if (!user) {
     redirect("/admin/login");
   }
+
+  await refreshAdminLoginLock(user.id, user.email ?? "");
 
   return user;
 }

@@ -8,6 +8,7 @@ import {
   createSupabaseServiceClient,
 } from "@/lib/supabase/service";
 import { sendPasswordResetEmail } from "@/lib/email/send";
+import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
 
 /**
  * Shared core for the customer + admin "forgot password" flow.
@@ -106,7 +107,8 @@ export async function createAndSendResetCode({
     }
     const lower = email.toLowerCase();
 
-    // Admin resets are only ever sent to allowlisted staff addresses.
+    // Admin reset/change codes are only issued for allowlisted staff accounts,
+    // but the email containing the code always goes to the reservations inbox.
     if (audience === "admin" && !env.adminAllowedEmails.includes(lower)) {
       return;
     }
@@ -143,7 +145,8 @@ export async function createAndSendResetCode({
     }
 
     await sendPasswordResetEmail({
-      email: user.email,
+      email: audience === "admin" ? ADMIN_SECURITY_INBOX : user.email,
+      accountEmail: audience === "admin" ? user.email : undefined,
       code,
       resetUrl,
       ttlMinutes: OTP_TTL_MINUTES,

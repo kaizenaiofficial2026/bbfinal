@@ -172,6 +172,7 @@ export async function sendRegistrationEmails(input: {
 
 export async function sendPasswordResetEmail(input: {
   email: string;
+  accountEmail?: string;
   code: string;
   resetUrl: string;
   ttlMinutes: number;
@@ -181,6 +182,7 @@ export async function sendPasswordResetEmail(input: {
     subject: "Your Beyond Borders password reset code",
     react: (
       <PasswordResetCode
+        accountEmail={input.accountEmail}
         code={input.code}
         resetUrl={input.resetUrl}
         ttlMinutes={input.ttlMinutes}

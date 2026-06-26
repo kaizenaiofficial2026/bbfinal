@@ -19,6 +19,7 @@ import {
   service,
   TEST_ADMIN,
 } from "../support/db";
+import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
 
 let customer: Awaited<ReturnType<typeof createCustomer>>;
 
@@ -129,6 +130,12 @@ describe("password reset core (integration, test DB)", () => {
       audience: "admin",
       resetUrl: "http://localhost:3000/admin/reset-password",
     });
+    expect(sendPasswordResetEmail).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        accountEmail: TEST_ADMIN.email,
+        email: ADMIN_SECURITY_INBOX,
+      }),
+    );
     const { count: ok } = await service()
       .from("password_reset_codes")
       .select("id", { count: "exact", head: true })

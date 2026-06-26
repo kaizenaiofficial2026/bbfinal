@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Common guest details + spam guards, shared by every inquiry type.
+// Common guest details + spam guards.
 const guest = {
   firstName: z.string().trim().min(1, "First name is required.").max(120),
   lastName: z.string().trim().min(1, "Last name is required.").max(120),
@@ -19,65 +19,61 @@ const guest = {
 const required = (label: string) => z.string().trim().min(1, label).max(160);
 const yesNo = z.enum(["Yes", "No"]);
 
-export const customInquirySchema = z.discriminatedUnion("inquiryType", [
-  z.object({
-    inquiryType: z.literal("package"),
+// The custom inquiry is now a single multi-service submission gathering ALL four
+// services in one go: Package → Hotel → Air ticket → Transport. Every section is
+// mandatory. Field names are namespaced per section (hotel*/air*/transport*)
+// because they share one <form> and would otherwise collide (arrival/departure,
+// pax, extraBaggage). Dates are ISO (YYYY-MM-DD) so string comparison is correct.
+export const customInquirySchema = z
+  .object({
     ...guest,
+
+    // Package
     package: required("Please choose a package."),
-  }),
-  z
-    .object({
-      inquiryType: z.literal("hotel"),
-      ...guest,
-      hotel: required("Please choose a hotel."),
-      roomCategory: required("Please choose a room category."),
-      roomType: required("Please choose a room type."),
-      mealPlan: required("Please choose a meal plan."),
-      numberOfRooms: z.coerce.number().int().min(1).max(50),
-      arrival: required("Arrival date is required.").max(40),
-      departure: required("Departure date is required.").max(40),
-      adults: z.coerce.number().int().min(1).max(50),
-      children: z.coerce.number().int().min(0).max(50),
-      extraBed: yesNo,
-    })
-    // ISO date strings (YYYY-MM-DD) compare correctly as strings.
-    .refine((d) => d.departure >= d.arrival, {
-      message: "Departure can't be before arrival.",
-      path: ["departure"],
-    }),
-  z
-    .object({
-      inquiryType: z.literal("airticket"),
-      ...guest,
-      airline: required("Airline is required.").max(120),
-      route: required("Route is required."),
-      wayType: z.enum(["One way", "Both way"]),
-      arrival: required("Departure date is required.").max(40),
-      departure: z.string().trim().max(40).optional().or(z.literal("")),
-      flightClass: required("Class is required.").max(60),
-      pax: z.coerce.number().int().min(1).max(50),
-      extraBaggage: yesNo,
-    })
-    // `arrival` is the departure date; `departure` is the return date —
-    // mandatory for a round trip, optional one-way.
-    .refine((d) => d.wayType !== "Both way" || !!d.departure, {
-      message: "A return date is required for a round trip.",
-      path: ["departure"],
-    })
-    .refine((d) => !d.departure || d.departure >= d.arrival, {
-      message: "The return date can't be before the departure date.",
-      path: ["departure"],
-    }),
-  z.object({
-    inquiryType: z.literal("transport"),
-    ...guest,
+
+    // Hotel
+    hotel: required("Please choose a hotel."),
+    hotelRoomCategory: required("Please choose a room category."),
+    hotelRoomType: required("Please choose a room type."),
+    hotelMealPlan: required("Please choose a meal plan."),
+    hotelRooms: z.coerce.number().int().min(1).max(50),
+    hotelArrival: required("Arrival date is required.").max(40),
+    hotelDeparture: required("Departure date is required.").max(40),
+    hotelAdults: z.coerce.number().int().min(1).max(50),
+    hotelChildren: z.coerce.number().int().min(0).max(50),
+    hotelExtraBed: yesNo,
+
+    // Air ticket
+    airline: required("Airline is required.").max(120),
+    airRoute: required("Route is required."),
+    airWayType: z.enum(["One way", "Both way"]),
+    airDepartDate: required("Departure date is required.").max(40),
+    airReturnDate: z.string().trim().max(40).optional().or(z.literal("")),
+    airClass: required("Class is required.").max(60),
+    airPax: z.coerce.number().int().min(1).max(50),
+    airExtraBaggage: yesNo,
+
+    // Transport
     carType: required("Car type is required."),
     hireType: required("Hire type is required."),
-    numberOfVehicles: z.coerce.number().int().min(1).max(50),
-    numberOfDays: z.coerce.number().int().min(1).max(365),
-    pax: z.coerce.number().int().min(1).max(50),
-    extraBaggage: yesNo,
-  }),
-]);
+    transportVehicles: z.coerce.number().int().min(1).max(50),
+    transportDays: z.coerce.number().int().min(1).max(365),
+    transportPax: z.coerce.number().int().min(1).max(50),
+    transportExtraBaggage: yesNo,
+  })
+  .refine((d) => d.hotelDeparture >= d.hotelArrival, {
+    message: "Departure can't be before arrival.",
+    path: ["hotelDeparture"],
+  })
+  // `airDepartDate` is the outbound date; `airReturnDate` is mandatory for a
+  // round trip, optional one-way.
+  .refine((d) => d.airWayType !== "Both way" || !!d.airReturnDate, {
+    message: "A return date is required for a round trip.",
+    path: ["airReturnDate"],
+  })
+  .refine((d) => !d.airReturnDate || d.airReturnDate >= d.airDepartDate, {
+    message: "The return date can't be before the departure date.",
+    path: ["airReturnDate"],
+  });
 
 export type CustomInquiryInput = z.infer<typeof customInquirySchema>;
