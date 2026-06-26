@@ -10,16 +10,15 @@ export async function getRequestIpHash() {
   // rate-limit key.
   const realIp = headerStore.get("x-real-ip")?.trim();
   const forwardedFor = headerStore.get("x-forwarded-for") ?? "";
-  const ip = realIp || forwardedFor.split(",")[0]?.trim();
+  const ip = realIp || forwardedFor.split(",")[0]?.trim() || "unknown";
 
-  // No platform IP at all (shouldn't happen on Vercel). FAIL OPEN with a unique
-  // per-request bucket rather than collapsing every header-less request into one
-  // shared "unknown" bucket — that made the limiter effectively global and
-  // locked innocent users out for hours.
-  if (!ip) {
-    return createHash("sha256").update(randomBytes(16)).digest("hex");
-  }
-
+  // No platform IP → a shared, DETERMINISTIC "unknown" bucket (not a random
+  // one): a random per-request hash would silently disable the per-IP volume
+  // caps (countRecent*ByIp always seeing 0). A shared "unknown" bucket is safe
+  // here because the auth/account limiters key on scopedRateKey(ipHash, email)
+  // — per account — so a shared IP can't collectively lock real users out. (The
+  // earlier multi-hour lockout came from IP-ONLY keying on shared NAT IPs, which
+  // scopedRateKey, not this fallback, is what fixes.)
   return createHash("sha256")
     .update(`${ip}:${process.env.SUPABASE_SERVICE_ROLE_KEY ?? "local"}`)
     .digest("hex");
