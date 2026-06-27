@@ -58,6 +58,9 @@ async function queryPublishedPackages(locale: string) {
     .from("tour_packages")
     .select("*, itinerary_items(*)")
     .eq("status", "published")
+    // Public listings show packages cheapest-first; unpriced ones sort last,
+    // with sort_order/title as stable tiebreakers for equal prices.
+    .order("price_amount", { ascending: true, nullsFirst: false })
     .order("sort_order", { ascending: true })
     .order("title", { ascending: true })
     .order("sort_order", {

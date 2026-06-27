@@ -8,7 +8,8 @@
     "home": "Home",
     "about": "About",
     "tours": "Tours",
-    "destinations": "Destinations"
+    "destinations": "Destinations",
+    "customQuote": "Inquiries"
   },
   "hero": {
     "subtitle": "Handcrafted journeys through ancient kingdoms, misty tea country, leopard trails and warm Indian Ocean shores — designed in Colombo by people who know the island by heart.",
@@ -328,17 +329,16 @@
     "sendEnquiry": "Send Enquiry"
   },
   "customQuote": {
-    "next": "Next",
+    "next": "Submit",
     "back": "Back",
     "stepLabel": "Step {current} of {total}",
     "allRequired": "All fields are required.",
-
     "heroTitle": "Request a custom quote",
     "heroLabel": "Bespoke journeys",
     "heroSummary": "Tell us what you need — a package, hotel, air ticket or transport — and our team will reply with a tailored quote.",
     "company": "Company",
     "whatQuote": "What can we quote?",
-    "typePackage": "Package",
+    "typePackage": "Tours",
     "typeHotel": "Hotel",
     "typeAirticket": "Air ticket",
     "typeTransport": "Transport",

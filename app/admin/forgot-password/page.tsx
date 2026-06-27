@@ -30,7 +30,7 @@ export default async function AdminForgotPasswordPage({
           </p>
         ) : null}
         <SubmitButton pendingLabel="Sending…">Send reset code</SubmitButton>
-        <p className="admin-muted admin-login-back-row">
+        <p className="admin-muted">
           <Link className="admin-back" href="/admin/login">
             ← Back to login
           </Link>

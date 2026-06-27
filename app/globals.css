@@ -5965,15 +5965,6 @@ html.lenis body {
   color: var(--gold-deep);
 }
 
-@media (min-width: 901px) {
-  .admin-login-back-row {
-    position: absolute;
-    top: 0;
-    left: -132px;
-    margin: 0;
-  }
-}
-
 .admin-fieldset {
   display: grid;
   gap: 16px;

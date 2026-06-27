@@ -8,7 +8,8 @@
     "home": "హోమ్",
     "about": "మా గురించి",
     "tours": "టూర్లు",
-    "destinations": "గమ్యస్థానాలు"
+    "destinations": "గమ్యస్థానాలు",
+    "customQuote": "Inquiries"
   },
   "hero": {
     "subtitle": "ప్రాచీన రాజ్యాలు, పొగమంచు కమ్మిన తేయాకు ప్రాంతం, చిరుత దారులు మరియు వెచ్చని హిందూ మహాసముద్ర తీరాల గుండా చేతితో రూపొందించిన ప్రయాణాలు — ఈ ద్వీపాన్ని హృదయపూర్వకంగా తెలిసిన వారిచే కొలంబోలో రూపకల్పన చేయబడ్డాయి.",
@@ -328,17 +329,16 @@
     "sendEnquiry": "విచారణ పంపండి"
   },
   "customQuote": {
-    "next": "Next",
+    "next": "Submit",
     "back": "Back",
     "stepLabel": "Step {current} of {total}",
     "allRequired": "All fields are required.",
-
     "heroTitle": "కస్టమ్ కోట్‌ను అభ్యర్థించండి",
     "heroLabel": "ప్రత్యేక ప్రయాణాలు",
     "heroSummary": "మీకు ఏమి కావాలో మాకు చెప్పండి — ప్యాకేజీ, హోటల్, విమాన టికెట్ లేదా రవాణా — మరియు మా బృందం అనుకూల కోట్‌తో సమాధానమిస్తుంది.",
     "company": "కంపెనీ",
     "whatQuote": "మేము దేనికి కోట్ ఇవ్వగలము?",
-    "typePackage": "ప్యాకేజీ",
+    "typePackage": "Tours",
     "typeHotel": "హోటల్",
     "typeAirticket": "విమాన టికెట్",
     "typeTransport": "రవాణా",

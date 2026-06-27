@@ -8,7 +8,8 @@
     "home": "ಮುಖಪುಟ",
     "about": "ನಮ್ಮ ಬಗ್ಗೆ",
     "tours": "ಪ್ರವಾಸಗಳು",
-    "destinations": "ಸ್ಥಳಗಳು"
+    "destinations": "ಸ್ಥಳಗಳು",
+    "customQuote": "Inquiries"
   },
   "hero": {
     "subtitle": "ಪ್ರಾಚೀನ ಸಾಮ್ರಾಜ್ಯಗಳು, ಮಂಜಿನ ಚಹಾ ಪ್ರದೇಶ, ಚಿರತೆ ಜಾಡುಗಳು ಮತ್ತು ಬೆಚ್ಚಗಿನ ಹಿಂದೂ ಮಹಾಸಾಗರದ ತೀರಗಳ ಮೂಲಕ ಕೈಯಿಂದ ರೂಪಿಸಿದ ಪ್ರಯಾಣಗಳು — ದ್ವೀಪವನ್ನು ಹೃದಯದಿಂದ ಬಲ್ಲವರಿಂದ ಕೊಲಂಬೊದಲ್ಲಿ ವಿನ್ಯಾಸಗೊಳಿಸಲಾಗಿದೆ.",
@@ -328,17 +329,16 @@
     "sendEnquiry": "ವಿಚಾರಣೆ ಕಳುಹಿಸಿ"
   },
   "customQuote": {
-    "next": "Next",
+    "next": "Submit",
     "back": "Back",
     "stepLabel": "Step {current} of {total}",
     "allRequired": "All fields are required.",
-
     "heroTitle": "ಕಸ್ಟಮ್ ಕೋಟ್ ವಿನಂತಿಸಿ",
     "heroLabel": "ವಿಶೇಷ ಪ್ರಯಾಣಗಳು",
     "heroSummary": "ನಿಮಗೆ ಏನು ಬೇಕು ಎಂದು ನಮಗೆ ತಿಳಿಸಿ — ಪ್ಯಾಕೇಜ್, ಹೋಟೆಲ್, ವಿಮಾನ ಟಿಕೆಟ್ ಅಥವಾ ಸಾಗಣೆ — ಮತ್ತು ನಮ್ಮ ತಂಡ ಕಸ್ಟಮ್ ಕೋಟ್‌ನೊಂದಿಗೆ ಉತ್ತರಿಸುತ್ತದೆ.",
     "company": "ಕಂಪನಿ",
     "whatQuote": "ನಾವು ಏನು ಕೋಟ್ ಮಾಡಬಹುದು?",
-    "typePackage": "ಪ್ಯಾಕೇಜ್",
+    "typePackage": "Tours",
     "typeHotel": "ಹೋಟೆಲ್",
     "typeAirticket": "ವಿಮಾನ ಟಿಕೆಟ್",
     "typeTransport": "ಸಾಗಣೆ",

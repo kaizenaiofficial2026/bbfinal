@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: "/about", key: "about" },
   { href: "/tours", key: "tours" },
   { href: "/destinations", key: "destinations" },
+  { href: "/custom-quote", key: "customQuote" },
 ] as const;
 
 export default function Header({ account }: { account: HeaderAccount }) {

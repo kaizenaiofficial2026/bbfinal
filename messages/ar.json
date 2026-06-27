@@ -8,7 +8,8 @@
     "home": "الرئيسية",
     "about": "من نحن",
     "tours": "الجولات",
-    "destinations": "الوجهات"
+    "destinations": "الوجهات",
+    "customQuote": "Inquiries"
   },
   "hero": {
     "subtitle": "رحلات مصمَّمة بعناية عبر الممالك القديمة، وبلاد الشاي الضبابية، ومسارات الفهود، وشواطئ المحيط الهندي الدافئة — صُمِّمت في كولومبو على يد أشخاص يعرفون الجزيرة عن ظهر قلب.",
@@ -328,17 +329,16 @@
     "sendEnquiry": "إرسال الاستفسار"
   },
   "customQuote": {
-    "next": "Next",
+    "next": "Submit",
     "back": "Back",
     "stepLabel": "Step {current} of {total}",
     "allRequired": "All fields are required.",
-
     "heroTitle": "اطلب عرض سعر مخصص",
     "heroLabel": "رحلات مصممة خصيصًا",
     "heroSummary": "أخبرنا بما تحتاجه — باقة أو فندق أو تذكرة طيران أو نقل — وسيرد فريقنا بعرض سعر مخصص.",
     "company": "الشركة",
     "whatQuote": "ما الذي يمكننا تسعيره؟",
-    "typePackage": "باقة",
+    "typePackage": "Tours",
     "typeHotel": "فندق",
     "typeAirticket": "تذكرة طيران",
     "typeTransport": "نقل",

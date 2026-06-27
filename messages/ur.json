@@ -8,7 +8,8 @@
     "home": "ہوم",
     "about": "ہمارے بارے میں",
     "tours": "ٹورز",
-    "destinations": "مقامات"
+    "destinations": "مقامات",
+    "customQuote": "Inquiries"
   },
   "hero": {
     "subtitle": "قدیم سلطنتوں، دھند بھری چائے کی وادیوں، چیتے کی راہوں اور گرم بحرِ ہند کے ساحلوں سے گزرتے ہوئے دستکاری سے تیار کردہ سفر — کولمبو میں ان لوگوں کے ہاتھوں ڈیزائن کیے گئے جو اس جزیرے کو دل سے جانتے ہیں۔",
@@ -328,17 +329,16 @@
     "sendEnquiry": "استفسار بھیجیں"
   },
   "customQuote": {
-    "next": "Next",
+    "next": "Submit",
     "back": "Back",
     "stepLabel": "Step {current} of {total}",
     "allRequired": "All fields are required.",
-
     "heroTitle": "حسبِ ضرورت کوٹ کی درخواست کریں",
     "heroLabel": "خصوصی سفر",
     "heroSummary": "ہمیں بتائیں کہ آپ کو کیا چاہیے — ایک پیکیج، ہوٹل، ہوائی ٹکٹ یا ٹرانسپورٹ — اور ہماری ٹیم ایک حسبِ ضرورت کوٹ کے ساتھ جواب دے گی۔",
     "company": "کمپنی",
     "whatQuote": "ہم کس چیز کا کوٹ دے سکتے ہیں؟",
-    "typePackage": "پیکیج",
+    "typePackage": "Tours",
     "typeHotel": "ہوٹل",
     "typeAirticket": "ہوائی ٹکٹ",
     "typeTransport": "ٹرانسپورٹ",

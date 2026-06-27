@@ -8,7 +8,8 @@
     "home": "होम",
     "about": "हमारे बारे में",
     "tours": "टूर",
-    "destinations": "गंतव्य"
+    "destinations": "गंतव्य",
+    "customQuote": "Inquiries"
   },
   "hero": {
     "subtitle": "प्राचीन साम्राज्यों, धुंध भरी चाय की वादियों, तेंदुए की राहों और गर्म हिंद महासागर के तटों से होकर बनाई गई विशेष यात्राएँ — कोलंबो में उन लोगों द्वारा रची गईं जो इस द्वीप को दिल से जानते हैं।",
@@ -328,17 +329,16 @@
     "sendEnquiry": "पूछताछ भेजें"
   },
   "customQuote": {
-    "next": "Next",
+    "next": "Submit",
     "back": "Back",
     "stepLabel": "Step {current} of {total}",
     "allRequired": "All fields are required.",
-
     "heroTitle": "कस्टम कोट का अनुरोध करें",
     "heroLabel": "विशेष यात्राएं",
     "heroSummary": "हमें बताएं कि आपको क्या चाहिए — एक पैकेज, होटल, हवाई टिकट या परिवहन — और हमारी टीम एक अनुकूलित कोट के साथ जवाब देगी।",
     "company": "कंपनी",
     "whatQuote": "हम क्या कोट कर सकते हैं?",
-    "typePackage": "पैकेज",
+    "typePackage": "Tours",
     "typeHotel": "होटल",
     "typeAirticket": "हवाई टिकट",
     "typeTransport": "परिवहन",

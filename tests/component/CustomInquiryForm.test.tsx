@@ -9,12 +9,14 @@ vi.mock("@/app/[locale]/custom-quote/actions", () => ({
 import CustomInquiryForm from "@/components/CustomInquiryForm";
 
 describe("CustomInquiryForm (wizard)", () => {
-  it("opens on step 1 of 4 with Next (not Submit) and an all-required hint", () => {
+  it("opens on step 1 of 4 with a Submit step button and an all-required hint", () => {
     render(<CustomInquiryForm />);
 
     expect(screen.getByText(/Step 1 of 4/)).toBeInTheDocument();
     expect(screen.getByText(/All fields are required\./)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
+    // The step button is labelled "Submit" (renamed from "Next"); the final
+    // "Submit inquiry" button only appears on the last step.
+    expect(screen.getByRole("button", { name: /^submit$/i })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /submit inquiry/i }),
     ).not.toBeInTheDocument();
@@ -37,7 +39,7 @@ describe("CustomInquiryForm (wizard)", () => {
   it("blocks advancing past an empty step and surfaces a required error", () => {
     render(<CustomInquiryForm />);
 
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^submit$/i }));
 
     // Still on step 1, with a required-field error shown.
     expect(screen.getByText(/Step 1 of 4/)).toBeInTheDocument();
@@ -54,7 +56,7 @@ describe("CustomInquiryForm (wizard)", () => {
     fireEvent.click(
       screen.getByRole("option", { name: "The Heart of City - USD 200" }),
     );
-    fireEvent.click(screen.getByRole("button", { name: /^next$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^submit$/i }));
 
     expect(screen.getByText(/Step 2 of 4/)).toBeInTheDocument();
   });

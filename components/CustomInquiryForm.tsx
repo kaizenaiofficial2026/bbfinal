@@ -53,7 +53,6 @@ const STEP_FIELDS: string[][] = [
     "hotelArrival",
     "hotelDeparture",
     "hotelAdults",
-    "hotelChildren",
     "hotelExtraBed",
   ],
   ["airline", "airRoute", "airWayType", "airDepartDate", "airClass", "airPax", "airExtraBaggage"],
@@ -362,7 +361,7 @@ export default function CustomInquiryForm() {
               <Field name="hotelArrival" label={t("expectedArrival")} type="date" />
               <Field name="hotelDeparture" label={t("expectedDeparture")} type="date" />
               <Field name="hotelAdults" label={t("adults")} type="number" min={1} placeholder="2" />
-              <Field name="hotelChildren" label={t("children")} type="number" min={0} placeholder="0" />
+              <Field name="hotelChildren" label={t("children")} type="number" min={0} placeholder="0" required={false} />
               <Select name="hotelExtraBed" label={t("extraBed")} options={YES_NO} placeholder={t("selectPlaceholder")} />
             </div>
           </div>

@@ -8,7 +8,8 @@
     "home": "首页",
     "about": "关于我们",
     "tours": "行程",
-    "destinations": "目的地"
+    "destinations": "目的地",
+    "customQuote": "Inquiries"
   },
   "hero": {
     "subtitle": "穿越古老王国、云雾缭绕的茶乡、猎豹小径与温暖的印度洋海岸，由真正了解这座岛屿的人在科伦坡精心打造的旅程。",
@@ -328,17 +329,16 @@
     "sendEnquiry": "发送咨询"
   },
   "customQuote": {
-    "next": "Next",
+    "next": "Submit",
     "back": "Back",
     "stepLabel": "Step {current} of {total}",
     "allRequired": "All fields are required.",
-
     "heroTitle": "申请定制报价",
     "heroLabel": "定制旅程",
     "heroSummary": "告诉我们您的需求——套餐、酒店、机票或交通——我们的团队将回复量身定制的报价。",
     "company": "公司",
     "whatQuote": "我们能为您报价什么？",
-    "typePackage": "套餐",
+    "typePackage": "Tours",
     "typeHotel": "酒店",
     "typeAirticket": "机票",
     "typeTransport": "交通",
