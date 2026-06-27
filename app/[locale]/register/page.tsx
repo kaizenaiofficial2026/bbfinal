@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
 import AuthErrorToast from "@/components/AuthErrorToast";
 import PasswordInput from "@/components/PasswordInput";
+import RegisterLocationFields from "@/components/RegisterLocationFields";
 import SubmitButton from "@/components/SubmitButton";
 import { registerAction } from "../account/actions";
 
@@ -104,28 +105,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           </div>
         </div>
 
-        <div className="auth-grid-2">
-          <div className="auth-field">
-            <label htmlFor="reg-country">{t("country")}</label>
-            <input
-              id="reg-country"
-              name="country"
-              type="text"
-              autoComplete="country-name"
-              required
-            />
-          </div>
-          <div className="auth-field">
-            <label htmlFor="reg-city">{t("city")}</label>
-            <input
-              id="reg-city"
-              name="city"
-              type="text"
-              autoComplete="address-level2"
-              required
-            />
-          </div>
-        </div>
+        <RegisterLocationFields />
 
         <div className="auth-grid-2">
           <div className="auth-field">
