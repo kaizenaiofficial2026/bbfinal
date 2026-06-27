@@ -7179,47 +7179,222 @@ body.menu-open .cookie-consent {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(20, 18, 14, 0.55);
-  backdrop-filter: blur(3px);
+  background: rgba(20, 18, 14, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: adminPresenceFade 200ms ease both;
 }
 
 .admin-presence-card {
+  position: relative;
   display: flex;
-  width: min(100%, 460px);
+  width: min(100%, 440px);
   flex-direction: column;
-  gap: 10px;
-  padding: 28px;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 38px 34px 32px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 18px;
   background: var(--paper);
-  box-shadow: 0 30px 80px -40px rgba(20, 18, 14, 0.6);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 44px 90px -48px rgba(20, 18, 14, 0.55);
+  animation: adminPresencePop 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Circular gold badge holding the dialog icon. */
+.admin-presence-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 2px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, var(--gold-soft), var(--gold));
+  color: #fff;
+  box-shadow: 0 14px 28px -14px rgba(157, 121, 54, 0.7);
+}
+
+.admin-presence-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+/* Centered layout: drop the kicker's leading dash and tighten its margin. */
+.admin-presence-card .section-kicker {
+  margin-bottom: 0;
+}
+
+.admin-presence-card .section-kicker::before {
+  display: none;
 }
 
 .admin-presence-card h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 23px;
+  line-height: 1.18;
   color: var(--ink);
 }
 
 .admin-presence-card p {
   margin: 0;
+  max-width: 38ch;
   color: var(--body);
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-.admin-presence-card .admin-actions-row {
-  margin-top: 8px;
-  flex-wrap: wrap;
-  gap: 10px;
+/* The requesting account, set apart as a pill so it's easy to read. */
+.admin-presence-email {
+  display: inline-block;
+  max-width: 100%;
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--line-gold);
+  background: var(--line-soft);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink-soft);
+  word-break: break-all;
+}
+
+/* Decision buttons: full-width "choice" rows with an icon, a label, and a
+   one-line consequence so the active admin can't misread what each does. */
+.admin-decision {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.admin-decision-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 13px 16px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--paper);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 200ms var(--ease),
+    box-shadow 200ms var(--ease),
+    border-color 200ms var(--ease),
+    background 200ms var(--ease);
+}
+
+.admin-decision-btn:hover {
+  transform: translateY(-1px);
+}
+
+.admin-decision-btn:active {
+  transform: translateY(0);
+}
+
+.admin-decision-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.admin-decision-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+}
+
+.admin-decision-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.admin-decision-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-decision-title {
+  font-family: var(--font-label);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.admin-decision-sub {
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* "Allow them in" — the consequential action, given the prominent gold weight. */
+.admin-decision-allow {
+  border-color: var(--gold);
+  background: var(--gold);
+  box-shadow: 0 16px 38px -20px rgba(179, 146, 79, 0.75);
+}
+
+.admin-decision-allow .admin-decision-icon {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--gold-deep);
+}
+
+.admin-decision-allow .admin-decision-title {
+  color: var(--ink);
+}
+
+.admin-decision-allow .admin-decision-sub {
+  color: var(--ink-soft);
+}
+
+.admin-decision-allow:hover {
+  border-color: var(--gold-deep);
+  background: var(--gold-deep);
+  box-shadow: 0 22px 46px -20px rgba(157, 121, 54, 0.8);
+}
+
+.admin-decision-allow:hover .admin-decision-title,
+.admin-decision-allow:hover .admin-decision-sub {
+  color: #fff;
+}
+
+/* "Keep my session" — the safe choice, calmer outlined treatment. */
+.admin-decision-keep {
+  border-color: var(--line);
+}
+
+.admin-decision-keep .admin-decision-icon {
+  background: var(--line-soft);
+  color: var(--gold-deep);
+}
+
+.admin-decision-keep .admin-decision-title {
+  color: var(--ink);
+}
+
+.admin-decision-keep .admin-decision-sub {
+  color: var(--muted);
+}
+
+.admin-decision-keep:hover {
+  border-color: var(--line-gold);
+  box-shadow: 0 14px 30px -22px rgba(20, 18, 14, 0.45);
 }
 
 .admin-waiting-spinner {
   display: block;
-  width: 30px;
-  height: 30px;
-  margin: 6px 0;
+  width: 34px;
+  height: 34px;
+  margin: 2px 0;
   border-radius: 50%;
   border: 3px solid var(--line);
   border-top-color: var(--gold);
@@ -7229,5 +7404,32 @@ body.menu-open .cookie-consent {
 @keyframes adminWaitingSpin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes adminPresenceFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes adminPresencePop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-presence-overlay,
+  .admin-presence-card {
+    animation: none;
   }
 }

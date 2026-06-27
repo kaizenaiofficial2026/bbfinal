@@ -94,6 +94,7 @@ export default function AdminPresence() {
     return (
       <div className="admin-presence-overlay" role="alertdialog" aria-modal="true">
         <div className="admin-presence-card">
+          <span className="admin-waiting-spinner" aria-hidden="true" />
           <span className="section-kicker">Session ended</span>
           <h2>{phase === "handing" ? "Access handed over" : "Signed out"}</h2>
           <p>
@@ -116,27 +117,79 @@ export default function AdminPresence() {
       aria-labelledby="adminPresenceTitle"
     >
       <div className="admin-presence-card">
+        <span className="admin-presence-icon" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <line x1="19" y1="8" x2="19" y2="14" />
+            <line x1="22" y1="11" x2="16" y2="11" />
+          </svg>
+        </span>
         <span className="section-kicker">Login request</span>
         <h2 id="adminPresenceTitle">Someone is trying to sign in</h2>
         <p>
-          Another person is trying to access the admin panel
-          {pending.email ? ` as ${pending.email}` : ""}. Only one admin can be
+          Another person wants to access the admin panel. Only one admin can be
           active at a time — do you want to let them in?
         </p>
-        <div className="admin-actions-row">
+        {pending.email ? (
+          <span className="admin-presence-email">{pending.email}</span>
+        ) : null}
+        <div className="admin-decision">
           <button
             type="button"
-            className="btn btn-primary"
+            className="admin-decision-btn admin-decision-allow"
             onClick={() => decide("approve")}
           >
-            Allow them in (sign me out)
+            <span className="admin-decision-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+            </span>
+            <span className="admin-decision-text">
+              <span className="admin-decision-title">Allow them in</span>
+              <span className="admin-decision-sub">
+                You’ll be signed out of this device
+              </span>
+            </span>
           </button>
           <button
             type="button"
-            className="btn btn-line"
+            className="admin-decision-btn admin-decision-keep"
             onClick={() => decide("deny")}
           >
-            Keep my session
+            <span className="admin-decision-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+            </span>
+            <span className="admin-decision-text">
+              <span className="admin-decision-title">Keep my session</span>
+              <span className="admin-decision-sub">They’ll stay locked out</span>
+            </span>
           </button>
         </div>
       </div>
