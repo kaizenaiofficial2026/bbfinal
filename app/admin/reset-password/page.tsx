@@ -4,13 +4,13 @@ import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
 
 type AdminResetPasswordPageProps = {
-  searchParams: Promise<{ email?: string; error?: string; sent?: string }>;
+  searchParams: Promise<{ error?: string; sent?: string }>;
 };
 
 export default async function AdminResetPasswordPage({
   searchParams,
 }: AdminResetPasswordPageProps) {
-  const { email = "", error, sent } = await searchParams;
+  const { error, sent } = await searchParams;
 
   return (
     <main className="admin-login">
@@ -22,8 +22,8 @@ export default async function AdminResetPasswordPage({
         <h1>Set a new password</h1>
         {sent ? (
           <p className="admin-note-success" role="status">
-            If that email belongs to a staff account, we&apos;ve sent a 6-digit
-            code to {ADMIN_SECURITY_INBOX}. Enter it below.
+            We&apos;ve sent a 6-digit code to {ADMIN_SECURITY_INBOX}. Enter it
+            below to set a new password.
           </p>
         ) : null}
         {error ? (
@@ -31,11 +31,6 @@ export default async function AdminResetPasswordPage({
             {error}
           </p>
         ) : null}
-        <input type="hidden" name="email" value={email} />
-        <label>
-          Email
-          <input type="email" value={email} disabled />
-        </label>
         <label>
           Reset code
           <input

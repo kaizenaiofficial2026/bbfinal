@@ -32,8 +32,8 @@ export const SITE_URL = env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const TEST_EMAIL_DOMAIN = "beyondborders.test";
 export const TEST_ADMIN = {
-  email: "ops@beyondborders.lk",
-  password: env.TEST_ADMIN_PASSWORD || "QaTestAdmin!2026",
+  email: "reservations@beyondborders.lk",
+  password: env.TEST_ADMIN_PASSWORD || "Password123",
 };
 
 export function service(): SupabaseClient {
@@ -123,6 +123,12 @@ export async function ensureAdmin(): Promise<{ email: string; password: string }
   if (existing) {
     await sb.auth.admin.updateUserById(existing.id, {
       password: TEST_ADMIN.password,
+      // Clear any held single-active-admin seat (user_metadata.admin_session) so
+      // the test login is never contested into the waiting screen.
+      user_metadata: {
+        ...(existing.user_metadata ?? {}),
+        admin_session: null,
+      },
     });
   } else {
     const { error } = await sb.auth.admin.createUser({

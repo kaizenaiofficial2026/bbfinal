@@ -22,6 +22,24 @@ const RESERVED_DOMAINS = new Set([
   "example.com", "example.org", "example.net", "test.com",
 ]);
 
+/**
+ * Synchronous check (no DNS) for an address whose domain provably cannot receive
+ * real mail: a reserved TLD (`*.test`, `*.example`, `*.invalid`, `*.localhost`)
+ * or a documentation domain. Used on the *outbound send* path so the app never
+ * hands such an address to SMTP — those always NXDOMAIN-bounce back to the
+ * From/Return-Path inbox. The e2e/integration harness seeds `@beyondborders.test`
+ * users directly via the service role (bypassing the form-level deliverability
+ * check), so without this guard a test run against live SMTP floods reservations@.
+ */
+export function isReservedEmailDomain(email: string): boolean {
+  const normalized = email.trim().toLowerCase();
+  const at = normalized.lastIndexOf("@");
+  if (at <= 0 || at === normalized.length - 1) return false;
+  const domain = normalized.slice(at + 1);
+  const tld = domain.slice(domain.lastIndexOf(".") + 1);
+  return RESERVED_TLDS.has(tld) || RESERVED_DOMAINS.has(domain);
+}
+
 export type DeliverabilityResult = { ok: true } | { ok: false; reason: string };
 
 const TYPO = "We couldn't find a mail server for that email's domain — please check for a typo.";

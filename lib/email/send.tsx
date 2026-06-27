@@ -2,6 +2,7 @@ import "server-only";
 
 import { render } from "@react-email/render";
 import { env } from "@/lib/env";
+import { isReservedEmailDomain } from "@/lib/validation/email-deliverability";
 import { getMailTransport } from "./client";
 import {
   AccountVerified,
@@ -37,6 +38,18 @@ async function sendEmail({
     return { skipped: true };
   }
 
+  // Drop non-routable recipients (reserved TLDs like @…​.test) before they reach
+  // SMTP. Zoho accepts the message then permanently bounces it (NXDOMAIN) back to
+  // reservations@, flooding the inbox — this most often comes from e2e/test users
+  // seeded straight into the DB. If nothing routable remains, skip the send.
+  const recipients = (Array.isArray(to) ? to : [to]).filter(
+    (address) => !isReservedEmailDomain(address),
+  );
+  if (recipients.length === 0) {
+    console.info(`[email skipped: non-deliverable recipient] ${subject}`);
+    return { skipped: true };
+  }
+
   const [html, text] = await Promise.all([
     render(react),
     render(react, { plainText: true }),
@@ -44,7 +57,7 @@ async function sendEmail({
 
   await transport.sendMail({
     from: env.emailFrom,
-    to,
+    to: recipients,
     subject,
     html,
     text,

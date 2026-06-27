@@ -5,14 +5,17 @@ import { revalidatePath } from "next/cache";
 import { getAdminUser, requireAdmin } from "@/lib/admin/auth";
 import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
 import {
-  acquireAdminLoginLock,
-  releaseAdminLoginLock,
-} from "@/lib/admin/login-lock";
+  attemptAdminLogin,
+  clearAdminSessionId,
+  getAdminSessionId,
+  newAdminSessionId,
+  releaseAdminSession,
+  setAdminSessionId,
+} from "@/lib/admin/session";
 import { sendAccountVerifiedEmail } from "@/lib/email/send";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
-  bookingStatusUpdateSchema,
   changePasswordSchema,
   destinationAdminSchema,
   enquiryStatusUpdateSchema,
@@ -25,10 +28,7 @@ import { revalidatePackages } from "@/lib/data/packages";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { getRequestIpHash, scopedRateKey } from "@/lib/security/request";
 import { toRetryMinutes } from "@/lib/security/retry-after";
-import {
-  requestResetSchema,
-  resetPasswordSchema,
-} from "@/lib/validation/account";
+import { resetPasswordSchema } from "@/lib/validation/account";
 import {
   createAndSendResetCode,
   verifyAndReset,
@@ -57,8 +57,19 @@ function adminResetFailureMessage(reason: "invalid" | "expired" | "too_many" | "
 }
 
 async function sendAdminPasswordCode(email: string) {
-  const resetUrl = `${env.siteUrl}/admin/reset-password?email=${encodeURIComponent(email)}`;
+  const resetUrl = `${env.siteUrl}/admin/reset-password`;
   await createAndSendResetCode({ email, audience: "admin", resetUrl });
+}
+
+/**
+ * The single admin account email (the login identity). Forgot/reset never ask
+ * for an email — there is only one admin — so they operate on this address. The
+ * verification code is always *delivered* to ADMIN_SECURITY_INBOX
+ * (reservations@beyondborders.lk) regardless of this value; that recipient
+ * override lives in lib/auth/password-reset.ts for the "admin" audience.
+ */
+function adminAccountEmail() {
+  return env.adminAllowedEmails[0] ?? ADMIN_SECURITY_INBOX;
 }
 
 function formString(formData: FormData, key: string) {
@@ -126,13 +137,18 @@ export async function signInAction(formData: FormData) {
     );
   }
 
-  const lockAcquired = await acquireAdminLoginLock(user.id, user.email ?? email);
-  if (!lockAcquired) {
-    await supabase.auth.signOut();
-    redirect("/admin/login?locked=1");
+  // Give this browser a fresh session id, then try to take the single admin
+  // seat. If another admin is already active, this returns a pending request
+  // and we send them to a waiting screen until that admin allows or denies them.
+  const sid = newAdminSessionId();
+  await setAdminSessionId(sid);
+  const attempt = await attemptAdminLogin(user.id, sid, user.email ?? email);
+
+  if (attempt.active) {
+    redirect("/admin");
   }
 
-  redirect("/admin");
+  redirect(`/admin/login/waiting?req=${encodeURIComponent(attempt.requestId)}`);
 }
 
 export async function signOutAction() {
@@ -140,26 +156,50 @@ export async function signOutAction() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) {
-    await releaseAdminLoginLock(user.id);
+  const sid = await getAdminSessionId();
+  if (user && sid) {
+    await releaseAdminSession(user.id, sid);
   }
-  await supabase.auth.signOut();
+  await clearAdminSessionId();
+  // scope: "local" — both admins share one Supabase account, so a global sign
+  // out would revoke the OTHER active/waiting session too. Only clear this one.
+  await supabase.auth.signOut({ scope: "local" });
   redirect("/admin/login");
 }
 
-export async function requestAdminResetAction(formData: FormData) {
-  const parsed = requestResetSchema.safeParse({
-    email: formString(formData, "email"),
-  });
-  if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "Please check the form.";
-    redirect(`/admin/forgot-password?error=${encodeURIComponent(message)}`);
+/**
+ * Sign out a session that was superseded (another admin was allowed in) or that
+ * voluntarily handed over the seat. Returns instead of redirecting so the caller
+ * (AdminPresence) can do a hard navigation to the login page — that guarantees
+ * the "?kicked=1" notice renders with fresh search params. releaseAdminSession
+ * only clears the seat if this session still holds it, so it never disturbs the
+ * new active admin.
+ */
+export async function adminKickedSignOutAction() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const sid = await getAdminSessionId();
+  if (user && sid) {
+    await releaseAdminSession(user.id, sid);
   }
+  await clearAdminSessionId();
+  // scope: "local" so handing over (or being kicked) only signs out THIS
+  // browser — the admin who was allowed in shares the same account and must
+  // keep their session.
+  await supabase.auth.signOut({ scope: "local" });
+}
+
+export async function requestAdminResetAction(_formData: FormData) {
+  // Only one admin email exists, so we never prompt for it — the code is sent
+  // (delivered to reservations@beyondborders.lk) for the admin account email.
+  const email = adminAccountEmail();
 
   const ipHash = await getRequestIpHash();
   const rate = await checkAndRecordRateLimit(
     "admin-password-reset-request",
-    scopedRateKey(ipHash, parsed.data.email),
+    scopedRateKey(ipHash, email),
     { max: 5, windowMinutes: 30 },
   );
   if (!rate.allowed) {
@@ -168,19 +208,18 @@ export async function requestAdminResetAction(formData: FormData) {
     );
   }
 
-  const email = parsed.data.email;
   await sendAdminPasswordCode(email);
 
-  redirect(`/admin/reset-password?email=${encodeURIComponent(email)}&sent=1`);
+  redirect("/admin/reset-password?sent=1");
 }
 
 export async function resetAdminPasswordAction(formData: FormData) {
-  const email = formString(formData, "email");
+  // The reset only ever applies to the single admin account; any submitted
+  // email is ignored.
+  const email = adminAccountEmail();
 
   const back = (message: string): never =>
-    redirect(
-      `/admin/reset-password?email=${encodeURIComponent(email)}&error=${encodeURIComponent(message)}`,
-    );
+    redirect(`/admin/reset-password?error=${encodeURIComponent(message)}`);
 
   const parsed = resetPasswordSchema.safeParse({
     email,
@@ -402,7 +441,13 @@ export async function deleteDestinationAction(formData: FormData) {
   redirect("/admin/destinations");
 }
 
-export async function updateEnquiryStatusAction(formData: FormData) {
+/**
+ * Update an enquiry's status. Returns a result object (instead of throwing) so
+ * the client status form can show a success/error toast and refresh the page.
+ */
+export async function updateEnquiryStatusAction(
+  formData: FormData,
+): Promise<{ ok: boolean; note: string }> {
   await requireAdmin();
   const parsed = enquiryStatusUpdateSchema.parse({
     id: formString(formData, "id"),
@@ -415,30 +460,18 @@ export async function updateEnquiryStatusAction(formData: FormData) {
     .eq("id", parsed.id);
 
   if (error) {
-    throw new Error(error.message);
+    return { ok: false, note: error.message };
   }
 
   revalidatePath("/admin/enquiries");
+  revalidatePath(`/admin/enquiries/${parsed.id}`);
+
+  return { ok: true, note: `Status updated to “${parsed.status}”.` };
 }
 
-export async function updateBookingStatusAction(formData: FormData) {
-  await requireAdmin();
-  const parsed = bookingStatusUpdateSchema.parse({
-    id: formString(formData, "id"),
-    status: formString(formData, "status"),
-  });
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase
-    .from("bookings")
-    .update({ status: parsed.status })
-    .eq("id", parsed.id);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  revalidatePath("/admin/bookings");
-}
+// Booking status is no longer editable by hand — it is derived purely from
+// payment (see lib/payments/reconcile.ts, which sets booking.status = 'paid' on
+// a confirmed capture). The manual updateBookingStatusAction was removed.
 
 export async function verifyCustomerAction(formData: FormData) {
   await requireAdmin();

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { listBookings } from "@/lib/data/bookings";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
-import { formatDate } from "@/lib/admin/format";
+import { derivedBookingStatus, formatDate } from "@/lib/admin/format";
 
 export default async function AdminBookingsPage() {
   await requireAdmin();
@@ -32,7 +32,7 @@ export default async function AdminBookingsPage() {
                 </small>
               </span>
               <span>{booking.traveller_name}</span>
-              <StatusBadge status={booking.status} />
+              <StatusBadge status={derivedBookingStatus(booking.status)} />
             </Link>
           ))}
         </div>

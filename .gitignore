@@ -14,3 +14,6 @@ next-env.d.ts
 /playwright-report/
 /coverage/
 /tests/.auth/
+
+# Playwright MCP snapshots/screenshots
+.playwright-mcp/

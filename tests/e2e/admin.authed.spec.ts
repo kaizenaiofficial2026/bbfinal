@@ -20,13 +20,13 @@ test.describe("admin panel (authenticated)", () => {
     await expect(page.locator("body")).toContainText(/Discover Sri Lanka/i);
   });
 
-  test("settings exposes the staff change-password form", async ({ page }) => {
+  test("settings exposes the staff change-password wizard", async ({ page }) => {
     await page.goto("/admin/settings");
     await expect(page.getByRole("heading", { name: /change password/i })).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /send verification code/i }),
-    ).toBeVisible();
+    // 2-step wizard: step 1 verifies current + new password, then "Continue".
+    await expect(page.getByText(/verify password/i)).toBeVisible();
     await expect(page.locator('input[name="oldPassword"]')).toBeVisible();
+    await expect(page.getByRole("button", { name: /^continue$/i })).toBeVisible();
   });
 
   test("verifying an applicant flips them to approved in the database", async ({

@@ -6,21 +6,24 @@ import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 type LoginPageProps = {
   searchParams: Promise<{
     error?: string;
-    locked?: string;
+    kicked?: string;
     reset?: string;
   }>;
 };
 
 export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
-  const { error, locked, reset } = await searchParams;
+  const { error, kicked, reset } = await searchParams;
 
   return (
     <main className="admin-login">
-      {locked ? (
+      {kicked ? (
         <aside className="admin-login-popup admin-card" role="alert">
-          <span className="section-kicker">Admin in use</span>
-          <h2>Another admin is logged in</h2>
-          <p>Please ask them to log out before signing in.</p>
+          <span className="section-kicker">Session ended</span>
+          <h2>You were signed out</h2>
+          <p>
+            Another admin signed in and took over the panel. Sign in again to
+            request access.
+          </p>
         </aside>
       ) : null}
       <form className="admin-card admin-login-card" action={signInAction}>

@@ -41,10 +41,8 @@ export const enquiryStatusUpdateSchema = z.object({
   status: z.enum(["new", "contacted", "closed"]),
 });
 
-export const bookingStatusUpdateSchema = z.object({
-  id: z.uuid(),
-  status: z.enum(["new", "confirmed", "awaiting_payment", "paid", "cancelled"]),
-});
+// Booking status is derived from payment and never set by hand, so there is no
+// booking status-update schema (the manual action was removed).
 
 export const settingsSchema = z.object({
   contactEmail: z.email().optional().or(z.literal("")),

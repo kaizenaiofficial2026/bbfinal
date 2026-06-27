@@ -7168,3 +7168,66 @@ body.menu-open .cookie-consent {
   justify-content: center;
   margin-top: 0.4rem;
 }
+
+/* Single-active-admin: incoming-login alert + kicked/handover overlay, and the
+   contesting admin's waiting spinner. */
+.admin-presence-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 18, 14, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.admin-presence-card {
+  display: flex;
+  width: min(100%, 460px);
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: 0 30px 80px -40px rgba(20, 18, 14, 0.6);
+}
+
+.admin-presence-card h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--ink);
+}
+
+.admin-presence-card p {
+  margin: 0;
+  color: var(--body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.admin-presence-card .admin-actions-row {
+  margin-top: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-waiting-spinner {
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 6px 0;
+  border-radius: 50%;
+  border: 3px solid var(--line);
+  border-top-color: var(--gold);
+  animation: adminWaitingSpin 0.8s linear infinite;
+}
+
+@keyframes adminWaitingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

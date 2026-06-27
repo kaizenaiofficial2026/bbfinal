@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { updateBookingStatusAction } from "../../actions";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getBooking } from "@/lib/data/bookings";
 import { listPaymentsForBooking } from "@/lib/data/payments";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
-import { SubmitButton } from "@/app/admin/_components/SubmitButton";
-import { formatCurrency, formatDateTime } from "@/lib/admin/format";
+import {
+  derivedBookingStatus,
+  formatCurrency,
+  formatDateTime,
+} from "@/lib/admin/format";
 
 type BookingPageProps = {
   params: Promise<{ id: string }>;
@@ -31,7 +33,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
           <span className="section-kicker">Booking</span>
           <h1>{booking.reference}</h1>
         </div>
-        <StatusBadge status={booking.status} />
+        <StatusBadge status={derivedBookingStatus(booking.status)} />
       </div>
 
       <section className="admin-card admin-detail">
@@ -49,26 +51,13 @@ export default async function BookingPage({ params }: BookingPageProps) {
         <p><strong>Received</strong><span>{formatDateTime(booking.created_at)}</span></p>
       </section>
 
-      <form
-        className="admin-card admin-inline-form"
-        action={updateBookingStatusAction}
-      >
-        <input type="hidden" name="id" value={booking.id} />
-        <label>
-          Status
-          <select name="status" defaultValue={booking.status}>
-            <option value="new">New</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="awaiting_payment">Awaiting payment</option>
-            <option value="paid">Paid</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </label>
-        <SubmitButton pendingLabel="Updating…">Update status</SubmitButton>
-      </form>
-
       <section className="admin-card admin-stack">
         <h2>Payments</h2>
+        <p className="form-hint">
+          Booking status is set automatically — it shows{" "}
+          <strong>Paid</strong> only once a payment is confirmed, otherwise{" "}
+          <strong>Awaiting payment</strong>. It can&apos;t be changed by hand.
+        </p>
         {payments.length === 0 ? (
           <p className="form-hint">No payments recorded yet.</p>
         ) : (

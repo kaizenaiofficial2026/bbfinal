@@ -1,0 +1,26 @@
+-custom qoute form on website , all forms must be filled before submitting 
+
+-admin panel change pass word form must follow same logic as website change pass word for user but the verification code must only be sent to reservations@beyondborders.lk
+
+-forget password the verification code must only be sent to the reservations@beyondborders.lk on the admin panel 
+
+-in admin panel when u deactivate a user and when the user logs in at the login page , he is not allowed , that is very good but when in the admin panel tries to reactivate the deactivated user who wasnt allwed to login , the admin is kicked to the login page 
+
+-if more than one admin tries to login , put a display popup card on admin login itself saying another admin is logged in , pls ask them to log out 
+
+
+-if a person is rate limited if they try to spam , the popup message say should say u have been rate limited and wait for this much mins
+
+
+-on admin panel the enquiries , status must be updated well when the user makes the change
+
+-status shouldnt be updatable at all in bookings , if a customer makes a confirmed payment only it should show paid , if not awaiting payment
+
+
+
+-when i add a new package the image didnt show on the website , on the website the package showed tho but when i try to open the package , the page is showing an error
+
+- custom inquiry , when two ppl send at the same time , form not working 
+- ⁠we need to try load testing for 100s of simaltanious users
+
+When I try to add a destination wid a image , this issue showing up (screenshot)

@@ -10,7 +10,7 @@ import {
   canUseSupabaseService,
   createSupabaseServiceClient,
 } from "@/lib/supabase/service";
-import { refreshAdminLoginLock } from "@/lib/admin/login-lock";
+import { getAdminSessionId, heartbeatAdminSession } from "@/lib/admin/session";
 
 /**
  * Ensure an allowlisted staff member has a `profiles` row. The app-layer
@@ -78,7 +78,14 @@ export async function requireAdmin() {
     redirect("/admin/login");
   }
 
-  await refreshAdminLoginLock(user.id, user.email ?? "");
+  // Enforce a single active admin session: heartbeat this browser's session and,
+  // if a different session now holds the seat (another admin was allowed in),
+  // bounce this one out. Fails open (heartbeat returns true) if unavailable.
+  const sid = await getAdminSessionId();
+  const isHolder = await heartbeatAdminSession(user.id, sid, user.email ?? "");
+  if (!isHolder) {
+    redirect("/admin/login?kicked=1");
+  }
 
   return user;
 }

@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { updateEnquiryStatusAction } from "../../actions";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getEnquiry } from "@/lib/data/enquiries";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
-import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 import { formatDateTime } from "@/lib/admin/format";
+import { EnquiryStatusForm } from "./EnquiryStatusForm";
 
 type EnquiryPageProps = {
   params: Promise<{ id: string }>;
@@ -42,21 +41,7 @@ export default async function EnquiryPage({ params }: EnquiryPageProps) {
         <p><strong>Received</strong><span>{formatDateTime(enquiry.created_at)}</span></p>
       </section>
 
-      <form
-        className="admin-card admin-inline-form"
-        action={updateEnquiryStatusAction}
-      >
-        <input type="hidden" name="id" value={enquiry.id} />
-        <label>
-          Status
-          <select name="status" defaultValue={enquiry.status}>
-            <option value="new">New</option>
-            <option value="contacted">Contacted</option>
-            <option value="closed">Closed</option>
-          </select>
-        </label>
-        <SubmitButton pendingLabel="Updating…">Update status</SubmitButton>
-      </form>
+      <EnquiryStatusForm id={enquiry.id} status={enquiry.status} />
     </div>
   );
 }

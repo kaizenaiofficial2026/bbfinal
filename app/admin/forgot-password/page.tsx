@@ -21,18 +21,14 @@ export default async function AdminForgotPasswordPage({
         <span className="section-kicker">Staff access</span>
         <h1>Reset password</h1>
         <p className="form-hint">
-          Enter your staff email and we&apos;ll send the 6-digit reset code to{" "}
-          {ADMIN_SECURITY_INBOX}.
+          We&apos;ll send a 6-digit reset code to {ADMIN_SECURITY_INBOX}. Click
+          below, then enter the code on the next screen.
         </p>
         {error ? (
           <p className="admin-alert" role="alert">
             {error}
           </p>
         ) : null}
-        <label>
-          Email
-          <input name="email" type="email" autoComplete="email" required />
-        </label>
         <SubmitButton pendingLabel="Sending…">Send reset code</SubmitButton>
         <p className="admin-muted admin-login-back-row">
           <Link className="admin-back" href="/admin/login">

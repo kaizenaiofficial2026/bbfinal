@@ -48,6 +48,17 @@ const STATUS_TONES: Record<string, StatusTone> = {
   inactive: "danger",
 };
 
+/**
+ * Booking status is no longer set by hand — it is derived purely from payment.
+ * A booking is "Paid" only once a real payment captures (reconcile sets
+ * booking.status = 'paid'); every other state shows as "Awaiting payment".
+ */
+export function derivedBookingStatus(
+  status: string | null | undefined,
+): "paid" | "awaiting_payment" {
+  return status === "paid" ? "paid" : "awaiting_payment";
+}
+
 export function statusLabel(status: string): string {
   return (
     STATUS_LABELS[status] ??
