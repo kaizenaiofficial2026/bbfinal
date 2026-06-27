@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { imageSrc } from "@/lib/images";
 import { useEffect, useRef, useState } from "react";
 import type { Destination } from "@/lib/data/types";
 
@@ -128,7 +129,7 @@ export default function Destinations({ destinations }: DestinationsProps) {
               {panels.map((destination, index) => (
                 <Link className="dest-panel" href={`/${destination.slug}`} key={destination.slug}>
                   <Image
-                    src={destination.image}
+                    src={imageSrc(destination.image)}
                     alt={destination.title}
                     fill
                     sizes="(max-width: 720px) 100vw, 50vw"

@@ -1,13 +1,16 @@
 "use server";
 
 import { getTranslations } from "next-intl/server";
-import {
-  countRecentCustomInquiriesByIp,
-  createCustomInquiry,
-} from "@/lib/data/custom-inquiries";
+import { createCustomInquiry } from "@/lib/data/custom-inquiries";
+import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { sendCustomInquiryEmails } from "@/lib/email/send";
 import { sendInquirySms } from "@/lib/sms/send";
-import { generateInquiryReference, getRequestIpHash } from "@/lib/security/request";
+import {
+  generateInquiryReference,
+  getRequestIpHash,
+  scopedRateKey,
+} from "@/lib/security/request";
+import { toRetryMinutes } from "@/lib/security/retry-after";
 import { canUseSupabaseService } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/types";
 import {
@@ -117,10 +120,20 @@ export async function submitCustomInquiry(
   });
 
   if (!parsed.success) {
+    // Surface EVERY invalid field (not just the first) so the form can mark each
+    // one and the visitor sees exactly what to fix in one pass.
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path[0];
+      if (typeof key === "string" && !fieldErrors[key]) {
+        fieldErrors[key] = issue.message;
+      }
+    }
     return {
       ok: false,
       note: parsed.error.issues[0]?.message ?? t("checkForm"),
       values,
+      fieldErrors,
     };
   }
 
@@ -134,7 +147,12 @@ export async function submitCustomInquiry(
   const email = data.email.trim().toLowerCase();
   const deliverable = await checkEmailDeliverable(email);
   if (!deliverable.ok) {
-    return { ok: false, note: deliverable.reason, values };
+    return {
+      ok: false,
+      note: deliverable.reason,
+      values,
+      fieldErrors: { email: deliverable.reason },
+    };
   }
 
   if (!canUseSupabaseService()) {
@@ -142,13 +160,23 @@ export async function submitCustomInquiry(
   }
 
   try {
+    // Key the limit by (IP, email) — NOT IP alone — so two different people
+    // behind the same network (shared NAT/office Wi-Fi) each get their own quota
+    // and concurrent submissions don't block one another. Also returns an exact
+    // retry window so the visitor is told how long to wait.
     const ipHash = await getRequestIpHash();
-    const recent = await countRecentCustomInquiriesByIp(ipHash);
+    const rate = await checkAndRecordRateLimit(
+      "custom-inquiry",
+      scopedRateKey(ipHash, email),
+      { max: 8, windowMinutes: 60 },
+    );
 
-    if (recent >= 8) {
+    if (!rate.allowed) {
       return {
         ok: false,
-        note: t("tooManyInquiries"),
+        note: t("rateLimited", {
+          minutes: toRetryMinutes(rate.retryAfterSeconds),
+        }),
         values,
       };
     }

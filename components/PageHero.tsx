@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
+import { imageSrc } from "@/lib/images";
 
 type PageHeroProps = {
   title: string;
@@ -25,7 +26,7 @@ export default function PageHero({
   return (
     <section className="page-hero">
       <Image
-        src={image}
+        src={imageSrc(image)}
         alt=""
         fill
         priority

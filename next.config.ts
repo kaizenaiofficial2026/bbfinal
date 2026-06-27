@@ -21,6 +21,17 @@ const mpgsOrigin = safeOrigin(
   "https://test-seylan.mtf.gateway.mastercard.com",
 );
 const supabaseOrigin = safeOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL);
+// Hostname for next/image. Admin-uploaded package/destination media is served
+// from Supabase Storage (https://<project>.supabase.co/storage/v1/object/public/…).
+// Without whitelisting it, the optimizer throws "hostname not configured" and any
+// page rendering an uploaded image crashes (e.g. /booking/[slug]).
+const supabaseHost = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname;
+  } catch {
+    return "";
+  }
+})();
 
 // Vercel Web Analytics + Speed Insights. On a Vercel deployment the script and
 // beacons are served same-origin under /_vercel/* (covered by 'self'); these
@@ -74,6 +85,16 @@ const nextConfig: NextConfig = {
     // falls back automatically.
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 31536000,
+    // Allow optimizing admin-uploaded media from Supabase Storage (public bucket).
+    remotePatterns: supabaseHost
+      ? [
+          {
+            protocol: "https",
+            hostname: supabaseHost,
+            pathname: "/storage/v1/object/public/**",
+          },
+        ]
+      : [],
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

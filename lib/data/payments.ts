@@ -64,5 +64,6 @@ export async function listPaymentsForBooking(bookingId: string) {
     dbError(error);
   }
 
-  return data;
+  // Never return null — the admin booking detail does `payments.length`.
+  return data ?? [];
 }

@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import CTASection from "@/components/CTASection";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
+import { imageSrc } from "@/lib/images";
 import {
   getDestinationBySlug,
   getDestinationSlugs,
@@ -105,7 +106,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
 
               <div className="destination-detail-image">
                 <Image
-                  src={destination.image}
+                  src={imageSrc(destination.image)}
                   alt={pageTitle}
                   fill
                   sizes="(max-width: 980px) 100vw, 62vw"

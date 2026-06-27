@@ -174,9 +174,16 @@ export default function CustomInquiryForm() {
     });
   }, []);
 
+  // Merge server-returned field errors (validation that only runs server-side,
+  // e.g. email deliverability or cross-field date refines) with local client
+  // errors so every invalid field is marked, not just a single generic note.
+  // Local errors win, so editing a field still clears it.
   const errorsApi = useMemo(
-    () => ({ errors, clearError }),
-    [errors, clearError],
+    () => ({
+      errors: { ...(state.fieldErrors ?? {}), ...errors },
+      clearError,
+    }),
+    [state.fieldErrors, errors, clearError],
   );
 
   const steps = [

@@ -25,7 +25,7 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
             <input
               name="slug"
               defaultValue={tourPackage?.slug}
-              pattern="[a-z0-9-]+"
+              pattern="[a-z0-9\-]+"
               required
             />
             <small className="form-hint">Lowercase, hyphen-separated.</small>

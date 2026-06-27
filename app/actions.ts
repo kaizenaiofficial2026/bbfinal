@@ -2,8 +2,9 @@
 
 import { getLocale, getTranslations } from "next-intl/server";
 import { localeRedirect } from "@/lib/i18n/redirect";
-import { createBooking, countRecentBookingsByIp } from "@/lib/data/bookings";
-import { createEnquiry, countRecentEnquiriesByIp } from "@/lib/data/enquiries";
+import { createBooking } from "@/lib/data/bookings";
+import { createEnquiry } from "@/lib/data/enquiries";
+import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { requireVerifiedCustomer } from "@/lib/customer/auth";
 import {
   canUseSupabaseService,
@@ -18,6 +19,7 @@ import {
   createPayTokenExpiry,
 } from "@/lib/payments/tokens";
 import { generateBookingReference, getRequestIpHash } from "@/lib/security/request";
+import { toRetryMinutes } from "@/lib/security/retry-after";
 import { bookingSchema } from "@/lib/validation/booking";
 import { enquirySchema } from "@/lib/validation/enquiry";
 import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
@@ -95,12 +97,17 @@ export async function submitEnquiry(
 
   try {
     const ipHash = await getRequestIpHash();
-    const recent = await countRecentEnquiriesByIp(ipHash);
+    const rate = await checkAndRecordRateLimit("enquiry", ipHash, {
+      max: 5,
+      windowMinutes: 60,
+    });
 
-    if (recent >= 5) {
+    if (!rate.allowed) {
       return {
         ok: false,
-        note: t("tooManyEnquiries"),
+        note: t("rateLimited", {
+          minutes: toRetryMinutes(rate.retryAfterSeconds),
+        }),
         values,
       };
     }
@@ -191,8 +198,16 @@ export async function submitBooking(
   // Throttle bookings per IP — defense in depth on top of the verified-customer
   // gate, so a single approved account can't spawn unlimited booking rows.
   const ipHash = await getRequestIpHash();
-  if ((await countRecentBookingsByIp(ipHash)) >= 10) {
-    return { ok: false, note: t("waitMoment"), values };
+  const rate = await checkAndRecordRateLimit("booking", ipHash, {
+    max: 10,
+    windowMinutes: 60,
+  });
+  if (!rate.allowed) {
+    return {
+      ok: false,
+      note: t("rateLimited", { minutes: toRetryMinutes(rate.retryAfterSeconds) }),
+      values,
+    };
   }
 
   const service = createSupabaseServiceClient();

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { imageSrc } from "@/lib/images";
 import type { TourPackage } from "@/lib/data/types";
 import { formatPackagePrice } from "@/lib/format/price";
 
@@ -48,7 +49,7 @@ export default function Tours({ packages }: ToursProps) {
                 >
                   <Image
                     className="luxury-package-image"
-                    src={tour.image}
+                    src={imageSrc(tour.image)}
                     alt={tour.title}
                     fill
                     sizes="(max-width: 720px) 100vw, (max-width: 1280px) 50vw, 50vw"

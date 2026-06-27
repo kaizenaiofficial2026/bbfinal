@@ -20,7 +20,7 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
             <input
               name="slug"
               defaultValue={destination?.slug}
-              pattern="[a-z0-9-]+"
+              pattern="[a-z0-9\-]+"
               required
             />
             <small className="form-hint">Lowercase, hyphen-separated.</small>

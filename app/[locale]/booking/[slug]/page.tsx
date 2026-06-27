@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import BookingRequestForm from "@/components/BookingRequestForm";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
+import { imageSrc } from "@/lib/images";
 import {
   getPackageBySlug,
   getPackageSlugs,
@@ -136,7 +137,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
             <article className="booking-main" data-reveal>
               <div className="booking-package-panel">
                 <Image
-                  src={tourPackage.image}
+                  src={imageSrc(tourPackage.image)}
                   alt={tourPackage.title}
                   fill
                   sizes="(max-width: 980px) 100vw, 58vw"

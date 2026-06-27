@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
+import { imageSrc } from "@/lib/images";
 import { useState } from "react";
 import type { Destination } from "@/lib/data/types";
 
@@ -31,7 +32,7 @@ export default function DestinationGrid({ destinations }: DestinationGridProps) 
             onMouseEnter={() => setActiveIndex(index)}
           >
             <Image
-              src={destination.image}
+              src={imageSrc(destination.image)}
               alt=""
               fill
               sizes="(max-width: 720px) 100vw, (max-width: 1180px) 50vw, 46vw"
