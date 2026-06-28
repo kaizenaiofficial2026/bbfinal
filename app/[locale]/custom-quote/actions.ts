@@ -14,10 +14,13 @@ import { toRetryMinutes } from "@/lib/security/retry-after";
 import { canUseSupabaseService } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/types";
 import {
+  airStarted,
   customInquirySchema,
+  hotelStarted,
+  transportStarted,
   type CustomInquiryInput,
 } from "@/lib/validation/custom-inquiry";
-import { serializeRoute } from "@/lib/validation/air-segments";
+import { parseSegments, serializeRoute } from "@/lib/validation/air-segments";
 import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import type { InquiryState } from "./inquiry-state";
 
@@ -32,18 +35,19 @@ type Section = { title: string; fields: [string, string | number][] };
 function airTicketFields(
   data: CustomInquiryInput,
 ): [string, string | number][] {
+  const segs = parseSegments(data.airSegments);
   const fields: [string, string | number][] = [
     ["Airline", data.airline],
     ["Trip", data.airTripType],
-    ["Route", serializeRoute(data.airTripType, data.airSegments)],
+    ["Route", serializeRoute(data.airTripType, segs)],
   ];
 
   if (data.airTripType === "Multi-city") {
-    data.airSegments.forEach((s, i) => {
+    segs.forEach((s, i) => {
       fields.push([`Flight ${i + 1}`, `${s.from} → ${s.to} · ${s.date}`]);
     });
   } else {
-    const s = data.airSegments[0];
+    const s = segs[0];
     fields.push(["Departure date", s?.date ?? "—"]);
     if (data.airTripType === "Round trip") {
       fields.push(["Return date", s?.returnDate || "—"]);
@@ -59,12 +63,16 @@ function airTicketFields(
   return fields;
 }
 
-// One submission now covers all four services. `details` is stored grouped by
-// section (jsonb), and the email `lines` flatten the same sections with a bold
+// A submission covers any 1–3 of Hotel / Air ticket / Transport. Only the
+// sections the customer actually filled are stored/emailed; `details` is grouped
+// by section (jsonb) and the email `lines` flatten the same sections with a bold
 // heading row before each (heading lines carry an empty value).
 function buildSections(data: CustomInquiryInput): Section[] {
-  return [
-    {
+  const v = data as unknown as Record<string, string>;
+  const sections: Section[] = [];
+
+  if (hotelStarted(v)) {
+    sections.push({
       title: "Hotel",
       fields: [
         ["Hotel", data.hotel],
@@ -78,12 +86,15 @@ function buildSections(data: CustomInquiryInput): Section[] {
         ["Children", data.hotelChildren],
         ["Extra Bed", data.hotelExtraBed],
       ],
-    },
-    {
-      title: "Air ticket",
-      fields: airTicketFields(data),
-    },
-    {
+    });
+  }
+
+  if (airStarted(v)) {
+    sections.push({ title: "Air ticket", fields: airTicketFields(data) });
+  }
+
+  if (transportStarted(v)) {
+    sections.push({
       title: "Transport",
       fields: [
         ["Car Type", data.carType],
@@ -93,8 +104,10 @@ function buildSections(data: CustomInquiryInput): Section[] {
         ["Passengers", data.transportPax],
         ["Extra Baggage", data.transportExtraBaggage],
       ],
-    },
-  ];
+    });
+  }
+
+  return sections;
 }
 
 function buildDetails(data: CustomInquiryInput) {
@@ -146,10 +159,20 @@ export async function submitCustomInquiry(
     // one and the visitor sees exactly what to fix in one pass.
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues) {
-      const key = issue.path[0];
-      if (typeof key === "string" && !fieldErrors[key]) {
-        fieldErrors[key] = issue.message;
+      const [p0, p1, p2] = issue.path;
+      let key: string | undefined;
+      if (p0 === "airSegments") {
+        // Re-key air-segment issues to the trip builder's scheme
+        // (air-from-<i> / air-to-<i> / air-date-<i> / air-return / air-trip).
+        if (typeof p1 === "number" && typeof p2 === "string") {
+          key = p2 === "returnDate" ? "air-return" : `air-${p2}-${p1}`;
+        } else {
+          key = "air-trip";
+        }
+      } else if (typeof p0 === "string") {
+        key = p0;
       }
+      if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
     }
     return {
       ok: false,

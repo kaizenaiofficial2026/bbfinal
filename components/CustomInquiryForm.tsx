@@ -25,7 +25,13 @@ import {
   validateAirSegments,
   type AirMessages,
 } from "@/lib/validation/air-segments";
+import {
+  airStarted,
+  hotelStarted,
+  transportStarted,
+} from "@/lib/validation/custom-inquiry";
 import AirTicketBuilder from "./AirTicketBuilder";
+import CustomInquiryContactFields from "./CustomInquiryContactFields";
 import BaseSelect from "./Select";
 import Spinner from "./Spinner";
 import { useSubmitFeedback } from "./useSubmitFeedback";
@@ -198,22 +204,33 @@ export default function CustomInquiryForm() {
     [hotel],
   );
 
-  // Validate one step's fields (plus the date rules that apply to it). The last
-  // step also validates the guest details that sit on it.
-  const validateStep = (
+  const valuesFromForm = (fd: FormData): Record<string, string> => {
+    const v: Record<string, string> = {};
+    for (const [key, value] of fd.entries()) {
+      if (typeof value === "string") v[key] = value;
+    }
+    return v;
+  };
+
+  const sectionStarted = [hotelStarted, airStarted, transportStarted];
+
+  // Validate ONE service section — but only if the user has started it. A
+  // skipped (empty) section returns no errors; a started one must be complete.
+  const validateSection = (
     s: number,
     fd: FormData,
   ): Record<string, string> => {
-    const get = (name: string) => String(fd.get(name) ?? "").trim();
+    const v = valuesFromForm(fd);
     const next: Record<string, string> = {};
-    const fields =
-      s === LAST_STEP ? [...STEP_FIELDS[s], ...GUEST_REQUIRED] : STEP_FIELDS[s];
-    for (const name of fields) {
-      if (!get(name)) next[name] = t("errRequired");
-    }
+    if (!sectionStarted[s](v)) return next;
 
+    const get = (name: string) => (v[name] ?? "").trim();
     const today = todayIso();
+
     if (s === 0) {
+      for (const name of STEP_FIELDS[0]) {
+        if (!get(name)) next[name] = t("errRequired");
+      }
       const arrival = get("hotelArrival");
       const departure = get("hotelDeparture");
       if (arrival && isPastDate(arrival, today))
@@ -221,8 +238,9 @@ export default function CustomInquiryForm() {
       if (arrival && departure && !isValidRange(arrival, departure))
         next.hotelDeparture = t("errDepartureBeforeArrival");
     } else if (s === 1) {
-      // The trip builder posts airTripType + an airSegments JSON array; validate
-      // them with the shared rules and surface per-field errors (air-from-0, …).
+      for (const name of STEP_FIELDS[1]) {
+        if (!get(name)) next[name] = t("errRequired");
+      }
       const airMsg: AirMessages = {
         tripRequired: t("errRequired"),
         multiMin: t("errMultiMin"),
@@ -243,8 +261,22 @@ export default function CustomInquiryForm() {
       for (const [key, message] of Object.entries(airErrors)) {
         next[`air-${key}`] = message;
       }
+    } else if (s === 2) {
+      for (const name of STEP_FIELDS[2]) {
+        if (!get(name)) next[name] = t("errRequired");
+      }
     }
 
+    return next;
+  };
+
+  // Guest/contact details are always required, whichever services are chosen.
+  const validateGuest = (fd: FormData): Record<string, string> => {
+    const get = (name: string) => String(fd.get(name) ?? "").trim();
+    const next: Record<string, string> = {};
+    for (const name of GUEST_REQUIRED) {
+      if (!get(name)) next[name] = t("errRequired");
+    }
     return next;
   };
 
@@ -256,10 +288,12 @@ export default function CustomInquiryForm() {
     });
   };
 
+  // Next just advances; if the current section was started it must be complete
+  // first (an empty/skipped section advances freely).
   const goNext = (event: React.MouseEvent<HTMLButtonElement>) => {
     const form = event.currentTarget.form;
     if (!form) return;
-    const found = validateStep(step, new FormData(form));
+    const found = validateSection(step, new FormData(form));
     if (Object.keys(found).length > 0) {
       setErrors(found);
       scrollToFirstError(form);
@@ -279,17 +313,30 @@ export default function CustomInquiryForm() {
     });
   };
 
-  // Final submit: re-validate every step. If anything is wrong, cancel the
-  // submit, jump to the first incomplete step and surface the errors.
+  // Submit: every started section must be complete, the guest details must be
+  // filled, and at least one service must be present. Otherwise cancel the
+  // submit, jump to the first incomplete section and surface the errors.
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     const form = event.currentTarget;
     const fd = new FormData(form);
-    const perStep = STEP_FIELDS.map((_, s) => validateStep(s, fd));
-    const all = Object.assign({}, ...perStep);
+    const v = valuesFromForm(fd);
+    const perSection = STEP_FIELDS.map((_, s) => validateSection(s, fd));
+    const guestErrors = validateGuest(fd);
+    const completeCount = perSection.filter(
+      (errs, s) => sectionStarted[s](v) && Object.keys(errs).length === 0,
+    ).length;
+
+    const all: Record<string, string> = Object.assign(
+      {},
+      ...perSection,
+      guestErrors,
+    );
+    if (completeCount === 0) all.sections = t("errPickOne");
+
     if (Object.keys(all).length > 0) {
       event.preventDefault();
       setErrors(all);
-      const firstBad = perStep.findIndex((e) => Object.keys(e).length > 0);
+      const firstBad = perSection.findIndex((e) => Object.keys(e).length > 0);
       if (firstBad >= 0 && firstBad !== step) setStep(firstBad);
       scrollToFirstError(form);
     }
@@ -335,7 +382,7 @@ export default function CustomInquiryForm() {
             </ol>
             <p className="inquiry-step-caption">
               {t("stepLabel", { current: step + 1, total: steps.length })} ·{" "}
-              {t("allRequired")}
+              {t("optionalHint")}
             </p>
           </div>
 
@@ -385,33 +432,20 @@ export default function CustomInquiryForm() {
             />
           </div>
 
-          {/* Step 3 — Transport + your details */}
-          <div hidden={step !== 2}>
-            <div className="booking-form-section">
-              <span className="booking-form-label">{t("typeTransport")}</span>
-              <div className="form-grid">
-                <Select name="carType" label={t("carType")} options={CAR_TYPES} placeholder={t("selectPlaceholder")} />
-                <Select name="hireType" label={t("hireType")} options={HIRE_TYPES} placeholder={t("selectPlaceholder")} />
-                <Field name="transportVehicles" label={t("numberOfVehicles")} type="number" min={1} placeholder="1" />
-                <Field name="transportDays" label={t("numberOfDays")} type="number" min={1} placeholder="1" />
-                <Field name="transportPax" label={t("passengers")} type="number" min={1} placeholder="2" />
-                <Select name="transportExtraBaggage" label={t("extraBaggage")} options={YES_NO} placeholder={t("selectPlaceholder")} />
-              </div>
-            </div>
-
-            <div className="booking-form-section">
-              <span className="booking-form-label">{t("yourDetails")}</span>
-              <div className="form-grid">
-                <Field name="firstName" label={t("firstName")} />
-                <Field name="lastName" label={t("lastName")} />
-                <Field name="countryCity" label={t("countryCity")} placeholder={t("countryCityPlaceholder")} />
-                <Field name="passportNumber" label={t("passportNumber")} />
-                <Field name="email" label={t("email")} type="email" />
-                <Field name="mobile" label={t("mobile")} type="tel" placeholder="+91 ..." />
-              </div>
+          {/* Step 3 — Transport */}
+          <div className="booking-form-section" hidden={step !== 2}>
+            <span className="booking-form-label">{t("typeTransport")}</span>
+            <div className="form-grid">
+              <Select name="carType" label={t("carType")} options={CAR_TYPES} placeholder={t("selectPlaceholder")} />
+              <Select name="hireType" label={t("hireType")} options={HIRE_TYPES} placeholder={t("selectPlaceholder")} />
+              <Field name="transportVehicles" label={t("numberOfVehicles")} type="number" min={1} placeholder="1" />
+              <Field name="transportDays" label={t("numberOfDays")} type="number" min={1} placeholder="1" />
+              <Field name="transportPax" label={t("passengers")} type="number" min={1} placeholder="2" />
+              <Select name="transportExtraBaggage" label={t("extraBaggage")} options={YES_NO} placeholder={t("selectPlaceholder")} />
             </div>
           </div>
 
+          {/* Service navigation — Back / Next, above the always-on details. */}
           <div className="inquiry-nav">
             {step > 0 ? (
               <button
@@ -425,22 +459,53 @@ export default function CustomInquiryForm() {
             ) : (
               <span />
             )}
-
             {step < LAST_STEP ? (
-              <button className="btn btn-primary" type="button" onClick={goNext}>
+              <button
+                className="btn btn-line"
+                type="button"
+                onClick={goNext}
+                disabled={pending}
+              >
                 {t("next")}
               </button>
             ) : (
-              <button
-                className="btn btn-primary"
-                type="submit"
-                disabled={pending}
-                aria-busy={pending}
-              >
-                {pending ? <Spinner /> : null}
-                {pending ? t("sending") : t("submitInquiry")}
-              </button>
+              <span />
             )}
+          </div>
+
+          {/* Your details — always required, whichever services are chosen. */}
+          <div className="booking-form-section inquiry-guest">
+            <span className="booking-form-label">{t("yourDetails")}</span>
+            <div className="form-grid">
+              <Field name="firstName" label={t("firstName")} />
+              <Field name="lastName" label={t("lastName")} />
+              <CustomInquiryContactFields
+                defaultCountryCity={state.values?.countryCity}
+                defaultMobile={state.values?.mobile}
+                errors={errorsApi.errors}
+                clearError={clearError}
+              />
+              <Field name="passportNumber" label={t("passportNumber")} />
+              <Field name="email" label={t("email")} type="email" />
+            </div>
+          </div>
+
+          {errorsApi.errors.sections ? (
+            <p className="field-error inquiry-sections-error" role="alert">
+              {errorsApi.errors.sections}
+            </p>
+          ) : null}
+
+          <div className="inquiry-submit">
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={pending}
+              aria-busy={pending}
+            >
+              {pending ? <Spinner /> : null}
+              {pending ? t("sending") : t("submitInquiry")}
+            </button>
           </div>
 
           <p

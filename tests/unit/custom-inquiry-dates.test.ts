@@ -21,8 +21,8 @@ function combined(overrides: Record<string, unknown> = {}) {
     hotelRoomType: "Double",
     hotelMealPlan: "Half Board",
     hotelRooms: 1,
-    hotelArrival: "2026-07-01",
-    hotelDeparture: "2026-07-10",
+    hotelArrival: "2030-07-01",
+    hotelDeparture: "2030-07-10",
     hotelAdults: 2,
     hotelChildren: 0,
     hotelExtraBed: "No",
@@ -30,7 +30,7 @@ function combined(overrides: Record<string, unknown> = {}) {
     airline: "SriLankan",
     airTripType: "Round trip",
     airSegments: JSON.stringify([
-      { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-01", returnDate: "2026-07-10" },
+      { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2030-07-01", returnDate: "2030-07-10" },
     ]),
     airClass: "Economy",
     airAdults: 1,
@@ -55,14 +55,14 @@ describe("combined custom inquiry validation", () => {
   it("accepts a same-day hotel arrival and departure", () => {
     expect(
       customInquirySchema.safeParse(
-        combined({ hotelArrival: "2026-07-05", hotelDeparture: "2026-07-05" }),
+        combined({ hotelArrival: "2030-07-05", hotelDeparture: "2030-07-05" }),
       ).success,
     ).toBe(true);
   });
 
   it("rejects a hotel departure before arrival, flagging hotelDeparture", () => {
     const result = customInquirySchema.safeParse(
-      combined({ hotelArrival: "2026-07-10", hotelDeparture: "2026-07-01" }),
+      combined({ hotelArrival: "2030-07-10", hotelDeparture: "2030-07-01" }),
     );
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -80,7 +80,7 @@ describe("combined custom inquiry validation", () => {
         combined({
           airTripType: "One way",
           airSegments: JSON.stringify([
-            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-01" },
+            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2030-07-01" },
           ]),
         }),
       ).success,
@@ -92,7 +92,7 @@ describe("combined custom inquiry validation", () => {
       combined({
         airTripType: "Round trip",
         airSegments: JSON.stringify([
-          { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-01", returnDate: "" },
+          { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2030-07-01", returnDate: "" },
         ]),
       }),
     );
@@ -110,7 +110,7 @@ describe("combined custom inquiry validation", () => {
         combined({
           airTripType: "Round trip",
           airSegments: JSON.stringify([
-            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-10", returnDate: "2026-07-01" },
+            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2030-07-10", returnDate: "2030-07-01" },
           ]),
         }),
       ).success,
@@ -123,8 +123,8 @@ describe("combined custom inquiry validation", () => {
         combined({
           airTripType: "Multi-city",
           airSegments: JSON.stringify([
-            { from: "London (LHR)", to: "Dubai (DXB)", date: "2026-07-01" },
-            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-05" },
+            { from: "London (LHR)", to: "Dubai (DXB)", date: "2030-07-01" },
+            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2030-07-05" },
           ]),
         }),
       ).success,
@@ -135,7 +135,7 @@ describe("combined custom inquiry validation", () => {
         combined({
           airTripType: "Multi-city",
           airSegments: JSON.stringify([
-            { from: "London (LHR)", to: "Colombo (CMB)", date: "2026-07-01" },
+            { from: "London (LHR)", to: "Colombo (CMB)", date: "2030-07-01" },
           ]),
         }),
       ).success,
@@ -151,12 +151,119 @@ describe("combined custom inquiry validation", () => {
     ).toBe(false);
   });
 
-  it("rejects an inquiry with an unfilled section (e.g. no hotel)", () => {
+  it("rejects a partially-filled section (all-or-nothing)", () => {
+    // A started hotel section missing its name, or a started transport section
+    // missing the car type, must be rejected even though other sections are ok.
     expect(
       customInquirySchema.safeParse(combined({ hotel: "" })).success,
     ).toBe(false);
     expect(
       customInquirySchema.safeParse(combined({ carType: "" })).success,
+    ).toBe(false);
+  });
+
+  // Server-side parity with the client's date / same-place checks (guards a
+  // tampered or JS-disabled POST).
+  it("rejects a past hotel arrival date", () => {
+    expect(
+      customInquirySchema.safeParse(
+        combined({ hotelArrival: "2000-01-01", hotelDeparture: "2000-01-05" }),
+      ).success,
+    ).toBe(false);
+  });
+
+  it("rejects a non-ISO hotel date", () => {
+    expect(
+      customInquirySchema.safeParse(combined({ hotelArrival: "not-a-date" }))
+        .success,
+    ).toBe(false);
+  });
+
+  it("rejects a past flight date", () => {
+    expect(
+      customInquirySchema.safeParse(
+        combined({
+          airTripType: "One way",
+          airSegments: JSON.stringify([
+            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2000-01-01" },
+          ]),
+        }),
+      ).success,
+    ).toBe(false);
+  });
+
+  it("rejects a flight with the same origin and destination", () => {
+    expect(
+      customInquirySchema.safeParse(
+        combined({
+          airTripType: "One way",
+          airSegments: JSON.stringify([
+            { from: "Colombo (CMB)", to: "Colombo (CMB)", date: "2030-07-01" },
+          ]),
+        }),
+      ).success,
+    ).toBe(false);
+  });
+});
+
+// Sections that, when blanked out, are treated as "not chosen".
+const EMPTY_HOTEL = {
+  hotel: "", hotelRoomCategory: "", hotelRoomType: "", hotelMealPlan: "",
+  hotelRooms: "", hotelArrival: "", hotelDeparture: "", hotelAdults: "",
+  hotelChildren: "", hotelExtraBed: "",
+};
+const EMPTY_AIR = {
+  airline: "", airTripType: "One way",
+  airSegments: JSON.stringify([{ from: "", to: "", date: "" }]),
+  airClass: "", airAdults: "", airChildren: "", airExtraBaggage: "",
+};
+const EMPTY_TRANSPORT = {
+  carType: "", hireType: "", transportVehicles: "", transportDays: "",
+  transportPax: "", transportExtraBaggage: "",
+};
+
+describe("optional service sections (pick 1–3)", () => {
+  it("accepts an inquiry with only the hotel section filled", () => {
+    expect(
+      customInquirySchema.safeParse(
+        combined({ ...EMPTY_AIR, ...EMPTY_TRANSPORT }),
+      ).success,
+    ).toBe(true);
+  });
+
+  it("accepts an inquiry with only the air ticket section filled", () => {
+    expect(
+      customInquirySchema.safeParse(
+        combined({ ...EMPTY_HOTEL, ...EMPTY_TRANSPORT }),
+      ).success,
+    ).toBe(true);
+  });
+
+  it("accepts an inquiry with only the transport section filled", () => {
+    expect(
+      customInquirySchema.safeParse(
+        combined({ ...EMPTY_HOTEL, ...EMPTY_AIR }),
+      ).success,
+    ).toBe(true);
+  });
+
+  it("rejects an inquiry with no service section at all", () => {
+    const result = customInquirySchema.safeParse(
+      combined({ ...EMPTY_HOTEL, ...EMPTY_AIR, ...EMPTY_TRANSPORT }),
+    );
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((i) => i.path.includes("sections")),
+      ).toBe(true);
+    }
+  });
+
+  it("still requires guest details even when a service is filled", () => {
+    expect(
+      customInquirySchema.safeParse(
+        combined({ ...EMPTY_AIR, ...EMPTY_TRANSPORT, email: "" }),
+      ).success,
     ).toBe(false);
   });
 });

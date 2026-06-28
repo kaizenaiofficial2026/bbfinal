@@ -1,31 +1,34 @@
 import { test, expect } from "@playwright/test";
 
-// The custom inquiry is a 3-step wizard (Hotel → Air ticket → Transport). Every
-// step is mandatory; you advance with the "Submit" step button and only the
-// final step shows "Submit inquiry". Runs in the default chromium project
-// (public, no auth).
+// The custom inquiry collects any 1–3 of Hotel / Air ticket / Transport. Each
+// service is optional (at least one required); "Next" moves between sections and
+// "Submit inquiry" can finish from any step. Contact details are always
+// required. Runs in the default chromium project (public, no auth).
 test.describe("custom inquiry wizard", () => {
-  test("opens on step 1 with the Submit step button and no final submit", async ({
+  test("opens on step 1 of 3 with Next and Submit available", async ({
     page,
   }) => {
     await page.goto("/custom-quote");
 
     await expect(page.getByText(/Step 1 of 3/)).toBeVisible();
-    await expect(page.getByRole("button", { name: /^submit$/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^next$/i })).toBeVisible();
     await expect(
       page.getByRole("button", { name: /submit inquiry/i }),
-    ).toHaveCount(0);
+    ).toBeVisible();
   });
 
-  test("blocks advancing past an empty step", async ({ page }) => {
+  test("Next skips an empty optional section", async ({ page }) => {
     await page.goto("/custom-quote");
 
-    await page.getByRole("button", { name: /^submit$/i }).click();
+    // Hotel left empty → Next advances to the next section without an error.
+    await page.getByRole("button", { name: /^next$/i }).click();
+    await expect(page.getByText(/Step 2 of 3/)).toBeVisible();
+  });
 
-    // Still on step 1, with a required-field error surfaced.
-    await expect(page.getByText(/Step 1 of 3/)).toBeVisible();
-    await expect(
-      page.getByText("This field is required.").first(),
-    ).toBeVisible();
+  test("submitting with no service is blocked", async ({ page }) => {
+    await page.goto("/custom-quote");
+
+    await page.getByRole("button", { name: /submit inquiry/i }).click();
+    await expect(page.getByText(/at least one service/i)).toBeVisible();
   });
 });

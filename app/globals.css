@@ -3892,6 +3892,46 @@ body.menu-open .menu-toggle span::after {
   justify-content: center;
 }
 
+/* Always-visible "Your details" block — set apart from the service steps. */
+.inquiry-guest {
+  margin-top: 8px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+/* Country / City pickers inside Your details match the booking-form inputs. */
+.inquiry-guest .combobox-control {
+  min-height: 50px;
+  background: var(--ivory);
+  border-radius: var(--radius-sm);
+}
+
+.inquiry-guest .combobox-field label {
+  font-family: var(--font-label);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.inquiry-sections-error {
+  margin: 4px 0 0;
+  text-align: right;
+}
+
+/* Submit inquiry sits on its own, below Your details. */
+.inquiry-submit {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.inquiry-submit .btn {
+  min-width: 180px;
+  justify-content: center;
+}
+
 @media (max-width: 560px) {
   /* Compact stepper: circles for all, label only for the active step. */
   .inquiry-step {
@@ -8071,4 +8111,59 @@ body.menu-open .cookie-consent {
   color: var(--gold-deep);
   text-decoration: underline;
   font-weight: 600;
+}
+
+/* Legal pages (Terms & Conditions) — readable prose with arrow bullets. */
+.legal-prose {
+  color: var(--ink-soft);
+  line-height: 1.75;
+}
+
+.legal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 22px;
+}
+
+.legal-list > li {
+  position: relative;
+  padding-left: 30px;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.legal-list > li::before {
+  content: "➤";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  color: var(--gold);
+  font-size: 14px;
+}
+
+.legal-list > li p {
+  margin: 14px 0 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.legal-list strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.legal-prose a {
+  color: var(--gold-deep);
+  text-decoration: underline;
+  font-style: italic;
+}
+
+.legal-note {
+  margin: 36px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  font-weight: 600;
+  color: var(--ink);
 }

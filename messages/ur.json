@@ -336,7 +336,7 @@
     "sendEnquiry": "استفسار بھیجیں"
   },
   "customQuote": {
-    "next": "Submit",
+    "next": "Next",
     "back": "Back",
     "stepLabel": "Step {current} of {total}",
     "allRequired": "All fields are required.",
@@ -425,7 +425,9 @@
     "paxChildrenAge": "Aged 0 to 17",
     "paxApply": "Apply",
     "paxDecrease": "Decrease",
-    "paxIncrease": "Increase"
+    "paxIncrease": "Increase",
+    "optionalHint": "Add the services you need — at least one.",
+    "errPickOne": "Please fill in at least one service (hotel, air ticket or transport)."
   },
   "serverActions": {
     "checkForm": "براہ کرم فارم چیک کریں۔",
