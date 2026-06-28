@@ -95,7 +95,7 @@ export default function Footer() {
           <div>
             <h3>{t("contact")}</h3>
             <ul>
-              <li><a href="mailto:reservations@beyondborders.lk">reservations@beyondborders.lk</a></li>
+              <li><a href="mailto:reservations@beyondborders.lk">reservations@<wbr />beyondborders.lk</a></li>
               <li><a href="tel:+94112425087">+94 11 242 5087</a></li>
               <li><a href="tel:+94760979222">+94 76 097 9222</a></li>
               <li>Colombo 03, Sri Lanka</li>

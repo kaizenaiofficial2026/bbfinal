@@ -2844,10 +2844,14 @@ body.menu-open .menu-toggle span::after {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 1.2fr) repeat(
-      3,
-      minmax(160px, 0.6fr)
-    );
+  /* The last (contact) column holds the long reservations@ email, so it gets
+     more room than the short link columns — enough to keep the email on one
+     line at desktop widths instead of wrapping mid-word. */
+  grid-template-columns:
+    minmax(240px, 1.1fr)
+    minmax(120px, 0.5fr)
+    minmax(120px, 0.5fr)
+    minmax(290px, 1fr);
   gap: 46px;
 }
 
