@@ -7,6 +7,8 @@ export type ComboboxOption = {
   value: string;
   /** The text shown in the list and in the input once selected. */
   label: string;
+  /** Optional muted second line under the label (e.g. an airport name). */
+  sublabel?: string;
   /** ISO-2 country code; when set, the matching /flags/<code>.svg is shown. */
   iconCode?: string;
   /** Extra text folded into search matching (e.g. a country code). */
@@ -322,8 +324,12 @@ export default function Combobox({
               setOpen(true);
               setActive(0);
               // Free-text fields post exactly what's typed, so a value typed and
-              // submitted (e.g. Enter from another field) is never dropped.
-              if (allowCustom) setValue(v.trim());
+              // submitted (e.g. Enter from another field) is never dropped, and
+              // the parent stays in sync live (no blur needed).
+              if (allowCustom) {
+                setValue(v.trim());
+                onChange?.(v.trim());
+              }
               if (isAsync) setFetched(false);
             }}
             onKeyDown={onKeyDown}
@@ -358,7 +364,12 @@ export default function Combobox({
                   onMouseMove={() => setActive(i)}
                 >
                   {showFlag(opt.iconCode)}
-                  <span className="combobox-option-label">{opt.label}</span>
+                  <span className="combobox-option-text">
+                    <span className="combobox-option-label">{opt.label}</span>
+                    {opt.sublabel ? (
+                      <span className="combobox-option-sub">{opt.sublabel}</span>
+                    ) : null}
+                  </span>
                 </li>
               ))
             )}

@@ -28,14 +28,15 @@ function combined(overrides: Record<string, unknown> = {}) {
     hotelAdults: 2,
     hotelChildren: 0,
     hotelExtraBed: "No",
-    // Air ticket
+    // Air ticket — trip type + segments JSON (as the trip builder posts).
     airline: "SriLankan",
-    airRoute: "CMB-DXB",
-    airWayType: "Both way",
-    airDepartDate: "2026-07-01",
-    airReturnDate: "2026-07-10",
+    airTripType: "Round trip",
+    airSegments: JSON.stringify([
+      { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-01", returnDate: "2026-07-10" },
+    ]),
     airClass: "Economy",
-    airPax: 1,
+    airAdults: 1,
+    airChildren: 0,
     airExtraBaggage: "No",
     // Transport
     carType: "Normal Car",
@@ -78,21 +79,29 @@ describe("combined custom inquiry validation", () => {
   it("allows a one-way air ticket with no return date", () => {
     expect(
       customInquirySchema.safeParse(
-        combined({ airWayType: "One way", airReturnDate: "" }),
+        combined({
+          airTripType: "One way",
+          airSegments: JSON.stringify([
+            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-01" },
+          ]),
+        }),
       ).success,
     ).toBe(true);
   });
 
-  it("requires a return date for a round trip, flagging airReturnDate", () => {
+  it("requires a return date for a round trip, flagging airSegments", () => {
     const result = customInquirySchema.safeParse(
-      combined({ airWayType: "Both way", airReturnDate: "" }),
+      combined({
+        airTripType: "Round trip",
+        airSegments: JSON.stringify([
+          { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-01", returnDate: "" },
+        ]),
+      }),
     );
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(
-        result.error.issues.some((issue) =>
-          issue.path.includes("airReturnDate"),
-        ),
+        result.error.issues.some((issue) => issue.path.includes("airSegments")),
       ).toBe(true);
     }
   });
@@ -100,7 +109,37 @@ describe("combined custom inquiry validation", () => {
   it("rejects an air ticket whose return precedes departure", () => {
     expect(
       customInquirySchema.safeParse(
-        combined({ airDepartDate: "2026-07-10", airReturnDate: "2026-07-01" }),
+        combined({
+          airTripType: "Round trip",
+          airSegments: JSON.stringify([
+            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-10", returnDate: "2026-07-01" },
+          ]),
+        }),
+      ).success,
+    ).toBe(false);
+  });
+
+  it("accepts a valid multi-city trip and rejects one with a single leg", () => {
+    expect(
+      customInquirySchema.safeParse(
+        combined({
+          airTripType: "Multi-city",
+          airSegments: JSON.stringify([
+            { from: "London (LHR)", to: "Dubai (DXB)", date: "2026-07-01" },
+            { from: "Dubai (DXB)", to: "Colombo (CMB)", date: "2026-07-05" },
+          ]),
+        }),
+      ).success,
+    ).toBe(true);
+
+    expect(
+      customInquirySchema.safeParse(
+        combined({
+          airTripType: "Multi-city",
+          airSegments: JSON.stringify([
+            { from: "London (LHR)", to: "Colombo (CMB)", date: "2026-07-01" },
+          ]),
+        }),
       ).success,
     ).toBe(false);
   });

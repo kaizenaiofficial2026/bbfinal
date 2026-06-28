@@ -17,6 +17,7 @@ import {
   customInquirySchema,
   type CustomInquiryInput,
 } from "@/lib/validation/custom-inquiry";
+import { serializeRoute } from "@/lib/validation/air-segments";
 import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import type { InquiryState } from "./inquiry-state";
 
@@ -25,6 +26,38 @@ function fs(formData: FormData, key: string) {
 }
 
 type Section = { title: string; fields: [string, string | number][] };
+
+// Flatten the trip builder's segments into label→value rows for storage/email.
+// One-way/round-trip show the single route + dates; multi-city lists each leg.
+function airTicketFields(
+  data: CustomInquiryInput,
+): [string, string | number][] {
+  const fields: [string, string | number][] = [
+    ["Airline", data.airline],
+    ["Trip", data.airTripType],
+    ["Route", serializeRoute(data.airTripType, data.airSegments)],
+  ];
+
+  if (data.airTripType === "Multi-city") {
+    data.airSegments.forEach((s, i) => {
+      fields.push([`Flight ${i + 1}`, `${s.from} → ${s.to} · ${s.date}`]);
+    });
+  } else {
+    const s = data.airSegments[0];
+    fields.push(["Departure date", s?.date ?? "—"]);
+    if (data.airTripType === "Round trip") {
+      fields.push(["Return date", s?.returnDate || "—"]);
+    }
+  }
+
+  fields.push(
+    ["Class", data.airClass],
+    ["Adults", data.airAdults],
+    ["Children", data.airChildren],
+    ["Extra Baggage", data.airExtraBaggage],
+  );
+  return fields;
+}
 
 // One submission now covers all four services. `details` is stored grouped by
 // section (jsonb), and the email `lines` flatten the same sections with a bold
@@ -49,16 +82,7 @@ function buildSections(data: CustomInquiryInput): Section[] {
     },
     {
       title: "Air ticket",
-      fields: [
-        ["Airline", data.airline],
-        ["Route", data.airRoute],
-        ["Trip", data.airWayType],
-        ["Departure date", data.airDepartDate],
-        ["Return date", data.airReturnDate || "—"],
-        ["Class", data.airClass],
-        ["Passengers", data.airPax],
-        ["Extra Baggage", data.airExtraBaggage],
-      ],
+      fields: airTicketFields(data),
     },
     {
       title: "Transport",
@@ -104,8 +128,8 @@ export async function submitCustomInquiry(
     "hotel", "hotelRoomCategory", "hotelRoomType", "hotelMealPlan", "hotelRooms",
     "hotelArrival", "hotelDeparture", "hotelAdults", "hotelChildren",
     "hotelExtraBed",
-    "airline", "airRoute", "airWayType", "airDepartDate", "airReturnDate",
-    "airClass", "airPax", "airExtraBaggage",
+    "airline", "airTripType", "airSegments",
+    "airClass", "airAdults", "airChildren", "airExtraBaggage",
     "carType", "hireType", "transportVehicles", "transportDays", "transportPax",
     "transportExtraBaggage",
   ] as const;

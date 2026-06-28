@@ -13,16 +13,20 @@ import { submitCustomInquiry } from "@/app/[locale]/custom-quote/actions";
 import { initialInquiryState } from "@/app/[locale]/custom-quote/inquiry-state";
 import {
   CAR_TYPES,
-  FLIGHT_CLASSES,
   HIRE_TYPES,
   HOTELS,
   MEAL_PLANS,
-  ONE_OR_BOTH_WAY,
   PACKAGE_OPTIONS,
   ROOM_TYPES,
   YES_NO,
 } from "@/lib/data/custom-inquiry-options";
 import { isPastDate, isValidRange, todayIso } from "@/lib/validation/dates";
+import {
+  parseSegments,
+  validateAirSegments,
+  type AirMessages,
+} from "@/lib/validation/air-segments";
+import AirTicketBuilder from "./AirTicketBuilder";
 import BaseSelect from "./Select";
 import Spinner from "./Spinner";
 import { useSubmitFeedback } from "./useSubmitFeedback";
@@ -55,7 +59,7 @@ const STEP_FIELDS: string[][] = [
     "hotelAdults",
     "hotelExtraBed",
   ],
-  ["airline", "airRoute", "airWayType", "airDepartDate", "airClass", "airPax", "airExtraBaggage"],
+  ["airline", "airClass", "airAdults", "airExtraBaggage"],
   ["carType", "hireType", "transportVehicles", "transportDays", "transportPax", "transportExtraBaggage"],
 ];
 
@@ -220,14 +224,28 @@ export default function CustomInquiryForm() {
       if (arrival && departure && !isValidRange(arrival, departure))
         next.hotelDeparture = t("errDepartureBeforeArrival");
     } else if (s === 2) {
-      const depart = get("airDepartDate");
-      const ret = get("airReturnDate");
-      const way = get("airWayType");
-      if (depart && isPastDate(depart, today))
-        next.airDepartDate = t("errDatePast");
-      if (way === "Both way" && !ret) next.airReturnDate = t("errReturnRequired");
-      else if (ret && depart && !isValidRange(depart, ret))
-        next.airReturnDate = t("errReturnBeforeDeparture");
+      // The trip builder posts airTripType + an airSegments JSON array; validate
+      // them with the shared rules and surface per-field errors (air-from-0, …).
+      const airMsg: AirMessages = {
+        tripRequired: t("errRequired"),
+        multiMin: t("errMultiMin"),
+        fromRequired: t("errAirFrom"),
+        toRequired: t("errAirTo"),
+        dateRequired: t("errAirDate"),
+        datePast: t("errDatePast"),
+        samePlace: t("errAirSamePlace"),
+        returnRequired: t("errReturnRequired"),
+        returnBeforeDepart: t("errReturnBeforeDeparture"),
+      };
+      const airErrors = validateAirSegments(
+        get("airTripType"),
+        parseSegments(get("airSegments")),
+        today,
+        airMsg,
+      );
+      for (const [key, message] of Object.entries(airErrors)) {
+        next[`air-${key}`] = message;
+      }
     }
 
     return next;
@@ -366,19 +384,21 @@ export default function CustomInquiryForm() {
             </div>
           </div>
 
-          {/* Step 3 — Air ticket */}
+          {/* Step 3 — Air ticket: trip builder (One way / Round trip / Multi-city)
+              followed by the remaining flight details. */}
           <div className="booking-form-section" hidden={step !== 2}>
             <span className="booking-form-label">{t("typeAirticket")}</span>
-            <div className="form-grid">
-              <Field name="airline" label={t("airline")} placeholder={t("airlinePlaceholder")} />
-              <Field name="airRoute" label={t("route")} placeholder={t("routePlaceholder")} />
-              <Select name="airWayType" label={t("trip")} options={ONE_OR_BOTH_WAY} placeholder={t("selectPlaceholder")} />
-              <Field name="airDepartDate" label={t("departureDate")} type="date" />
-              <Field name="airReturnDate" label={t("returnDate")} type="date" required={false} />
-              <Select name="airClass" label={t("flightClass")} options={FLIGHT_CLASSES} placeholder={t("selectPlaceholder")} />
-              <Field name="airPax" label={t("passengers")} type="number" min={1} placeholder="1" />
-              <Select name="airExtraBaggage" label={t("extraBaggage")} options={YES_NO} placeholder={t("selectPlaceholder")} />
-            </div>
+            <AirTicketBuilder
+              defaultTripType={state.values?.airTripType}
+              defaultSegments={state.values?.airSegments}
+              defaultAirline={state.values?.airline}
+              defaultClass={state.values?.airClass}
+              defaultAdults={state.values?.airAdults}
+              defaultChildren={state.values?.airChildren}
+              defaultExtraBaggage={state.values?.airExtraBaggage}
+              errors={errorsApi.errors}
+              clearError={clearError}
+            />
           </div>
 
           {/* Step 4 — Transport + your details */}

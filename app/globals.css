@@ -2232,9 +2232,23 @@ body.menu-open .menu-toggle span::after {
   color: var(--gold-deep);
 }
 
-.combobox-option-label {
+.combobox-option-text {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.combobox-option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combobox-option-sub {
+  font-size: 12px;
+  color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2248,6 +2262,456 @@ body.menu-open .menu-toggle span::after {
 
 .combobox-field.is-invalid .combobox-control {
   border-color: #d9534f;
+}
+
+/* Air-ticket trip builder (One way / Round trip / Multi-city) */
+.air-builder {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.trip-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  width: fit-content;
+  max-width: 100%;
+  background: var(--ivory);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.trip-tab {
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-family: var(--font-label);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 180ms var(--ease),
+    color 180ms var(--ease);
+}
+
+.trip-tab.is-active {
+  background: var(--gold);
+  color: var(--paper);
+}
+
+.air-legs {
+  display: grid;
+  gap: 16px;
+}
+
+.air-leg {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+
+.air-leg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.air-leg-title {
+  font-family: var(--font-label);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.air-remove {
+  font-family: var(--font-label);
+  font-size: 12px;
+  font-weight: 600;
+  color: #b42318;
+  background: transparent;
+  cursor: pointer;
+}
+
+.air-remove:hover {
+  text-decoration: underline;
+}
+
+.air-places {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: 10px;
+}
+
+.air-swap {
+  width: 46px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--gold-deep);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease),
+    background 180ms var(--ease);
+}
+
+.air-swap:hover {
+  border-color: var(--gold);
+  background: var(--ivory);
+}
+
+.air-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.air-add {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: 1px dashed var(--line-gold);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-label);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold-deep);
+  background: transparent;
+  cursor: pointer;
+  transition: background 180ms var(--ease);
+}
+
+.air-add::before {
+  content: "+";
+  font-size: 17px;
+  line-height: 1;
+}
+
+.air-add:hover {
+  background: var(--ivory);
+}
+
+/* Match the trip builder's place pickers to the booking-form input look. */
+.air-builder .combobox-control {
+  min-height: 50px;
+  background: var(--ivory);
+  border-radius: var(--radius-sm);
+}
+
+.air-builder .combobox-field label {
+  font-family: var(--font-label);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Flight details (airline + travellers + extra baggage) */
+.air-details {
+  display: grid;
+  gap: 14px;
+}
+
+.air-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+/* Input-styled trigger buttons shared by the date picker + travellers field */
+.datepicker,
+.travellers {
+  position: relative;
+}
+
+.datepicker-trigger,
+.travellers-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--ivory);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color 200ms var(--ease),
+    background 200ms var(--ease);
+}
+
+.datepicker-trigger:hover,
+.travellers-trigger:hover,
+.datepicker-trigger:focus-visible,
+.travellers-trigger:focus-visible {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.datepicker.is-invalid .datepicker-trigger,
+.travellers.is-invalid .travellers-trigger {
+  border-color: #d9534f;
+}
+
+.datepicker-placeholder {
+  color: var(--muted);
+}
+
+.travellers-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.datepicker-icon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239d7936' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cpath d='M16 2v4M8 2v4M3 10h18'/%3E%3C/svg%3E")
+    no-repeat center / 18px;
+}
+
+.travellers-caret {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239d7936' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat center / 14px;
+}
+
+/* Calendar popover */
+.datepicker-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 50;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  padding: 14px;
+  border: 1px solid var(--line-gold);
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  animation: combobox-pop 150ms var(--ease);
+}
+
+.dp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.dp-month {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.dp-nav {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 19px;
+  line-height: 1;
+  color: var(--gold-deep);
+  background: transparent;
+  cursor: pointer;
+  transition: background 140ms var(--ease);
+}
+
+.dp-nav:hover {
+  background: var(--ivory);
+}
+
+.dp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.dp-weekday {
+  display: grid;
+  place-items: center;
+  height: 30px;
+  font-family: var(--font-label);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.dp-blank {
+  height: 38px;
+}
+
+.dp-day {
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 140ms var(--ease),
+    color 140ms var(--ease);
+}
+
+.dp-day:hover:not(:disabled) {
+  background: var(--ivory);
+}
+
+.dp-day.is-today {
+  font-weight: 700;
+  color: var(--gold-deep);
+}
+
+.dp-day.is-selected {
+  background: var(--gold);
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.dp-day:disabled {
+  color: var(--muted);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Travellers & cabin class popover */
+.travellers-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  min-width: 280px;
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+  border: 1px solid var(--line-gold);
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  animation: combobox-pop 150ms var(--ease);
+}
+
+.travellers-pop-label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-label);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.travellers-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.travellers-who-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.travellers-who-age {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pax-stepper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pax-step {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--ivory);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color 140ms var(--ease),
+    background 140ms var(--ease);
+}
+
+.pax-step:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+
+.pax-step:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pax-count {
+  min-width: 20px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.travellers-apply {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .air-places {
+    grid-template-columns: 1fr;
+  }
+  .air-swap {
+    width: 100%;
+    height: 40px;
+  }
+  .air-dates {
+    grid-template-columns: 1fr;
+  }
+  .air-details-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-field textarea {

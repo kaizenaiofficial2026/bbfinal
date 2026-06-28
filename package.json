@@ -22,6 +22,7 @@
     "react:scan": "react-scan http://localhost:3000"
   },
   "dependencies": {
+    "@nwpr/airport-codes": "^3.0.3",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.0.9",
     "@supabase/ssr": "^0.12.0",
@@ -50,6 +51,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.2",
     "@vitest/coverage-v8": "^4.1.9",
+    "airline-codes": "^1.1.5",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.9",

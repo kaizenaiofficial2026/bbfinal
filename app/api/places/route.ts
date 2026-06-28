@@ -1,0 +1,134 @@
+import { NextResponse, type NextRequest } from "next/server";
+import { airports } from "@nwpr/airport-codes";
+import { COUNTRIES } from "@/lib/data/countries";
+import { clientIp, makeIpRateLimiter } from "@/lib/security/ip-rate-limit";
+
+// Combined "country, city or airport" search for the air-ticket trip builder.
+// Searches a 7.7k-airport dataset (by city / name / IATA / country) plus the
+// country list, and returns a short ranked list. The dataset stays on the
+// server; only the handful of matches are sent to the browser.
+const LIMIT = 8;
+const MAX_Q = 64;
+const MIN_Q = 2;
+
+type Place = {
+  value: string;
+  label: string;
+  sublabel?: string;
+  kind: "airport" | "country";
+};
+
+type AirportRow = {
+  iata?: string | null;
+  city?: string | null;
+  name?: string | null;
+  country?: string | null;
+  type?: string | null;
+};
+
+// Build a lean searchable index once per server instance.
+type IndexedAirport = {
+  iata: string;
+  city: string;
+  name: string;
+  country: string;
+  cityLower: string;
+  hay: string;
+};
+
+const AIRPORTS: IndexedAirport[] = (airports as AirportRow[])
+  .filter((a) => a.iata && a.city && a.type === "airport")
+  .map((a) => {
+    const iata = String(a.iata).toUpperCase();
+    const city = String(a.city);
+    const name = String(a.name ?? "");
+    const country = String(a.country ?? "");
+    return {
+      iata,
+      city,
+      name,
+      country,
+      cityLower: city.toLowerCase(),
+      hay: `${city} ${name} ${country} ${iata}`.toLowerCase(),
+    };
+  });
+
+const COUNTRY_INDEX = COUNTRIES.map((c) => ({
+  ...c,
+  nameLower: c.name.toLowerCase(),
+}));
+
+function airportPlace(a: IndexedAirport): Place {
+  return {
+    value: `${a.city} (${a.iata})`,
+    label: `${a.city} (${a.iata})`,
+    sublabel: [a.name, a.country].filter(Boolean).join(" · "),
+    kind: "airport",
+  };
+}
+
+function search(q: string): Place[] {
+  const ql = q.toLowerCase();
+  const out: Place[] = [];
+  const seen = new Set<string>();
+  const push = (p: Place) => {
+    if (seen.has(p.value)) return;
+    seen.add(p.value);
+    out.push(p);
+  };
+
+  // 1. Exact IATA code (e.g. "CMB").
+  if (ql.length === 3) {
+    for (const a of AIRPORTS) if (a.iata === ql.toUpperCase()) push(airportPlace(a));
+  }
+  // 2. Airports whose city starts with the query.
+  for (const a of AIRPORTS) {
+    if (out.length >= LIMIT) break;
+    if (a.cityLower.startsWith(ql)) push(airportPlace(a));
+  }
+  // 3. Matching countries (pick from here when no specific airport is wanted).
+  for (const c of COUNTRY_INDEX) {
+    if (out.length >= LIMIT) break;
+    if (c.nameLower.startsWith(ql) || c.code.toLowerCase() === ql) {
+      push({
+        value: c.name,
+        label: c.name,
+        sublabel: "All airports",
+        kind: "country",
+      });
+    }
+  }
+  // 4. Fall back to any airport whose name/country/iata contains the query.
+  for (const a of AIRPORTS) {
+    if (out.length >= LIMIT) break;
+    if (a.hay.includes(ql)) push(airportPlace(a));
+  }
+
+  return out.slice(0, LIMIT);
+}
+
+const rateLimited = makeIpRateLimiter({ windowMs: 10_000, max: 60 });
+
+export async function GET(request: NextRequest) {
+  if (rateLimited(clientIp(request), Date.now())) {
+    return NextResponse.json({ places: [] }, { status: 429 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const q = (searchParams.get("q") ?? "").trim().slice(0, MAX_Q).toLowerCase();
+
+  if (q.length < MIN_Q) {
+    return NextResponse.json({ places: [] }, { status: 200 });
+  }
+
+  return NextResponse.json(
+    { places: search(q) },
+    {
+      status: 200,
+      headers: {
+        "Cache-Control":
+          "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+      },
+    },
+  );
+}

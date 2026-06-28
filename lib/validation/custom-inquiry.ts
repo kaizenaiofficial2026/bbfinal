@@ -1,4 +1,10 @@
 import { z } from "zod";
+import {
+  ISO_DATE,
+  MAX_SEGMENTS,
+  TRIP_TYPES,
+  parseSegments,
+} from "./air-segments";
 
 // Common guest details + spam guards.
 const guest = {
@@ -43,14 +49,35 @@ export const customInquirySchema = z
     hotelChildren: z.coerce.number().int().min(0).max(50),
     hotelExtraBed: yesNo,
 
-    // Air ticket
+    // Air ticket — a trip type plus one or more flight segments (parsed from
+    // the JSON the trip builder posts). See lib/validation/air-segments.ts.
     airline: required("Airline is required.").max(120),
-    airRoute: required("Route is required."),
-    airWayType: z.enum(["One way", "Both way"]),
-    airDepartDate: required("Departure date is required.").max(40),
-    airReturnDate: z.string().trim().max(40).optional().or(z.literal("")),
+    airTripType: z.enum(TRIP_TYPES),
+    airSegments: z.preprocess(
+      (v) => parseSegments(v),
+      z
+        .array(
+          z.object({
+            from: z.string().trim().min(1, "Origin is required.").max(120),
+            to: z.string().trim().min(1, "Destination is required.").max(120),
+            date: z
+              .string()
+              .trim()
+              .regex(ISO_DATE, "A flight date is required."),
+            returnDate: z
+              .string()
+              .trim()
+              .regex(ISO_DATE)
+              .optional()
+              .or(z.literal("")),
+          }),
+        )
+        .min(1, "Please add at least one flight.")
+        .max(MAX_SEGMENTS),
+    ),
     airClass: required("Class is required.").max(60),
-    airPax: z.coerce.number().int().min(1).max(50),
+    airAdults: z.coerce.number().int().min(1).max(50),
+    airChildren: z.coerce.number().int().min(0).max(50),
     airExtraBaggage: yesNo,
 
     // Transport
@@ -65,15 +92,28 @@ export const customInquirySchema = z
     message: "Departure can't be before arrival.",
     path: ["hotelDeparture"],
   })
-  // `airDepartDate` is the outbound date; `airReturnDate` is mandatory for a
-  // round trip, optional one-way.
-  .refine((d) => d.airWayType !== "Both way" || !!d.airReturnDate, {
-    message: "A return date is required for a round trip.",
-    path: ["airReturnDate"],
+  // A multi-city trip needs at least two flights.
+  .refine((d) => d.airTripType !== "Multi-city" || d.airSegments.length >= 2, {
+    message: "Add at least two flights for a multi-city trip.",
+    path: ["airSegments"],
   })
-  .refine((d) => !d.airReturnDate || d.airReturnDate >= d.airDepartDate, {
-    message: "The return date can't be before the departure date.",
-    path: ["airReturnDate"],
-  });
+  // A round trip needs a return date on or after the outbound date.
+  .refine(
+    (d) => d.airTripType !== "Round trip" || !!d.airSegments[0]?.returnDate,
+    {
+      message: "A return date is required for a round trip.",
+      path: ["airSegments"],
+    },
+  )
+  .refine(
+    (d) =>
+      d.airTripType !== "Round trip" ||
+      !d.airSegments[0]?.returnDate ||
+      d.airSegments[0].returnDate >= d.airSegments[0].date,
+    {
+      message: "The return date can't be before the departure date.",
+      path: ["airSegments"],
+    },
+  );
 
 export type CustomInquiryInput = z.infer<typeof customInquirySchema>;

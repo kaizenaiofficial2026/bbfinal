@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { City } from "country-state-city";
 import { isCountryCode } from "@/lib/data/countries";
+import { clientIp, makeIpRateLimiter } from "@/lib/security/ip-rate-limit";
 
 // City typeahead for the registration form. Given a 2-letter country code and a
 // query, returns up to LIMIT matching city names (prefix matches first). The
@@ -31,34 +32,8 @@ function cityNamesFor(country: string): string[] {
   return names;
 }
 
-// Lightweight per-instance, per-IP fixed-window limiter. The typeahead fires a
-// request per keystroke (debounced), so the window is generous — it only trips
-// on abusive bursts, never on normal typing. Defence-in-depth on top of the
-// memoisation above and Vercel's platform protections.
-const WINDOW_MS = 10_000;
-const MAX_REQUESTS = 50;
-const hits = new Map<string, { count: number; reset: number }>();
-function rateLimited(ip: string, now: number): boolean {
-  const entry = hits.get(ip);
-  if (!entry || now > entry.reset) {
-    hits.set(ip, { count: 1, reset: now + WINDOW_MS });
-    // Opportunistic cleanup so the map can't grow unbounded.
-    if (hits.size > 5000) {
-      for (const [k, v] of hits) if (now > v.reset) hits.delete(k);
-    }
-    return false;
-  }
-  entry.count += 1;
-  return entry.count > MAX_REQUESTS;
-}
-
-function clientIp(request: NextRequest): string {
-  return (
-    request.headers.get("x-real-ip")?.trim() ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "unknown"
-  );
-}
+// Generous per-IP burst limiter (the typeahead fires per keystroke).
+const rateLimited = makeIpRateLimiter({ windowMs: 10_000, max: 50 });
 
 export async function GET(request: NextRequest) {
   if (rateLimited(clientIp(request), Date.now())) {
