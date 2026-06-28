@@ -8045,3 +8045,30 @@ body.menu-open .cookie-consent {
     animation: none;
   }
 }
+
+/* Terms-and-conditions agreement gate above the Pay securely button */
+.pay-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.pay-terms input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+
+.pay-terms a {
+  color: var(--gold-deep);
+  text-decoration: underline;
+  font-weight: 600;
+}

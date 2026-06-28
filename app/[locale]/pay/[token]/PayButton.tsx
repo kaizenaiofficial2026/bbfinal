@@ -37,14 +37,31 @@ export default function PayButton({
 }) {
   const t = useTranslations("pay");
   const [pending, setPending] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
 
   return (
     <div>
+      <label className="pay-terms">
+        <input
+          type="checkbox"
+          checked={agreed}
+          onChange={(e) => setAgreed(e.target.checked)}
+        />
+        <span>
+          {t.rich("agreeTerms", {
+            terms: (chunks) => (
+              <a href="/terms" target="_blank" rel="noopener noreferrer">
+                {chunks}
+              </a>
+            ),
+          })}
+        </span>
+      </label>
       <button
         className="btn btn-primary"
         type="button"
-        disabled={pending}
+        disabled={pending || !agreed}
         onClick={async () => {
           setPending(true);
           setError("");

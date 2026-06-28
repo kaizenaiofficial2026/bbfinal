@@ -11,10 +11,10 @@ type HeaderAccount = { name: string } | null;
 
 const NAV_LINKS = [
   { href: "/", key: "home" },
-  { href: "/about", key: "about" },
   { href: "/tours", key: "tours" },
   { href: "/destinations", key: "destinations" },
   { href: "/custom-quote", key: "customQuote" },
+  { href: "/about", key: "about" },
 ] as const;
 
 export default function Header({ account }: { account: HeaderAccount }) {

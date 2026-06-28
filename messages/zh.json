@@ -208,7 +208,8 @@
     "resultNotFound": "未找到此付款请求。",
     "resultDisabled": "支付已停用。凭证启用后，此返回页面即可用于 MPGS。",
     "contactTeam": "联系团队",
-    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR).",
+    "agreeTerms": "I have read and agree to the <terms>terms and conditions</terms>."
   },
   "bookingPage": {
     "heroLabel": "行程结账",

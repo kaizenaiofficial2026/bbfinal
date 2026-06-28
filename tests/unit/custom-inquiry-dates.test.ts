@@ -15,8 +15,6 @@ const guest = {
 function combined(overrides: Record<string, unknown> = {}) {
   return {
     ...guest,
-    // Package
-    package: "Glamour of Sri Lanka - USD 499",
     // Hotel
     hotel: "Cinnamon Grand",
     hotelRoomCategory: "Deluxe",

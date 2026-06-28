@@ -34,9 +34,6 @@ export const customInquirySchema = z
   .object({
     ...guest,
 
-    // Package
-    package: required("Please choose a package."),
-
     // Hotel
     hotel: required("Please choose a hotel."),
     hotelRoomCategory: required("Please choose a room category."),

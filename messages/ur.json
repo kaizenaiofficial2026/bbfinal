@@ -208,7 +208,8 @@
     "resultNotFound": "ہمیں یہ ادائیگی کی درخواست نہیں ملی۔",
     "resultDisabled": "ادائیگیاں غیر فعال ہیں۔ کریڈنشلز فعال ہوتے ہی یہ ریٹرن صفحہ MPGS کے لیے تیار ہے۔",
     "contactTeam": "ٹیم سے رابطہ کریں",
-    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR).",
+    "agreeTerms": "I have read and agree to the <terms>terms and conditions</terms>."
   },
   "bookingPage": {
     "heroLabel": "سفر کی چیک آؤٹ",

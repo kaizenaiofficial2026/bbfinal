@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
 import AuthErrorToast from "@/components/AuthErrorToast";
 import PasswordInput from "@/components/PasswordInput";
-import RegisterLocationFields from "@/components/RegisterLocationFields";
+import RegisterContactFields from "@/components/RegisterContactFields";
 import SubmitButton from "@/components/SubmitButton";
 import { registerAction } from "../account/actions";
 
@@ -87,25 +87,9 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           />
         </div>
 
-        <div className="auth-grid-2">
-          <div className="auth-field">
-            <label htmlFor="reg-phone">{t("mobileNumber")}</label>
-            <input
-              id="reg-phone"
-              name="phone"
-              type="tel"
-              autoComplete="tel"
-              placeholder="+94 77 000 0000"
-              required
-            />
-          </div>
-          <div className="auth-field">
-            <label htmlFor="reg-dob">{t("dateOfBirth")}</label>
-            <input id="reg-dob" name="dateOfBirth" type="date" required />
-          </div>
-        </div>
-
-        <RegisterLocationFields />
+        {/* Country first, then Mobile (auto-prefilled with the country's
+            dialling code), then DOB — all in one client island. */}
+        <RegisterContactFields />
 
         <div className="auth-grid-2">
           <div className="auth-field">
@@ -129,15 +113,27 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           </div>
         </div>
 
-        <div className="auth-field">
-          <label htmlFor="reg-password">{t("password")}</label>
-          <PasswordInput
-            id="reg-password"
-            name="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
+        <div className="auth-grid-2">
+          <div className="auth-field">
+            <label htmlFor="reg-password">{t("password")}</label>
+            <PasswordInput
+              id="reg-password"
+              name="password"
+              autoComplete="new-password"
+              minLength={8}
+              required
+            />
+          </div>
+          <div className="auth-field">
+            <label htmlFor="reg-confirm-password">{t("confirmPassword")}</label>
+            <PasswordInput
+              id="reg-confirm-password"
+              name="confirmPassword"
+              autoComplete="new-password"
+              minLength={8}
+              required
+            />
+          </div>
         </div>
 
         {error ? (

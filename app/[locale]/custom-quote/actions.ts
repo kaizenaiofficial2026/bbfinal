@@ -64,7 +64,6 @@ function airTicketFields(
 // heading row before each (heading lines carry an empty value).
 function buildSections(data: CustomInquiryInput): Section[] {
   return [
-    { title: "Package", fields: [["Package", data.package]] },
     {
       title: "Hotel",
       fields: [
@@ -124,7 +123,6 @@ export async function submitCustomInquiry(
   // Every visible field, echoed back so a failed submit doesn't wipe the form.
   const FIELDS = [
     "firstName", "lastName", "countryCity", "passportNumber", "email", "mobile",
-    "package",
     "hotel", "hotelRoomCategory", "hotelRoomType", "hotelMealPlan", "hotelRooms",
     "hotelArrival", "hotelDeparture", "hotelAdults", "hotelChildren",
     "hotelExtraBed",
@@ -208,10 +206,10 @@ export async function submitCustomInquiry(
     const { details, lines } = buildDetails(data);
 
     await createCustomInquiry({
-      // Every submission now spans all four services. The enum column keeps a
-      // valid value ("package" is always present); the admin derives the
-      // "Custom inquiry" label from the grouped `details` instead.
-      inquiry_type: "package",
+      // A submission now spans Hotel + Air ticket + Transport. The enum column
+      // just needs a valid value; the admin derives the "Custom inquiry" label
+      // from the grouped `details` instead.
+      inquiry_type: "hotel",
       first_name: data.firstName,
       last_name: data.lastName,
       country_city: data.countryCity || null,

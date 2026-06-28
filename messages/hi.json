@@ -208,7 +208,8 @@
     "resultNotFound": "हमें यह भुगतान अनुरोध नहीं मिला।",
     "resultDisabled": "भुगतान अक्षम हैं। क्रेडेंशियल सक्षम होते ही यह रिटर्न पेज MPGS के लिए तैयार है।",
     "contactTeam": "टीम से संपर्क करें",
-    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR).",
+    "agreeTerms": "I have read and agree to the <terms>terms and conditions</terms>."
   },
   "bookingPage": {
     "heroLabel": "यात्रा चेकआउट",

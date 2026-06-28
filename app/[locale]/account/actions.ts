@@ -44,6 +44,7 @@ export async function registerAction(formData: FormData) {
     email: formString(formData, "email"),
     phone: formString(formData, "phone"),
     password: formString(formData, "password"),
+    confirmPassword: formString(formData, "confirmPassword"),
     company: formString(formData, "company"),
   });
 

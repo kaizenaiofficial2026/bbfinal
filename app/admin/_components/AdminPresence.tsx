@@ -21,6 +21,7 @@ export default function AdminPresence() {
 
   const [pending, setPending] = useState<Pending | null>(null);
   const [phase, setPhase] = useState<"active" | "kicked" | "handing">("active");
+  const [kickReason, setKickReason] = useState<"taken" | "idle">("taken");
   const busyRef = useRef(false);
 
   useEffect(() => {
@@ -38,14 +39,17 @@ export default function AdminPresence() {
         const data = (await res.json()) as {
           authed?: boolean;
           active?: boolean;
+          reason?: "taken" | "idle";
           pending?: Pending | null;
         };
         if (cancelled || !data.authed) return;
         if (data.active === false) {
           if (timer) clearInterval(timer);
+          const reason = data.reason === "idle" ? "idle" : "taken";
+          setKickReason(reason);
           setPhase("kicked");
           await adminKickedSignOutAction();
-          window.location.href = "/admin/login?kicked=1";
+          window.location.href = `/admin/login?kicked=1&reason=${reason}`;
           return;
         }
         setPending(data.pending ?? null);
@@ -100,7 +104,9 @@ export default function AdminPresence() {
           <p>
             {phase === "handing"
               ? "You let another admin in. Signing you out…"
-              : "Another admin signed in and took over the panel. Signing you out…"}
+              : kickReason === "idle"
+                ? "Your session ended after a period of inactivity. Signing you out…"
+                : "Another admin signed in and took over the panel. Signing you out…"}
           </p>
         </div>
       </div>

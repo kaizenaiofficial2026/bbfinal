@@ -34,8 +34,12 @@ export const registerSchema = z.object({
     .string()
     .min(8, "Password must be at least 8 characters.")
     .max(200),
+  confirmPassword: z.string(),
   // Honeypot: bots fill this hidden field; humans never see it. Must be empty.
   company: z.string().max(0).optional().or(z.literal("")),
+}).refine((d) => d.password === d.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"],
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

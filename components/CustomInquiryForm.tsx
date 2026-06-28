@@ -16,7 +16,6 @@ import {
   HIRE_TYPES,
   HOTELS,
   MEAL_PLANS,
-  PACKAGE_OPTIONS,
   ROOM_TYPES,
   YES_NO,
 } from "@/lib/data/custom-inquiry-options";
@@ -42,12 +41,11 @@ const InquiryErrorsContext = createContext<{
   clearError: (name: string) => void;
 }>({ errors: {}, clearError: () => {} });
 
-// The inquiry is a 4-step wizard collecting every service. All four steps are
+// The inquiry is a 3-step wizard: Hotel → Air ticket → Transport. Every step is
 // mandatory; each step's required fields are listed here (the airticket return
 // date is validated separately — required only for a round trip). Field names
 // are namespaced per section because every step shares one <form>.
 const STEP_FIELDS: string[][] = [
-  ["package"],
   [
     "hotel",
     "hotelRoomCategory",
@@ -190,7 +188,6 @@ export default function CustomInquiryForm() {
   );
 
   const steps = [
-    { key: "package", label: t("typePackage") },
     { key: "hotel", label: t("typeHotel") },
     { key: "airticket", label: t("typeAirticket") },
     { key: "transport", label: t("typeTransport") },
@@ -216,14 +213,14 @@ export default function CustomInquiryForm() {
     }
 
     const today = todayIso();
-    if (s === 1) {
+    if (s === 0) {
       const arrival = get("hotelArrival");
       const departure = get("hotelDeparture");
       if (arrival && isPastDate(arrival, today))
         next.hotelArrival = t("errDatePast");
       if (arrival && departure && !isValidRange(arrival, departure))
         next.hotelDeparture = t("errDepartureBeforeArrival");
-    } else if (s === 2) {
+    } else if (s === 1) {
       // The trip builder posts airTripType + an airSegments JSON array; validate
       // them with the shared rules and surface per-field errors (air-from-0, …).
       const airMsg: AirMessages = {
@@ -342,21 +339,8 @@ export default function CustomInquiryForm() {
             </p>
           </div>
 
-          {/* Step 1 — Package */}
+          {/* Step 1 — Hotel */}
           <div className="booking-form-section" hidden={step !== 0}>
-            <span className="booking-form-label">{t("typePackage")}</span>
-            <div className="form-grid">
-              <Select
-                name="package"
-                label={t("package")}
-                options={PACKAGE_OPTIONS}
-                placeholder={t("choosePackage")}
-              />
-            </div>
-          </div>
-
-          {/* Step 2 — Hotel */}
-          <div className="booking-form-section" hidden={step !== 1}>
             <span className="booking-form-label">{t("typeHotel")}</span>
             <div className="form-grid">
               <Select
@@ -384,9 +368,9 @@ export default function CustomInquiryForm() {
             </div>
           </div>
 
-          {/* Step 3 — Air ticket: trip builder (One way / Round trip / Multi-city)
+          {/* Step 2 — Air ticket: trip builder (One way / Round trip / Multi-city)
               followed by the remaining flight details. */}
-          <div className="booking-form-section" hidden={step !== 2}>
+          <div className="booking-form-section" hidden={step !== 1}>
             <span className="booking-form-label">{t("typeAirticket")}</span>
             <AirTicketBuilder
               defaultTripType={state.values?.airTripType}
@@ -401,8 +385,8 @@ export default function CustomInquiryForm() {
             />
           </div>
 
-          {/* Step 4 — Transport + your details */}
-          <div hidden={step !== 3}>
+          {/* Step 3 — Transport + your details */}
+          <div hidden={step !== 2}>
             <div className="booking-form-section">
               <span className="booking-form-label">{t("typeTransport")}</span>
               <div className="form-grid">

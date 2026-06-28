@@ -17,12 +17,20 @@ const validRegister = {
   email: "asha@example.com",
   phone: "+94 77 123 4567",
   password: "supersecret",
+  confirmPassword: "supersecret",
   company: "",
 };
 
 describe("registerSchema (customer registration)", () => {
   it("accepts a complete, valid registration", () => {
     expect(registerSchema.safeParse(validRegister).success).toBe(true);
+  });
+
+  it("rejects a mismatched password confirmation", () => {
+    expect(
+      registerSchema.safeParse({ ...validRegister, confirmPassword: "different" })
+        .success,
+    ).toBe(false);
   });
 
   it.each([

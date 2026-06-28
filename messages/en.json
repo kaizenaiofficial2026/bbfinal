@@ -208,7 +208,8 @@
     "resultNotFound": "We could not find this payment request.",
     "resultDisabled": "Payments are disabled. This return page is ready for MPGS once credentials are enabled.",
     "contactTeam": "Contact the team",
-    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR).",
+    "agreeTerms": "I have read and agree to the <terms>terms and conditions</terms>."
   },
   "bookingPage": {
     "heroLabel": "Journey checkout",

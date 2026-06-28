@@ -2,1008 +2,1259 @@
 // Source: country-state-city (ISO 3166-1) intersected with the flag SVGs in
 // public/flags. `name` is the canonical English name (stored value + search
 // fallback); the UI shows a locale-aware name via Intl.DisplayNames at runtime.
-export type Country = { code: string; name: string };
+// `dial` is the country calling code (digits only, no "+").
+export type Country = { code: string; name: string; dial: string };
 
 export const COUNTRIES: readonly Country[] = [
   {
     "code": "AF",
-    "name": "Afghanistan"
+    "name": "Afghanistan",
+    "dial": "93"
   },
   {
     "code": "AX",
-    "name": "Aland Islands"
+    "name": "Aland Islands",
+    "dial": "358"
   },
   {
     "code": "AL",
-    "name": "Albania"
+    "name": "Albania",
+    "dial": "355"
   },
   {
     "code": "DZ",
-    "name": "Algeria"
+    "name": "Algeria",
+    "dial": "213"
   },
   {
     "code": "AS",
-    "name": "American Samoa"
+    "name": "American Samoa",
+    "dial": "1"
   },
   {
     "code": "AD",
-    "name": "Andorra"
+    "name": "Andorra",
+    "dial": "376"
   },
   {
     "code": "AO",
-    "name": "Angola"
+    "name": "Angola",
+    "dial": "244"
   },
   {
     "code": "AI",
-    "name": "Anguilla"
+    "name": "Anguilla",
+    "dial": "1"
   },
   {
     "code": "AQ",
-    "name": "Antarctica"
+    "name": "Antarctica",
+    "dial": "672"
   },
   {
     "code": "AG",
-    "name": "Antigua And Barbuda"
+    "name": "Antigua And Barbuda",
+    "dial": "1"
   },
   {
     "code": "AR",
-    "name": "Argentina"
+    "name": "Argentina",
+    "dial": "54"
   },
   {
     "code": "AM",
-    "name": "Armenia"
+    "name": "Armenia",
+    "dial": "374"
   },
   {
     "code": "AW",
-    "name": "Aruba"
+    "name": "Aruba",
+    "dial": "297"
   },
   {
     "code": "AU",
-    "name": "Australia"
+    "name": "Australia",
+    "dial": "61"
   },
   {
     "code": "AT",
-    "name": "Austria"
+    "name": "Austria",
+    "dial": "43"
   },
   {
     "code": "AZ",
-    "name": "Azerbaijan"
+    "name": "Azerbaijan",
+    "dial": "994"
   },
   {
     "code": "BH",
-    "name": "Bahrain"
+    "name": "Bahrain",
+    "dial": "973"
   },
   {
     "code": "BD",
-    "name": "Bangladesh"
+    "name": "Bangladesh",
+    "dial": "880"
   },
   {
     "code": "BB",
-    "name": "Barbados"
+    "name": "Barbados",
+    "dial": "1"
   },
   {
     "code": "BY",
-    "name": "Belarus"
+    "name": "Belarus",
+    "dial": "375"
   },
   {
     "code": "BE",
-    "name": "Belgium"
+    "name": "Belgium",
+    "dial": "32"
   },
   {
     "code": "BZ",
-    "name": "Belize"
+    "name": "Belize",
+    "dial": "501"
   },
   {
     "code": "BJ",
-    "name": "Benin"
+    "name": "Benin",
+    "dial": "229"
   },
   {
     "code": "BM",
-    "name": "Bermuda"
+    "name": "Bermuda",
+    "dial": "1"
   },
   {
     "code": "BT",
-    "name": "Bhutan"
+    "name": "Bhutan",
+    "dial": "975"
   },
   {
     "code": "BO",
-    "name": "Bolivia"
+    "name": "Bolivia",
+    "dial": "591"
   },
   {
     "code": "BQ",
-    "name": "Bonaire, Sint Eustatius and Saba"
+    "name": "Bonaire, Sint Eustatius and Saba",
+    "dial": "599"
   },
   {
     "code": "BA",
-    "name": "Bosnia and Herzegovina"
+    "name": "Bosnia and Herzegovina",
+    "dial": "387"
   },
   {
     "code": "BW",
-    "name": "Botswana"
+    "name": "Botswana",
+    "dial": "267"
   },
   {
     "code": "BV",
-    "name": "Bouvet Island"
+    "name": "Bouvet Island",
+    "dial": "0055"
   },
   {
     "code": "BR",
-    "name": "Brazil"
+    "name": "Brazil",
+    "dial": "55"
   },
   {
     "code": "IO",
-    "name": "British Indian Ocean Territory"
+    "name": "British Indian Ocean Territory",
+    "dial": "246"
   },
   {
     "code": "BN",
-    "name": "Brunei"
+    "name": "Brunei",
+    "dial": "673"
   },
   {
     "code": "BG",
-    "name": "Bulgaria"
+    "name": "Bulgaria",
+    "dial": "359"
   },
   {
     "code": "BF",
-    "name": "Burkina Faso"
+    "name": "Burkina Faso",
+    "dial": "226"
   },
   {
     "code": "BI",
-    "name": "Burundi"
+    "name": "Burundi",
+    "dial": "257"
   },
   {
     "code": "KH",
-    "name": "Cambodia"
+    "name": "Cambodia",
+    "dial": "855"
   },
   {
     "code": "CM",
-    "name": "Cameroon"
+    "name": "Cameroon",
+    "dial": "237"
   },
   {
     "code": "CA",
-    "name": "Canada"
+    "name": "Canada",
+    "dial": "1"
   },
   {
     "code": "CV",
-    "name": "Cape Verde"
+    "name": "Cape Verde",
+    "dial": "238"
   },
   {
     "code": "KY",
-    "name": "Cayman Islands"
+    "name": "Cayman Islands",
+    "dial": "1"
   },
   {
     "code": "CF",
-    "name": "Central African Republic"
+    "name": "Central African Republic",
+    "dial": "236"
   },
   {
     "code": "TD",
-    "name": "Chad"
+    "name": "Chad",
+    "dial": "235"
   },
   {
     "code": "CL",
-    "name": "Chile"
+    "name": "Chile",
+    "dial": "56"
   },
   {
     "code": "CN",
-    "name": "China"
+    "name": "China",
+    "dial": "86"
   },
   {
     "code": "CX",
-    "name": "Christmas Island"
+    "name": "Christmas Island",
+    "dial": "61"
   },
   {
     "code": "CC",
-    "name": "Cocos (Keeling) Islands"
+    "name": "Cocos (Keeling) Islands",
+    "dial": "61"
   },
   {
     "code": "CO",
-    "name": "Colombia"
+    "name": "Colombia",
+    "dial": "57"
   },
   {
     "code": "KM",
-    "name": "Comoros"
+    "name": "Comoros",
+    "dial": "269"
   },
   {
     "code": "CG",
-    "name": "Congo"
+    "name": "Congo",
+    "dial": "242"
   },
   {
     "code": "CK",
-    "name": "Cook Islands"
+    "name": "Cook Islands",
+    "dial": "682"
   },
   {
     "code": "CR",
-    "name": "Costa Rica"
+    "name": "Costa Rica",
+    "dial": "506"
   },
   {
     "code": "CI",
-    "name": "Cote D'Ivoire (Ivory Coast)"
+    "name": "Cote D'Ivoire (Ivory Coast)",
+    "dial": "225"
   },
   {
     "code": "HR",
-    "name": "Croatia"
+    "name": "Croatia",
+    "dial": "385"
   },
   {
     "code": "CU",
-    "name": "Cuba"
+    "name": "Cuba",
+    "dial": "53"
   },
   {
     "code": "CW",
-    "name": "Curaçao"
+    "name": "Curaçao",
+    "dial": "599"
   },
   {
     "code": "CY",
-    "name": "Cyprus"
+    "name": "Cyprus",
+    "dial": "357"
   },
   {
     "code": "CZ",
-    "name": "Czech Republic"
+    "name": "Czech Republic",
+    "dial": "420"
   },
   {
     "code": "CD",
-    "name": "Democratic Republic of the Congo"
+    "name": "Democratic Republic of the Congo",
+    "dial": "243"
   },
   {
     "code": "DK",
-    "name": "Denmark"
+    "name": "Denmark",
+    "dial": "45"
   },
   {
     "code": "DJ",
-    "name": "Djibouti"
+    "name": "Djibouti",
+    "dial": "253"
   },
   {
     "code": "DM",
-    "name": "Dominica"
+    "name": "Dominica",
+    "dial": "1"
   },
   {
     "code": "DO",
-    "name": "Dominican Republic"
+    "name": "Dominican Republic",
+    "dial": "1"
   },
   {
     "code": "TL",
-    "name": "East Timor"
+    "name": "East Timor",
+    "dial": "670"
   },
   {
     "code": "EC",
-    "name": "Ecuador"
+    "name": "Ecuador",
+    "dial": "593"
   },
   {
     "code": "EG",
-    "name": "Egypt"
+    "name": "Egypt",
+    "dial": "20"
   },
   {
     "code": "SV",
-    "name": "El Salvador"
+    "name": "El Salvador",
+    "dial": "503"
   },
   {
     "code": "GQ",
-    "name": "Equatorial Guinea"
+    "name": "Equatorial Guinea",
+    "dial": "240"
   },
   {
     "code": "ER",
-    "name": "Eritrea"
+    "name": "Eritrea",
+    "dial": "291"
   },
   {
     "code": "EE",
-    "name": "Estonia"
+    "name": "Estonia",
+    "dial": "372"
   },
   {
     "code": "ET",
-    "name": "Ethiopia"
+    "name": "Ethiopia",
+    "dial": "251"
   },
   {
     "code": "FK",
-    "name": "Falkland Islands"
+    "name": "Falkland Islands",
+    "dial": "500"
   },
   {
     "code": "FO",
-    "name": "Faroe Islands"
+    "name": "Faroe Islands",
+    "dial": "298"
   },
   {
     "code": "FJ",
-    "name": "Fiji Islands"
+    "name": "Fiji Islands",
+    "dial": "679"
   },
   {
     "code": "FI",
-    "name": "Finland"
+    "name": "Finland",
+    "dial": "358"
   },
   {
     "code": "FR",
-    "name": "France"
+    "name": "France",
+    "dial": "33"
   },
   {
     "code": "GF",
-    "name": "French Guiana"
+    "name": "French Guiana",
+    "dial": "594"
   },
   {
     "code": "PF",
-    "name": "French Polynesia"
+    "name": "French Polynesia",
+    "dial": "689"
   },
   {
     "code": "TF",
-    "name": "French Southern Territories"
+    "name": "French Southern Territories",
+    "dial": "262"
   },
   {
     "code": "GA",
-    "name": "Gabon"
+    "name": "Gabon",
+    "dial": "241"
   },
   {
     "code": "GE",
-    "name": "Georgia"
+    "name": "Georgia",
+    "dial": "995"
   },
   {
     "code": "DE",
-    "name": "Germany"
+    "name": "Germany",
+    "dial": "49"
   },
   {
     "code": "GH",
-    "name": "Ghana"
+    "name": "Ghana",
+    "dial": "233"
   },
   {
     "code": "GI",
-    "name": "Gibraltar"
+    "name": "Gibraltar",
+    "dial": "350"
   },
   {
     "code": "GR",
-    "name": "Greece"
+    "name": "Greece",
+    "dial": "30"
   },
   {
     "code": "GL",
-    "name": "Greenland"
+    "name": "Greenland",
+    "dial": "299"
   },
   {
     "code": "GD",
-    "name": "Grenada"
+    "name": "Grenada",
+    "dial": "1"
   },
   {
     "code": "GP",
-    "name": "Guadeloupe"
+    "name": "Guadeloupe",
+    "dial": "590"
   },
   {
     "code": "GU",
-    "name": "Guam"
+    "name": "Guam",
+    "dial": "1"
   },
   {
     "code": "GT",
-    "name": "Guatemala"
+    "name": "Guatemala",
+    "dial": "502"
   },
   {
     "code": "GG",
-    "name": "Guernsey and Alderney"
+    "name": "Guernsey and Alderney",
+    "dial": "44"
   },
   {
     "code": "GN",
-    "name": "Guinea"
+    "name": "Guinea",
+    "dial": "224"
   },
   {
     "code": "GW",
-    "name": "Guinea-Bissau"
+    "name": "Guinea-Bissau",
+    "dial": "245"
   },
   {
     "code": "GY",
-    "name": "Guyana"
+    "name": "Guyana",
+    "dial": "592"
   },
   {
     "code": "HT",
-    "name": "Haiti"
+    "name": "Haiti",
+    "dial": "509"
   },
   {
     "code": "HM",
-    "name": "Heard Island and McDonald Islands"
+    "name": "Heard Island and McDonald Islands",
+    "dial": "672"
   },
   {
     "code": "HN",
-    "name": "Honduras"
+    "name": "Honduras",
+    "dial": "504"
   },
   {
     "code": "HK",
-    "name": "Hong Kong S.A.R."
+    "name": "Hong Kong S.A.R.",
+    "dial": "852"
   },
   {
     "code": "HU",
-    "name": "Hungary"
+    "name": "Hungary",
+    "dial": "36"
   },
   {
     "code": "IS",
-    "name": "Iceland"
+    "name": "Iceland",
+    "dial": "354"
   },
   {
     "code": "IN",
-    "name": "India"
+    "name": "India",
+    "dial": "91"
   },
   {
     "code": "ID",
-    "name": "Indonesia"
+    "name": "Indonesia",
+    "dial": "62"
   },
   {
     "code": "IR",
-    "name": "Iran"
+    "name": "Iran",
+    "dial": "98"
   },
   {
     "code": "IQ",
-    "name": "Iraq"
+    "name": "Iraq",
+    "dial": "964"
   },
   {
     "code": "IE",
-    "name": "Ireland"
+    "name": "Ireland",
+    "dial": "353"
   },
   {
     "code": "IL",
-    "name": "Israel"
+    "name": "Israel",
+    "dial": "972"
   },
   {
     "code": "IT",
-    "name": "Italy"
+    "name": "Italy",
+    "dial": "39"
   },
   {
     "code": "JM",
-    "name": "Jamaica"
+    "name": "Jamaica",
+    "dial": "1"
   },
   {
     "code": "JP",
-    "name": "Japan"
+    "name": "Japan",
+    "dial": "81"
   },
   {
     "code": "JE",
-    "name": "Jersey"
+    "name": "Jersey",
+    "dial": "44"
   },
   {
     "code": "JO",
-    "name": "Jordan"
+    "name": "Jordan",
+    "dial": "962"
   },
   {
     "code": "KZ",
-    "name": "Kazakhstan"
+    "name": "Kazakhstan",
+    "dial": "7"
   },
   {
     "code": "KE",
-    "name": "Kenya"
+    "name": "Kenya",
+    "dial": "254"
   },
   {
     "code": "KI",
-    "name": "Kiribati"
+    "name": "Kiribati",
+    "dial": "686"
   },
   {
     "code": "XK",
-    "name": "Kosovo"
+    "name": "Kosovo",
+    "dial": "383"
   },
   {
     "code": "KW",
-    "name": "Kuwait"
+    "name": "Kuwait",
+    "dial": "965"
   },
   {
     "code": "KG",
-    "name": "Kyrgyzstan"
+    "name": "Kyrgyzstan",
+    "dial": "996"
   },
   {
     "code": "LA",
-    "name": "Laos"
+    "name": "Laos",
+    "dial": "856"
   },
   {
     "code": "LV",
-    "name": "Latvia"
+    "name": "Latvia",
+    "dial": "371"
   },
   {
     "code": "LB",
-    "name": "Lebanon"
+    "name": "Lebanon",
+    "dial": "961"
   },
   {
     "code": "LS",
-    "name": "Lesotho"
+    "name": "Lesotho",
+    "dial": "266"
   },
   {
     "code": "LR",
-    "name": "Liberia"
+    "name": "Liberia",
+    "dial": "231"
   },
   {
     "code": "LY",
-    "name": "Libya"
+    "name": "Libya",
+    "dial": "218"
   },
   {
     "code": "LI",
-    "name": "Liechtenstein"
+    "name": "Liechtenstein",
+    "dial": "423"
   },
   {
     "code": "LT",
-    "name": "Lithuania"
+    "name": "Lithuania",
+    "dial": "370"
   },
   {
     "code": "LU",
-    "name": "Luxembourg"
+    "name": "Luxembourg",
+    "dial": "352"
   },
   {
     "code": "MO",
-    "name": "Macau S.A.R."
+    "name": "Macau S.A.R.",
+    "dial": "853"
   },
   {
     "code": "MK",
-    "name": "Macedonia"
+    "name": "Macedonia",
+    "dial": "389"
   },
   {
     "code": "MG",
-    "name": "Madagascar"
+    "name": "Madagascar",
+    "dial": "261"
   },
   {
     "code": "MW",
-    "name": "Malawi"
+    "name": "Malawi",
+    "dial": "265"
   },
   {
     "code": "MY",
-    "name": "Malaysia"
+    "name": "Malaysia",
+    "dial": "60"
   },
   {
     "code": "MV",
-    "name": "Maldives"
+    "name": "Maldives",
+    "dial": "960"
   },
   {
     "code": "ML",
-    "name": "Mali"
+    "name": "Mali",
+    "dial": "223"
   },
   {
     "code": "MT",
-    "name": "Malta"
+    "name": "Malta",
+    "dial": "356"
   },
   {
     "code": "IM",
-    "name": "Man (Isle of)"
+    "name": "Man (Isle of)",
+    "dial": "44"
   },
   {
     "code": "MH",
-    "name": "Marshall Islands"
+    "name": "Marshall Islands",
+    "dial": "692"
   },
   {
     "code": "MQ",
-    "name": "Martinique"
+    "name": "Martinique",
+    "dial": "596"
   },
   {
     "code": "MR",
-    "name": "Mauritania"
+    "name": "Mauritania",
+    "dial": "222"
   },
   {
     "code": "MU",
-    "name": "Mauritius"
+    "name": "Mauritius",
+    "dial": "230"
   },
   {
     "code": "YT",
-    "name": "Mayotte"
+    "name": "Mayotte",
+    "dial": "262"
   },
   {
     "code": "MX",
-    "name": "Mexico"
+    "name": "Mexico",
+    "dial": "52"
   },
   {
     "code": "FM",
-    "name": "Micronesia"
+    "name": "Micronesia",
+    "dial": "691"
   },
   {
     "code": "MD",
-    "name": "Moldova"
+    "name": "Moldova",
+    "dial": "373"
   },
   {
     "code": "MC",
-    "name": "Monaco"
+    "name": "Monaco",
+    "dial": "377"
   },
   {
     "code": "MN",
-    "name": "Mongolia"
+    "name": "Mongolia",
+    "dial": "976"
   },
   {
     "code": "ME",
-    "name": "Montenegro"
+    "name": "Montenegro",
+    "dial": "382"
   },
   {
     "code": "MS",
-    "name": "Montserrat"
+    "name": "Montserrat",
+    "dial": "1"
   },
   {
     "code": "MA",
-    "name": "Morocco"
+    "name": "Morocco",
+    "dial": "212"
   },
   {
     "code": "MZ",
-    "name": "Mozambique"
+    "name": "Mozambique",
+    "dial": "258"
   },
   {
     "code": "MM",
-    "name": "Myanmar"
+    "name": "Myanmar",
+    "dial": "95"
   },
   {
     "code": "NA",
-    "name": "Namibia"
+    "name": "Namibia",
+    "dial": "264"
   },
   {
     "code": "NR",
-    "name": "Nauru"
+    "name": "Nauru",
+    "dial": "674"
   },
   {
     "code": "NP",
-    "name": "Nepal"
+    "name": "Nepal",
+    "dial": "977"
   },
   {
     "code": "NL",
-    "name": "Netherlands"
+    "name": "Netherlands",
+    "dial": "31"
   },
   {
     "code": "NC",
-    "name": "New Caledonia"
+    "name": "New Caledonia",
+    "dial": "687"
   },
   {
     "code": "NZ",
-    "name": "New Zealand"
+    "name": "New Zealand",
+    "dial": "64"
   },
   {
     "code": "NI",
-    "name": "Nicaragua"
+    "name": "Nicaragua",
+    "dial": "505"
   },
   {
     "code": "NE",
-    "name": "Niger"
+    "name": "Niger",
+    "dial": "227"
   },
   {
     "code": "NG",
-    "name": "Nigeria"
+    "name": "Nigeria",
+    "dial": "234"
   },
   {
     "code": "NU",
-    "name": "Niue"
+    "name": "Niue",
+    "dial": "683"
   },
   {
     "code": "NF",
-    "name": "Norfolk Island"
+    "name": "Norfolk Island",
+    "dial": "672"
   },
   {
     "code": "KP",
-    "name": "North Korea"
+    "name": "North Korea",
+    "dial": "850"
   },
   {
     "code": "MP",
-    "name": "Northern Mariana Islands"
+    "name": "Northern Mariana Islands",
+    "dial": "1"
   },
   {
     "code": "NO",
-    "name": "Norway"
+    "name": "Norway",
+    "dial": "47"
   },
   {
     "code": "OM",
-    "name": "Oman"
+    "name": "Oman",
+    "dial": "968"
   },
   {
     "code": "PK",
-    "name": "Pakistan"
+    "name": "Pakistan",
+    "dial": "92"
   },
   {
     "code": "PW",
-    "name": "Palau"
+    "name": "Palau",
+    "dial": "680"
   },
   {
     "code": "PS",
-    "name": "Palestinian Territory Occupied"
+    "name": "Palestinian Territory Occupied",
+    "dial": "970"
   },
   {
     "code": "PA",
-    "name": "Panama"
+    "name": "Panama",
+    "dial": "507"
   },
   {
     "code": "PG",
-    "name": "Papua new Guinea"
+    "name": "Papua new Guinea",
+    "dial": "675"
   },
   {
     "code": "PY",
-    "name": "Paraguay"
+    "name": "Paraguay",
+    "dial": "595"
   },
   {
     "code": "PE",
-    "name": "Peru"
+    "name": "Peru",
+    "dial": "51"
   },
   {
     "code": "PH",
-    "name": "Philippines"
+    "name": "Philippines",
+    "dial": "63"
   },
   {
     "code": "PN",
-    "name": "Pitcairn Island"
+    "name": "Pitcairn Island",
+    "dial": "870"
   },
   {
     "code": "PL",
-    "name": "Poland"
+    "name": "Poland",
+    "dial": "48"
   },
   {
     "code": "PT",
-    "name": "Portugal"
+    "name": "Portugal",
+    "dial": "351"
   },
   {
     "code": "PR",
-    "name": "Puerto Rico"
+    "name": "Puerto Rico",
+    "dial": "1"
   },
   {
     "code": "QA",
-    "name": "Qatar"
+    "name": "Qatar",
+    "dial": "974"
   },
   {
     "code": "RE",
-    "name": "Reunion"
+    "name": "Reunion",
+    "dial": "262"
   },
   {
     "code": "RO",
-    "name": "Romania"
+    "name": "Romania",
+    "dial": "40"
   },
   {
     "code": "RU",
-    "name": "Russia"
+    "name": "Russia",
+    "dial": "7"
   },
   {
     "code": "RW",
-    "name": "Rwanda"
+    "name": "Rwanda",
+    "dial": "250"
   },
   {
     "code": "SH",
-    "name": "Saint Helena"
+    "name": "Saint Helena",
+    "dial": "290"
   },
   {
     "code": "KN",
-    "name": "Saint Kitts And Nevis"
+    "name": "Saint Kitts And Nevis",
+    "dial": "1"
   },
   {
     "code": "LC",
-    "name": "Saint Lucia"
+    "name": "Saint Lucia",
+    "dial": "1"
   },
   {
     "code": "PM",
-    "name": "Saint Pierre and Miquelon"
+    "name": "Saint Pierre and Miquelon",
+    "dial": "508"
   },
   {
     "code": "VC",
-    "name": "Saint Vincent And The Grenadines"
+    "name": "Saint Vincent And The Grenadines",
+    "dial": "1"
   },
   {
     "code": "BL",
-    "name": "Saint-Barthelemy"
+    "name": "Saint-Barthelemy",
+    "dial": "590"
   },
   {
     "code": "MF",
-    "name": "Saint-Martin (French part)"
+    "name": "Saint-Martin (French part)",
+    "dial": "590"
   },
   {
     "code": "WS",
-    "name": "Samoa"
+    "name": "Samoa",
+    "dial": "685"
   },
   {
     "code": "SM",
-    "name": "San Marino"
+    "name": "San Marino",
+    "dial": "378"
   },
   {
     "code": "ST",
-    "name": "Sao Tome and Principe"
+    "name": "Sao Tome and Principe",
+    "dial": "239"
   },
   {
     "code": "SA",
-    "name": "Saudi Arabia"
+    "name": "Saudi Arabia",
+    "dial": "966"
   },
   {
     "code": "SN",
-    "name": "Senegal"
+    "name": "Senegal",
+    "dial": "221"
   },
   {
     "code": "RS",
-    "name": "Serbia"
+    "name": "Serbia",
+    "dial": "381"
   },
   {
     "code": "SC",
-    "name": "Seychelles"
+    "name": "Seychelles",
+    "dial": "248"
   },
   {
     "code": "SL",
-    "name": "Sierra Leone"
+    "name": "Sierra Leone",
+    "dial": "232"
   },
   {
     "code": "SG",
-    "name": "Singapore"
+    "name": "Singapore",
+    "dial": "65"
   },
   {
     "code": "SX",
-    "name": "Sint Maarten (Dutch part)"
+    "name": "Sint Maarten (Dutch part)",
+    "dial": "1721"
   },
   {
     "code": "SK",
-    "name": "Slovakia"
+    "name": "Slovakia",
+    "dial": "421"
   },
   {
     "code": "SI",
-    "name": "Slovenia"
+    "name": "Slovenia",
+    "dial": "386"
   },
   {
     "code": "SB",
-    "name": "Solomon Islands"
+    "name": "Solomon Islands",
+    "dial": "677"
   },
   {
     "code": "SO",
-    "name": "Somalia"
+    "name": "Somalia",
+    "dial": "252"
   },
   {
     "code": "ZA",
-    "name": "South Africa"
+    "name": "South Africa",
+    "dial": "27"
   },
   {
     "code": "GS",
-    "name": "South Georgia"
+    "name": "South Georgia",
+    "dial": "500"
   },
   {
     "code": "KR",
-    "name": "South Korea"
+    "name": "South Korea",
+    "dial": "82"
   },
   {
     "code": "SS",
-    "name": "South Sudan"
+    "name": "South Sudan",
+    "dial": "211"
   },
   {
     "code": "ES",
-    "name": "Spain"
+    "name": "Spain",
+    "dial": "34"
   },
   {
     "code": "LK",
-    "name": "Sri Lanka"
+    "name": "Sri Lanka",
+    "dial": "94"
   },
   {
     "code": "SD",
-    "name": "Sudan"
+    "name": "Sudan",
+    "dial": "249"
   },
   {
     "code": "SR",
-    "name": "Suriname"
+    "name": "Suriname",
+    "dial": "597"
   },
   {
     "code": "SJ",
-    "name": "Svalbard And Jan Mayen Islands"
+    "name": "Svalbard And Jan Mayen Islands",
+    "dial": "47"
   },
   {
     "code": "SZ",
-    "name": "Swaziland"
+    "name": "Swaziland",
+    "dial": "268"
   },
   {
     "code": "SE",
-    "name": "Sweden"
+    "name": "Sweden",
+    "dial": "46"
   },
   {
     "code": "CH",
-    "name": "Switzerland"
+    "name": "Switzerland",
+    "dial": "41"
   },
   {
     "code": "SY",
-    "name": "Syria"
+    "name": "Syria",
+    "dial": "963"
   },
   {
     "code": "TW",
-    "name": "Taiwan"
+    "name": "Taiwan",
+    "dial": "886"
   },
   {
     "code": "TJ",
-    "name": "Tajikistan"
+    "name": "Tajikistan",
+    "dial": "992"
   },
   {
     "code": "TZ",
-    "name": "Tanzania"
+    "name": "Tanzania",
+    "dial": "255"
   },
   {
     "code": "TH",
-    "name": "Thailand"
+    "name": "Thailand",
+    "dial": "66"
   },
   {
     "code": "BS",
-    "name": "The Bahamas"
+    "name": "The Bahamas",
+    "dial": "1"
   },
   {
     "code": "GM",
-    "name": "The Gambia"
+    "name": "The Gambia",
+    "dial": "220"
   },
   {
     "code": "TG",
-    "name": "Togo"
+    "name": "Togo",
+    "dial": "228"
   },
   {
     "code": "TK",
-    "name": "Tokelau"
+    "name": "Tokelau",
+    "dial": "690"
   },
   {
     "code": "TO",
-    "name": "Tonga"
+    "name": "Tonga",
+    "dial": "676"
   },
   {
     "code": "TT",
-    "name": "Trinidad And Tobago"
+    "name": "Trinidad And Tobago",
+    "dial": "1"
   },
   {
     "code": "TN",
-    "name": "Tunisia"
+    "name": "Tunisia",
+    "dial": "216"
   },
   {
     "code": "TR",
-    "name": "Turkey"
+    "name": "Turkey",
+    "dial": "90"
   },
   {
     "code": "TM",
-    "name": "Turkmenistan"
+    "name": "Turkmenistan",
+    "dial": "993"
   },
   {
     "code": "TC",
-    "name": "Turks And Caicos Islands"
+    "name": "Turks And Caicos Islands",
+    "dial": "1"
   },
   {
     "code": "TV",
-    "name": "Tuvalu"
+    "name": "Tuvalu",
+    "dial": "688"
   },
   {
     "code": "UG",
-    "name": "Uganda"
+    "name": "Uganda",
+    "dial": "256"
   },
   {
     "code": "UA",
-    "name": "Ukraine"
+    "name": "Ukraine",
+    "dial": "380"
   },
   {
     "code": "AE",
-    "name": "United Arab Emirates"
+    "name": "United Arab Emirates",
+    "dial": "971"
   },
   {
     "code": "GB",
-    "name": "United Kingdom"
+    "name": "United Kingdom",
+    "dial": "44"
   },
   {
     "code": "US",
-    "name": "United States"
+    "name": "United States",
+    "dial": "1"
   },
   {
     "code": "UM",
-    "name": "United States Minor Outlying Islands"
+    "name": "United States Minor Outlying Islands",
+    "dial": "1"
   },
   {
     "code": "UY",
-    "name": "Uruguay"
+    "name": "Uruguay",
+    "dial": "598"
   },
   {
     "code": "UZ",
-    "name": "Uzbekistan"
+    "name": "Uzbekistan",
+    "dial": "998"
   },
   {
     "code": "VU",
-    "name": "Vanuatu"
+    "name": "Vanuatu",
+    "dial": "678"
   },
   {
     "code": "VA",
-    "name": "Vatican City State (Holy See)"
+    "name": "Vatican City State (Holy See)",
+    "dial": "379"
   },
   {
     "code": "VE",
-    "name": "Venezuela"
+    "name": "Venezuela",
+    "dial": "58"
   },
   {
     "code": "VN",
-    "name": "Vietnam"
+    "name": "Vietnam",
+    "dial": "84"
   },
   {
     "code": "VG",
-    "name": "Virgin Islands (British)"
+    "name": "Virgin Islands (British)",
+    "dial": "1"
   },
   {
     "code": "VI",
-    "name": "Virgin Islands (US)"
+    "name": "Virgin Islands (US)",
+    "dial": "1"
   },
   {
     "code": "WF",
-    "name": "Wallis And Futuna Islands"
+    "name": "Wallis And Futuna Islands",
+    "dial": "681"
   },
   {
     "code": "EH",
-    "name": "Western Sahara"
+    "name": "Western Sahara",
+    "dial": "212"
   },
   {
     "code": "YE",
-    "name": "Yemen"
+    "name": "Yemen",
+    "dial": "967"
   },
   {
     "code": "ZM",
-    "name": "Zambia"
+    "name": "Zambia",
+    "dial": "260"
   },
   {
     "code": "ZW",
-    "name": "Zimbabwe"
+    "name": "Zimbabwe",
+    "dial": "263"
   }
 ] as const;
 
@@ -1013,4 +1264,7 @@ export function countryByCode(code: string): Country | undefined {
 }
 export function isCountryCode(code: string): boolean {
   return BY_CODE.has(code.toUpperCase());
+}
+export function dialCodeForCountry(code: string): string {
+  return BY_CODE.get(code.toUpperCase())?.dial ?? "";
 }

@@ -208,7 +208,8 @@
     "resultNotFound": "لم نتمكن من العثور على طلب الدفع هذا.",
     "resultDisabled": "الدفع معطّل. صفحة العودة هذه جاهزة لـ MPGS بمجرد تفعيل بيانات الاعتماد.",
     "contactTeam": "تواصل مع الفريق",
-    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR)."
+    "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR).",
+    "agreeTerms": "I have read and agree to the <terms>terms and conditions</terms>."
   },
   "bookingPage": {
     "heroLabel": "إتمام حجز الرحلة",

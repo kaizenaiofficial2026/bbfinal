@@ -243,6 +243,9 @@ export async function heartbeatAdminSession(
 
 export type AdminPresence = {
   active: boolean;
+  // Why the seat was lost: "taken" = another live session holds it; "idle" =
+  // our lease expired with no live holder (inactivity). Drives the login message.
+  reason?: "taken" | "idle";
   pending: { id: string; email: string; createdAt: number } | null;
 };
 
@@ -251,7 +254,7 @@ export async function getAdminPresence(
   sid: string,
   email: string,
 ): Promise<AdminPresence> {
-  if (!sid) return { active: false, pending: null };
+  if (!sid) return { active: false, reason: "idle", pending: null };
   const loaded = await load(userId);
   if (!loaded) return { active: true, pending: null }; // fail open
 
@@ -259,7 +262,11 @@ export async function getAdminPresence(
   const isHolder = Boolean(liveActive && liveActive.sid === sid);
 
   if (!isHolder) {
-    return { active: false, pending: null };
+    // A live seat is never force-taken from an active holder (a new login only
+    // claims a FREE seat, or goes through the separate contest/handover flow).
+    // So if our poll finds we're no longer the holder, our own lease lapsed —
+    // i.e. inactivity — even if another admin has since claimed the freed seat.
+    return { active: false, reason: "idle", pending: null };
   }
 
   // Keep the seat warm while actively polling.

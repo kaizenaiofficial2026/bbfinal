@@ -7,12 +7,13 @@ type LoginPageProps = {
   searchParams: Promise<{
     error?: string;
     kicked?: string;
+    reason?: string;
     reset?: string;
   }>;
 };
 
 export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
-  const { error, kicked, reset } = await searchParams;
+  const { error, kicked, reason, reset } = await searchParams;
 
   return (
     <main className="admin-login">
@@ -21,8 +22,9 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
           <span className="section-kicker">Session ended</span>
           <h2>You were signed out</h2>
           <p>
-            Another admin signed in and took over the panel. Sign in again to
-            request access.
+            {reason === "idle"
+              ? "Your session ended after a period of inactivity. Sign in again to continue."
+              : "Another admin signed in and took over the panel. Sign in again to request access."}
           </p>
         </aside>
       ) : null}
