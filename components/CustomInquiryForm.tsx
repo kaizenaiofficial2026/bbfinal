@@ -47,10 +47,12 @@ const InquiryErrorsContext = createContext<{
   clearError: (name: string) => void;
 }>({ errors: {}, clearError: () => {} });
 
-// The inquiry is a 3-step wizard: Hotel → Air ticket → Transport. Every step is
-// mandatory; each step's required fields are listed here (the airticket return
-// date is validated separately — required only for a round trip). Field names
-// are namespaced per section because every step shares one <form>.
+// The inquiry is a 3-step wizard: Hotel → Air ticket → Transport. The sections
+// are OPTIONAL — the customer picks at least one; a section is only validated
+// once it's "started", and then it's all-or-nothing. Each section's fields are
+// listed here for that started/complete check (the airticket return date is
+// validated separately — required only for a round trip). Field names are
+// namespaced per section because every step shares one <form>.
 const STEP_FIELDS: string[][] = [
   [
     "hotel",
