@@ -37,7 +37,12 @@ export default function Footer() {
                   />
                 </svg>
               </a>
-              <a href="#" aria-label="Instagram">
+              <a
+                href="https://www.instagram.com/beyondborderslk/"
+                aria-label="Instagram"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <rect
                     x="4"
@@ -61,7 +66,12 @@ export default function Footer() {
                   />
                 </svg>
               </a>
-              <a href="#" aria-label="LinkedIn">
+              <a
+                href="https://www.linkedin.com/company/beyond-borders-pvt-ltd/?viewAsMember=true"
+                aria-label="LinkedIn"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M7 10v8M7 7v.01M11 18v-8M11 13.5c0-2 1.2-3.5 3.2-3.5S18 11.4 18 14v4"
