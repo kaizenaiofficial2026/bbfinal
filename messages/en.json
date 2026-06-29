@@ -2,7 +2,8 @@
   "common": {
     "language": "Language",
     "skipToContent": "Skip to content",
-    "contactUs": "Contact Us"
+    "contactUs": "Contact Us",
+    "viewDestination": "View destination"
   },
   "nav": {
     "home": "Home",
@@ -23,7 +24,14 @@
     "destinations": "Destinations",
     "contact": "Contact",
     "rights": "© 2026 Beyond Borders. All rights reserved.",
-    "tagline": "The Travel Partner"
+    "tagline": "The Travel Partner",
+    "dest": {
+      "sigiriya": "Sigiriya",
+      "kandy": "Kandy",
+      "galle": "Galle",
+      "yala": "Yala",
+      "polonnaruwa": "Polonnaruwa"
+    }
   },
   "home": {
     "destinations": {
@@ -455,5 +463,29 @@
     "currentPasswordWrong": "Your current password is incorrect.",
     "accountDeactivated": "Your account has been deactivated. Please contact our team.",
     "rateLimited": "You've been rate limited. Please wait about {minutes} minute(s) before trying again."
+  },
+  "formOptions": {
+    "Economy": "Economy",
+    "Premium Economy": "Premium Economy",
+    "Business": "Business",
+    "First": "First",
+    "No": "No",
+    "Yes": "Yes",
+    "Single": "Single",
+    "Double": "Double",
+    "Twin": "Twin",
+    "Triple": "Triple",
+    "Quadruple": "Quadruple",
+    "Room Only": "Room Only",
+    "Bed & Breakfast": "Bed & Breakfast",
+    "Half Board": "Half Board",
+    "Full Board": "Full Board",
+    "Normal Car": "Normal Car",
+    "SUV / Jeep": "SUV / Jeep",
+    "Limousine": "Limousine",
+    "Drop": "Drop",
+    "Pickup": "Pickup",
+    "Perday": "Perday",
+    "Two or more": "Two or more"
   }
 }

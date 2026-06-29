@@ -96,9 +96,11 @@ function Select({
   placeholder?: string;
   onChange?: (value: string) => void;
 }) {
+  // Pass plain strings through; BaseSelect localises them via formOptions
+  // (keeping the English value for server validation).
   const withPlaceholder = [
     { label: placeholder ?? "Select…", value: "" },
-    ...options.map((opt) => ({ label: opt, value: opt })),
+    ...options,
   ];
   const values = useContext(InquiryValuesContext);
   const { errors, clearError } = useContext(InquiryErrorsContext);

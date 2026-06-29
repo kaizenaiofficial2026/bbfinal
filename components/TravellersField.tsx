@@ -27,6 +27,9 @@ export default function TravellersField({
   error,
 }: TravellersFieldProps) {
   const t = useTranslations("customQuote");
+  const tOpt = useTranslations("formOptions");
+  // Localised cabin-class label for display; the posted value stays English.
+  const classLabel = (c: string) => (tOpt.has(c) ? tOpt(c) : c);
   const rootRef = useRef<HTMLDivElement>(null);
   const classRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -100,7 +103,7 @@ export default function TravellersField({
   const summary =
     `${t("paxAdults", { count: adults })}` +
     (children > 0 ? `, ${t("paxChildren", { count: children })}` : "") +
-    ` · ${cabinClass}`;
+    ` · ${classLabel(cabinClass)}`;
 
   const stepper = (
     value: number,
@@ -170,7 +173,7 @@ export default function TravellersField({
                 aria-labelledby="cabin-class-label"
                 onClick={() => setClassOpen((o) => !o)}
               >
-                <span className="select-value">{cabinClass}</span>
+                <span className="select-value">{classLabel(cabinClass)}</span>
               </button>
               <ul
                 className="select-menu"
@@ -187,7 +190,7 @@ export default function TravellersField({
                     onClick={() => chooseClass(c)}
                     onMouseMove={() => setClassActive(i)}
                   >
-                    {c}
+                    {classLabel(c)}
                   </li>
                 ))}
               </ul>

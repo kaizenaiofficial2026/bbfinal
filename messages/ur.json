@@ -2,7 +2,8 @@
   "common": {
     "language": "زبان",
     "skipToContent": "مواد پر جائیں",
-    "contactUs": "ہم سے رابطہ کریں"
+    "contactUs": "ہم سے رابطہ کریں",
+    "viewDestination": "منزل دیکھیں"
   },
   "nav": {
     "home": "ہوم",
@@ -23,7 +24,14 @@
     "destinations": "مقامات",
     "contact": "رابطہ",
     "rights": "© 2026 Beyond Borders. جملہ حقوق محفوظ ہیں۔",
-    "tagline": "دی ٹریول پارٹنر"
+    "tagline": "دی ٹریول پارٹنر",
+    "dest": {
+      "sigiriya": "سگیریا",
+      "kandy": "کینڈی",
+      "galle": "گال",
+      "yala": "یالا",
+      "polonnaruwa": "پولوناروا"
+    }
   },
   "home": {
     "destinations": {
@@ -403,7 +411,7 @@
     "tripRound": "دو طرفہ سفر",
     "tripMulti": "ملٹی سٹی",
     "airFrom": "کہاں سے",
-    "airTo": "To",
+    "airTo": "کہاں تک",
     "airPlacePlaceholder": "ملک، شہر یا ایئرپورٹ",
     "airAddFlight": "ایک اور پرواز شامل کریں",
     "airRemoveFlight": "ہٹائیں",
@@ -455,5 +463,29 @@
     "currentPasswordWrong": "آپ کا موجودہ پاس ورڈ غلط ہے۔",
     "accountDeactivated": "آپ کا اکاؤنٹ غیر فعال کر دیا گیا ہے۔ براہ کرم ہماری ٹیم سے رابطہ کریں۔",
     "rateLimited": "آپ کی شرح محدود کر دی گئی ہے۔ دوبارہ کوشش کرنے سے پہلے براہ کرم تقریباً {minutes} منٹ انتظار کریں۔"
+  },
+  "formOptions": {
+    "Economy": "اکانومی",
+    "Premium Economy": "پریمیم اکانومی",
+    "Business": "بزنس",
+    "First": "فرسٹ",
+    "No": "نہیں",
+    "Yes": "ہاں",
+    "Single": "سنگل",
+    "Double": "ڈبل",
+    "Twin": "ٹوئن",
+    "Triple": "ٹرپل",
+    "Quadruple": "چار بستر",
+    "Room Only": "صرف کمرہ",
+    "Bed & Breakfast": "بستر اور ناشتہ",
+    "Half Board": "ہاف بورڈ",
+    "Full Board": "فل بورڈ",
+    "Normal Car": "عام کار",
+    "SUV / Jeep": "ایس یو وی / جیپ",
+    "Limousine": "لیموزین",
+    "Drop": "ڈراپ",
+    "Pickup": "پک اپ",
+    "Perday": "فی دن",
+    "Two or more": "دو یا زیادہ"
   }
 }

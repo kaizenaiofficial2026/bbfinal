@@ -22,7 +22,12 @@ export default function Footer() {
             />
             <p>{t("blurb")}</p>
             <div className="socials" aria-label="Social links">
-              <a href="#" aria-label="Facebook">
+              <a
+                href="https://www.facebook.com/p/Beyond-Borders-100085648405257/"
+                aria-label="Facebook"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M14 8h2V4h-3a5 5 0 0 0-5 5v3H6v4h2v4h4v-4h3l1-4h-4V9a1 1 0 0 1 1-1Z"
@@ -84,11 +89,11 @@ export default function Footer() {
           <div>
             <h3>{t("destinations")}</h3>
             <ul>
-              <li><Link href="/sigiriya">Sigiriya</Link></li>
-              <li><Link href="/kandy">Kandy</Link></li>
-              <li><Link href="/galle">Galle</Link></li>
-              <li><Link href="/yala">Yala</Link></li>
-              <li><Link href="/polonnaruwa">Polonnaruwa</Link></li>
+              <li><Link href="/sigiriya">{t("dest.sigiriya")}</Link></li>
+              <li><Link href="/kandy">{t("dest.kandy")}</Link></li>
+              <li><Link href="/galle">{t("dest.galle")}</Link></li>
+              <li><Link href="/yala">{t("dest.yala")}</Link></li>
+              <li><Link href="/polonnaruwa">{t("dest.polonnaruwa")}</Link></li>
             </ul>
           </div>
 

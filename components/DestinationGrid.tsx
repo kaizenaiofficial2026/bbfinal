@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { imageSrc } from "@/lib/images";
 import { useState } from "react";
@@ -11,6 +12,7 @@ type DestinationGridProps = {
 };
 
 export default function DestinationGrid({ destinations }: DestinationGridProps) {
+  const t = useTranslations("common");
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
@@ -51,7 +53,7 @@ export default function DestinationGrid({ destinations }: DestinationGridProps) 
             href={`/${destination.slug}`}
             aria-label={`View ${destination.title} destination`}
           >
-            View destination
+            {t("viewDestination")}
           </Link>
         </article>
       ))}

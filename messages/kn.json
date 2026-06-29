@@ -2,7 +2,8 @@
   "common": {
     "language": "ಭಾಷೆ",
     "skipToContent": "ವಿಷಯಕ್ಕೆ ಹೋಗಿ",
-    "contactUs": "ಸಂಪರ್ಕಿಸಿ"
+    "contactUs": "ಸಂಪರ್ಕಿಸಿ",
+    "viewDestination": "ಸ್ಥಳವನ್ನು ನೋಡಿ"
   },
   "nav": {
     "home": "ಮುಖಪುಟ",
@@ -23,7 +24,14 @@
     "destinations": "ಸ್ಥಳಗಳು",
     "contact": "ಸಂಪರ್ಕ",
     "rights": "© 2026 Beyond Borders. ಎಲ್ಲಾ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.",
-    "tagline": "ದ ಟ್ರಾವೆಲ್ ಪಾರ್ಟ್ನರ್"
+    "tagline": "ದ ಟ್ರಾವೆಲ್ ಪಾರ್ಟ್ನರ್",
+    "dest": {
+      "sigiriya": "ಸಿಗಿರಿಯ",
+      "kandy": "ಕ್ಯಾಂಡಿ",
+      "galle": "ಗಾಲ್",
+      "yala": "ಯಾಲ",
+      "polonnaruwa": "ಪೊಲೊನ್ನರುವ"
+    }
   },
   "home": {
     "destinations": {
@@ -403,7 +411,7 @@
     "tripRound": "ಸುತ್ತು ಪ್ರಯಾಣ",
     "tripMulti": "ಬಹು-ನಗರ",
     "airFrom": "ಇಂದ",
-    "airTo": "To",
+    "airTo": "ಗೆ",
     "airPlacePlaceholder": "ದೇಶ, ನಗರ ಅಥವಾ ವಿಮಾನ ನಿಲ್ದಾಣ",
     "airAddFlight": "ಇನ್ನೊಂದು ವಿಮಾನ ಸೇರಿಸಿ",
     "airRemoveFlight": "ತೆಗೆದುಹಾಕಿ",
@@ -455,5 +463,29 @@
     "currentPasswordWrong": "ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಪಾಸ್‌ವರ್ಡ್ ತಪ್ಪಾಗಿದೆ.",
     "accountDeactivated": "ನಿಮ್ಮ ಖಾತೆಯನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ದಯವಿಟ್ಟು ನಮ್ಮ ತಂಡವನ್ನು ಸಂಪರ್ಕಿಸಿ.",
     "rateLimited": "ನಿಮಗೆ ದರ ಮಿತಿ ವಿಧಿಸಲಾಗಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುವ ಮೊದಲು ದಯವಿಟ್ಟು ಸುಮಾರು {minutes} ನಿಮಿಷ(ಗಳು) ಕಾಯಿರಿ."
+  },
+  "formOptions": {
+    "Economy": "ಎಕಾನಮಿ",
+    "Premium Economy": "ಪ್ರೀಮಿಯಂ ಎಕಾನಮಿ",
+    "Business": "ಬಿಸಿನೆಸ್",
+    "First": "ಫಸ್ಟ್",
+    "No": "ಇಲ್ಲ",
+    "Yes": "ಹೌದು",
+    "Single": "ಸಿಂಗಲ್",
+    "Double": "ಡಬಲ್",
+    "Twin": "ಟ್ವಿನ್",
+    "Triple": "ಟ್ರಿಪಲ್",
+    "Quadruple": "ಕ್ವಾಡ್ರುಪಲ್",
+    "Room Only": "ಕೊಠಡಿ ಮಾತ್ರ",
+    "Bed & Breakfast": "ಬೆಡ್ ಮತ್ತು ಬ್ರೇಕ್‌ಫಾಸ್ಟ್",
+    "Half Board": "ಹಾಫ್ ಬೋರ್ಡ್",
+    "Full Board": "ಫುಲ್ ಬೋರ್ಡ್",
+    "Normal Car": "ಸಾಮಾನ್ಯ ಕಾರು",
+    "SUV / Jeep": "ಎಸ್‌ಯುವಿ / ಜೀಪ್",
+    "Limousine": "ಲಿಮೋಸಿನ್",
+    "Drop": "ಡ್ರಾಪ್",
+    "Pickup": "ಪಿಕಪ್",
+    "Perday": "ದಿನಕ್ಕೆ",
+    "Two or more": "ಎರಡು ಅಥವಾ ಹೆಚ್ಚು"
   }
 }

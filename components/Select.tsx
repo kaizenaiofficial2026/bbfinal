@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export type SelectOption = {
   label: string;
@@ -27,8 +28,14 @@ export default function Select({
   onChange,
   error,
 }: SelectProps) {
+  // Localise plain string options via the formOptions namespace (e.g. Yes/No,
+  // cabin classes); the value stays English. Pre-built {label,value} options and
+  // proper nouns (no key) pass through unchanged.
+  const tOpt = useTranslations("formOptions");
   const normalizedOptions = options.map((option) =>
-    typeof option === "string" ? { label: option, value: option } : option,
+    typeof option === "string"
+      ? { label: tOpt.has(option) ? tOpt(option) : option, value: option }
+      : option,
   );
   const labelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);

@@ -2,7 +2,8 @@
   "common": {
     "language": "भाषा",
     "skipToContent": "सामग्री पर जाएँ",
-    "contactUs": "संपर्क करें"
+    "contactUs": "संपर्क करें",
+    "viewDestination": "गंतव्य देखें"
   },
   "nav": {
     "home": "होम",
@@ -23,7 +24,14 @@
     "destinations": "गंतव्य",
     "contact": "संपर्क",
     "rights": "© 2026 Beyond Borders. सर्वाधिकार सुरक्षित।",
-    "tagline": "द ट्रैवल पार्टनर"
+    "tagline": "द ट्रैवल पार्टनर",
+    "dest": {
+      "sigiriya": "सिगिरिया",
+      "kandy": "कैंडी",
+      "galle": "गाले",
+      "yala": "याला",
+      "polonnaruwa": "पोलोन्नारुवा"
+    }
   },
   "home": {
     "destinations": {
@@ -403,7 +411,7 @@
     "tripRound": "राउंड ट्रिप",
     "tripMulti": "बहु-शहर",
     "airFrom": "से",
-    "airTo": "To",
+    "airTo": "तक",
     "airPlacePlaceholder": "देश, शहर या हवाई अड्डा",
     "airAddFlight": "एक और उड़ान जोड़ें",
     "airRemoveFlight": "हटाएँ",
@@ -455,5 +463,29 @@
     "currentPasswordWrong": "आपका वर्तमान पासवर्ड गलत है।",
     "accountDeactivated": "आपका खाता निष्क्रिय कर दिया गया है। कृपया हमारी टीम से संपर्क करें।",
     "rateLimited": "आपकी दर सीमित कर दी गई है। पुनः प्रयास करने से पहले कृपया लगभग {minutes} मिनट प्रतीक्षा करें।"
+  },
+  "formOptions": {
+    "Economy": "इकोनॉमी",
+    "Premium Economy": "प्रीमियम इकोनॉमी",
+    "Business": "बिज़नेस",
+    "First": "फर्स्ट",
+    "No": "नहीं",
+    "Yes": "हाँ",
+    "Single": "सिंगल",
+    "Double": "डबल",
+    "Twin": "ट्विन",
+    "Triple": "ट्रिपल",
+    "Quadruple": "क्वाड्रपल",
+    "Room Only": "केवल कमरा",
+    "Bed & Breakfast": "बेड एंड ब्रेकफास्ट",
+    "Half Board": "हाफ बोर्ड",
+    "Full Board": "फुल बोर्ड",
+    "Normal Car": "सामान्य कार",
+    "SUV / Jeep": "एसयूवी / जीप",
+    "Limousine": "लिमोज़ीन",
+    "Drop": "ड्रॉप",
+    "Pickup": "पिकअप",
+    "Perday": "प्रति दिन",
+    "Two or more": "दो या अधिक"
   }
 }

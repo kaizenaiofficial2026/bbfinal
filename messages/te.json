@@ -2,7 +2,8 @@
   "common": {
     "language": "భాష",
     "skipToContent": "విషయానికి వెళ్లండి",
-    "contactUs": "సంప్రదించండి"
+    "contactUs": "సంప్రదించండి",
+    "viewDestination": "గమ్యస్థానాన్ని చూడండి"
   },
   "nav": {
     "home": "హోమ్",
@@ -23,7 +24,14 @@
     "destinations": "గమ్యస్థానాలు",
     "contact": "సంప్రదింపు",
     "rights": "© 2026 Beyond Borders. అన్ని హక్కులు ప్రత్యేకించబడ్డాయి.",
-    "tagline": "ద ట్రావెల్ పార్ట్‌నర్"
+    "tagline": "ద ట్రావెల్ పార్ట్‌నర్",
+    "dest": {
+      "sigiriya": "సిగిరియ",
+      "kandy": "కాండీ",
+      "galle": "గాలే",
+      "yala": "యాల",
+      "polonnaruwa": "పొలొన్నరువ"
+    }
   },
   "home": {
     "destinations": {
@@ -403,7 +411,7 @@
     "tripRound": "రౌండ్ ట్రిప్",
     "tripMulti": "మల్టీ-సిటీ",
     "airFrom": "నుండి",
-    "airTo": "To",
+    "airTo": "వరకు",
     "airPlacePlaceholder": "దేశం, నగరం లేదా విమానాశ్రయం",
     "airAddFlight": "మరో విమానాన్ని జోడించండి",
     "airRemoveFlight": "తొలగించండి",
@@ -455,5 +463,29 @@
     "currentPasswordWrong": "మీ ప్రస్తుత పాస్‌వర్డ్ తప్పు.",
     "accountDeactivated": "మీ ఖాతా నిష్క్రియం చేయబడింది. దయచేసి మా బృందాన్ని సంప్రదించండి.",
     "rateLimited": "మీరు రేట్ పరిమితం చేయబడ్డారు. మళ్లీ ప్రయత్నించే ముందు దయచేసి సుమారు {minutes} నిమిషం(లు) వేచి ఉండండి."
+  },
+  "formOptions": {
+    "Economy": "ఎకానమీ",
+    "Premium Economy": "ప్రీమియం ఎకానమీ",
+    "Business": "బిజినెస్",
+    "First": "ఫస్ట్",
+    "No": "కాదు",
+    "Yes": "అవును",
+    "Single": "సింగిల్",
+    "Double": "డబుల్",
+    "Twin": "ట్విన్",
+    "Triple": "ట్రిపుల్",
+    "Quadruple": "క్వాడ్రపుల్",
+    "Room Only": "గది మాత్రమే",
+    "Bed & Breakfast": "బెడ్ & బ్రేక్‌ఫాస్ట్",
+    "Half Board": "హాఫ్ బోర్డ్",
+    "Full Board": "ఫుల్ బోర్డ్",
+    "Normal Car": "సాధారణ కారు",
+    "SUV / Jeep": "SUV / జీప్",
+    "Limousine": "లిమోజిన్",
+    "Drop": "డ్రాప్",
+    "Pickup": "పికప్",
+    "Perday": "రోజుకు",
+    "Two or more": "రెండు లేదా అంతకంటే ఎక్కువ"
   }
 }

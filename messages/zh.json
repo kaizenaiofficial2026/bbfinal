@@ -2,7 +2,8 @@
   "common": {
     "language": "语言",
     "skipToContent": "跳至内容",
-    "contactUs": "联系我们"
+    "contactUs": "联系我们",
+    "viewDestination": "查看目的地"
   },
   "nav": {
     "home": "首页",
@@ -23,7 +24,14 @@
     "destinations": "目的地",
     "contact": "联系",
     "rights": "© 2026 Beyond Borders. 版权所有。",
-    "tagline": "您的旅行伙伴"
+    "tagline": "您的旅行伙伴",
+    "dest": {
+      "sigiriya": "锡吉里耶",
+      "kandy": "康提",
+      "galle": "加勒",
+      "yala": "亚拉",
+      "polonnaruwa": "波隆纳鲁沃"
+    }
   },
   "home": {
     "destinations": {
@@ -403,7 +411,7 @@
     "tripRound": "往返",
     "tripMulti": "多城市",
     "airFrom": "出发地",
-    "airTo": "To",
+    "airTo": "目的地",
     "airPlacePlaceholder": "国家、城市或机场",
     "airAddFlight": "添加另一段航班",
     "airRemoveFlight": "移除",
@@ -455,5 +463,29 @@
     "currentPasswordWrong": "你的当前密码不正确。",
     "accountDeactivated": "你的账户已被停用。请联系我们的团队。",
     "rateLimited": "你的操作过于频繁。请等待约 {minutes} 分钟后再试。"
+  },
+  "formOptions": {
+    "Economy": "经济舱",
+    "Premium Economy": "超级经济舱",
+    "Business": "商务舱",
+    "First": "头等舱",
+    "No": "否",
+    "Yes": "是",
+    "Single": "单人间",
+    "Double": "双人间",
+    "Twin": "双床房",
+    "Triple": "三人间",
+    "Quadruple": "四人间",
+    "Room Only": "仅住宿",
+    "Bed & Breakfast": "住宿含早餐",
+    "Half Board": "半膳",
+    "Full Board": "全膳",
+    "Normal Car": "普通轿车",
+    "SUV / Jeep": "SUV / 吉普车",
+    "Limousine": "豪华轿车",
+    "Drop": "送达",
+    "Pickup": "接送",
+    "Perday": "按天",
+    "Two or more": "两次及以上"
   }
 }
