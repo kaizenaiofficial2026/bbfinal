@@ -21,7 +21,7 @@ describe("admin validation", () => {
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.currency).toBe("LKR");
+      expect(result.data.currency).toBe("USD");
       expect(result.data.status).toBe("draft");
     }
   });

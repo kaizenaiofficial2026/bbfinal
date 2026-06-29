@@ -18,8 +18,8 @@ describe("formatPackagePrice", () => {
     expect(formatPackagePrice(320000, "USD")).toBe("USD 320,000");
   });
 
-  it("defaults to LKR and upper-cases the code", () => {
-    expect(formatPackagePrice(1450)).toBe("LKR 1,450");
+  it("defaults to USD and upper-cases the code", () => {
+    expect(formatPackagePrice(1450)).toBe("USD 1,450");
     expect(formatPackagePrice(500, "usd")).toBe("USD 500");
   });
 });

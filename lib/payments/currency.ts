@@ -1,10 +1,10 @@
 /**
  * Currency handling for the payment gateway.
  *
- * Packages are priced and displayed in USD, but the Seylan MPGS merchant only
- * settles in LKR. So the amount we actually send to the gateway (and charge the
- * card) is the USD price converted to LKR at a configured rate. The booking
- * keeps the USD figure for display; the payment row stores the LKR charge.
+ * The Seylan MPGS merchant now settles in USD, so packages are charged in USD
+ * with no conversion (the booking flow uses the package's native amount/currency
+ * directly). This helper is retained as a fallback for the case where a gateway
+ * settles in a different currency than the package price.
  *
  * Pure (no env/server imports) so it's unit-testable; callers pass the rate.
  */

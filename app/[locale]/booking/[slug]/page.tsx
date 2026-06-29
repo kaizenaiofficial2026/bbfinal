@@ -97,7 +97,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
         packageId={tourPackage.id}
         packageTitle={tourPackage.title}
         amount={tourPackage.priceAmount}
-        currency={tourPackage.currency ?? "LKR"}
+        currency={tourPackage.currency ?? "USD"}
       />
     );
   }

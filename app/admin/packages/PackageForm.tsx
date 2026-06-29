@@ -110,7 +110,7 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
             <input
               name="currency"
               maxLength={3}
-              defaultValue={tourPackage?.currency ?? "LKR"}
+              defaultValue={tourPackage?.currency ?? "USD"}
             />
           </label>
           <label>

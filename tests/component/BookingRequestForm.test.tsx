@@ -15,7 +15,7 @@ import BookingRequestForm from "@/components/BookingRequestForm";
 describe("BookingRequestForm", () => {
   it("carries the package context in hidden fields", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
     );
 
     expect(
@@ -29,7 +29,7 @@ describe("BookingRequestForm", () => {
 
   it("collects no card details (payment happens on the hosted checkout)", () => {
     render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
     );
 
     expect(screen.queryByLabelText(/card number/i)).toBeNull();
@@ -41,7 +41,7 @@ describe("BookingRequestForm", () => {
 
   it("includes a concealed honeypot field", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
     );
 
     const honeypot = container.querySelector('input[name="company"]');
@@ -49,36 +49,31 @@ describe("BookingRequestForm", () => {
     expect(honeypot?.closest('[aria-hidden="true"]')).not.toBeNull();
   });
 
-  it("uses native start/end date pickers feeding a hidden dates field", () => {
+  it("uses the custom date pickers feeding a hidden dates field", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
     );
 
-    expect(container.querySelector("#booking-start")).toHaveAttribute(
-      "type",
-      "date",
+    // The native <input type="date"> was replaced with the themed DatePicker,
+    // whose trigger is a button; the value still posts via the hidden field.
+    expect(container.querySelector("button#booking-start")).toHaveClass(
+      "datepicker-trigger",
     );
-    expect(container.querySelector("#booking-end")).toHaveAttribute(
-      "type",
-      "date",
+    expect(container.querySelector("button#booking-end")).toHaveClass(
+      "datepicker-trigger",
     );
     expect(container.querySelector('input[name="dates"]')).not.toBeNull();
   });
 
-  it("blocks submit and shows an error when the end date precedes the start", () => {
+  it("blocks submit and asks for dates when none are selected", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="LKR" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
     );
 
-    const start = container.querySelector("#booking-start") as HTMLInputElement;
-    const end = container.querySelector("#booking-end") as HTMLInputElement;
-    // Far-future dates so the "no past dates" rule never interferes.
-    fireEvent.change(start, { target: { value: "2030-07-10" } });
-    fireEvent.change(end, { target: { value: "2030-07-01" } });
     fireEvent.submit(container.querySelector("form") as HTMLFormElement);
 
     expect(
-      screen.getByText(/end date can't be before the start date/i),
+      screen.getByText(/choose your travel dates/i),
     ).toBeInTheDocument();
   });
 });

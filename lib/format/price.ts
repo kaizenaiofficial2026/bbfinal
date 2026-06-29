@@ -1,5 +1,5 @@
 /**
- * Display a package price like "LKR 450,000". Returns null when no price is set
+ * Display a package price like "USD 3,999". Returns null when no price is set
  * so callers can omit the price element entirely (drafts / quote-only packages).
  */
 export function formatPackagePrice(
@@ -9,6 +9,6 @@ export function formatPackagePrice(
   if (amount == null) {
     return null;
   }
-  const code = (currency || "LKR").toUpperCase();
+  const code = (currency || "USD").toUpperCase();
   return `${code} ${Number(amount).toLocaleString()}`;
 }

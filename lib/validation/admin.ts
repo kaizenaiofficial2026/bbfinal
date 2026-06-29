@@ -31,7 +31,7 @@ export const packageAdminSchema = z.object({
   itinerary: z.string().trim().min(2),
   priceAmount: z.coerce.number().nonnegative().optional().or(z.literal("")),
   depositAmount: z.coerce.number().nonnegative().optional().or(z.literal("")),
-  currency: z.string().trim().min(3).max(3).default("LKR"),
+  currency: z.string().trim().min(3).max(3).default("USD"),
   status: statusSchema.default("draft"),
   sortOrder: z.coerce.number().int().default(0),
 });
