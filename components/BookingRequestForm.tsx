@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { submitBooking } from "@/app/actions";
 import { initialBookingState } from "@/app/action-state";
 import Spinner from "./Spinner";
+import DatePicker from "./DatePicker";
 import { useSubmitFeedback } from "./useSubmitFeedback";
 import {
   combineTravelDates,
@@ -98,31 +99,30 @@ export default function BookingRequestForm({
               readOnly
             />
           </div>
-          <div className={`form-field${dateError ? " is-invalid" : ""}`}>
-            <label htmlFor="booking-start">{t("startDate")}</label>
-            <input
-              id="booking-start"
-              type="date"
-              value={start}
-              onChange={(event) => {
-                setStart(event.target.value);
-                setDateError(null);
-              }}
-            />
-          </div>
-          <div className={`form-field${dateError ? " is-invalid" : ""}`}>
-            <label htmlFor="booking-end">{t("endDate")}</label>
-            <input
-              id="booking-end"
-              type="date"
-              value={end}
-              min={start || undefined}
-              onChange={(event) => {
-                setEnd(event.target.value);
-                setDateError(null);
-              }}
-            />
-          </div>
+          <DatePicker
+            id="booking-start"
+            label={t("startDate")}
+            value={start}
+            min={todayIso()}
+            placeholder={t("datePlaceholder")}
+            invalid={!!dateError}
+            onChange={(iso) => {
+              setStart(iso);
+              setDateError(null);
+            }}
+          />
+          <DatePicker
+            id="booking-end"
+            label={t("endDate")}
+            value={end}
+            min={start || todayIso()}
+            placeholder={t("datePlaceholder")}
+            invalid={!!dateError}
+            onChange={(iso) => {
+              setEnd(iso);
+              setDateError(null);
+            }}
+          />
           {dateError ? (
             <p className="field-error full" role="alert">
               {dateError}

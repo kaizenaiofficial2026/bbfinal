@@ -3,7 +3,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Combobox, { type ComboboxOption } from "./Combobox";
+import DateField from "./DateField";
 import { COUNTRIES, dialCodeForCountry } from "@/lib/data/countries";
+import { todayIso } from "@/lib/validation/dates";
 
 // Country → City → Mobile → Date of birth for the registration form. The
 // country is chosen first; selecting it enables the city search (scoped to that
@@ -139,16 +141,16 @@ export default function RegisterContactFields({
             required
           />
         </div>
-        <div className="auth-field">
-          <label htmlFor="reg-dob">{t("dateOfBirth")}</label>
-          <input
-            id="reg-dob"
-            name="dateOfBirth"
-            type="date"
-            defaultValue={defaultDateOfBirth}
-            required
-          />
-        </div>
+        <DateField
+          id="reg-dob"
+          name="dateOfBirth"
+          label={t("dateOfBirth")}
+          defaultValue={defaultDateOfBirth}
+          max={todayIso()}
+          initialView="2000-01-01"
+          placeholder={t("datePlaceholder")}
+          fieldClassName="auth-field"
+        />
       </div>
     </>
   );

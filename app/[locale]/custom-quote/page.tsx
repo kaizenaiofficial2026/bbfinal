@@ -21,6 +21,7 @@ export default async function CustomQuotePage() {
           label={t("heroLabel")}
           image="/assets/images/heroes/pricing-header.jpg"
           summary={t("heroSummary")}
+          showBreadcrumbs={false}
         />
         <section className="section section-paper">
           <div className="container" style={{ maxWidth: "880px" }}>

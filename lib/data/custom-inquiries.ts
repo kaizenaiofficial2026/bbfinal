@@ -53,3 +53,18 @@ export async function listCustomInquiries() {
 
   return data;
 }
+
+export async function getCustomInquiry(id: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("custom_inquiries")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    dbError(error);
+  }
+
+  return data;
+}

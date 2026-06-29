@@ -5,8 +5,10 @@ import AuthShell from "@/components/AuthShell";
 import AuthErrorToast from "@/components/AuthErrorToast";
 import PasswordInput from "@/components/PasswordInput";
 import RegisterContactFields from "@/components/RegisterContactFields";
+import DateField from "@/components/DateField";
 import SubmitButton from "@/components/SubmitButton";
 import { registerAction } from "../account/actions";
+import { todayIso } from "@/lib/validation/dates";
 
 export const metadata: Metadata = {
   title: "Create an account",
@@ -102,15 +104,14 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
               required
             />
           </div>
-          <div className="auth-field">
-            <label htmlFor="reg-passport-exp">{t("passportExpiry")}</label>
-            <input
-              id="reg-passport-exp"
-              name="passportExpiry"
-              type="date"
-              required
-            />
-          </div>
+          <DateField
+            id="reg-passport-exp"
+            name="passportExpiry"
+            label={t("passportExpiry")}
+            min={todayIso()}
+            placeholder={t("datePlaceholder")}
+            fieldClassName="auth-field"
+          />
         </div>
 
         <div className="auth-grid-2">

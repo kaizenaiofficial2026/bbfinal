@@ -32,6 +32,7 @@ import {
 } from "@/lib/validation/custom-inquiry";
 import AirTicketBuilder from "./AirTicketBuilder";
 import CustomInquiryContactFields from "./CustomInquiryContactFields";
+import DateField from "./DateField";
 import BaseSelect from "./Select";
 import Spinner from "./Spinner";
 import { useSubmitFeedback } from "./useSubmitFeedback";
@@ -154,6 +155,35 @@ function Field({
         </p>
       ) : null}
     </div>
+  );
+}
+
+// Date version of Field — same context wiring (echo default + error + clear)
+// but rendered with the custom calendar DatePicker instead of a native input.
+function CalendarField({
+  name,
+  label,
+  min,
+  placeholder,
+}: {
+  name: string;
+  label: string;
+  min?: string;
+  placeholder?: string;
+}) {
+  const values = useContext(InquiryValuesContext);
+  const { errors, clearError } = useContext(InquiryErrorsContext);
+  return (
+    <DateField
+      id={`ci-${name}`}
+      name={name}
+      label={label}
+      defaultValue={values[name]}
+      error={errors[name]}
+      min={min}
+      placeholder={placeholder}
+      onChange={() => clearError(name)}
+    />
   );
 }
 
@@ -366,22 +396,24 @@ export default function CustomInquiryForm() {
           </div>
 
           <div className="inquiry-wizard-head">
-            <ol className="inquiry-steps">
+            <div className="inquiry-steps">
               {steps.map((s, i) => (
-                <li
+                <button
+                  type="button"
                   key={s.key}
                   className={`inquiry-step${i === step ? " is-active" : ""}${
                     i < step ? " is-done" : ""
                   }`}
                   aria-current={i === step ? "step" : undefined}
+                  onClick={() => setStep(i)}
                 >
                   <span className="inquiry-step-index">
                     {i < step ? "✓" : i + 1}
                   </span>
                   <span className="inquiry-step-name">{s.label}</span>
-                </li>
+                </button>
               ))}
-            </ol>
+            </div>
             <p className="inquiry-step-caption">
               {t("stepLabel", { current: step + 1, total: steps.length })} ·{" "}
               {t("optionalHint")}
@@ -409,8 +441,18 @@ export default function CustomInquiryForm() {
               <Select name="hotelRoomType" label={t("roomType")} options={ROOM_TYPES} placeholder={t("selectPlaceholder")} />
               <Select name="hotelMealPlan" label={t("mealPlan")} options={MEAL_PLANS} placeholder={t("selectPlaceholder")} />
               <Field name="hotelRooms" label={t("numberOfRooms")} type="number" min={1} placeholder="1" />
-              <Field name="hotelArrival" label={t("expectedArrival")} type="date" />
-              <Field name="hotelDeparture" label={t("expectedDeparture")} type="date" />
+              <CalendarField
+                name="hotelArrival"
+                label={t("expectedArrival")}
+                min={todayIso()}
+                placeholder={t("datePlaceholder")}
+              />
+              <CalendarField
+                name="hotelDeparture"
+                label={t("expectedDeparture")}
+                min={todayIso()}
+                placeholder={t("datePlaceholder")}
+              />
               <Field name="hotelAdults" label={t("adults")} type="number" min={1} placeholder="2" />
               <Field name="hotelChildren" label={t("children")} type="number" min={0} placeholder="0" required={false} />
               <Select name="hotelExtraBed" label={t("extraBed")} options={YES_NO} placeholder={t("selectPlaceholder")} />

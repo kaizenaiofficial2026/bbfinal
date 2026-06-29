@@ -9,8 +9,12 @@ type DatePickerProps = {
   value: string; // ISO "YYYY-MM-DD" or ""
   onChange: (iso: string) => void;
   min?: string; // ISO; days before this are disabled
+  max?: string; // ISO; days after this are disabled (e.g. date of birth)
+  initialView?: string; // ISO; month shown first when there's no value (e.g. DOB)
   placeholder?: string;
   error?: string;
+  invalid?: boolean; // red ring without an inline message (shared/external error)
+  fieldClassName?: string; // wrapper class — "form-field" (default) or "auth-field"
 };
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -47,8 +51,12 @@ export default function DatePicker({
   value,
   onChange,
   min,
+  max,
+  initialView,
   placeholder,
   error,
+  invalid,
+  fieldClassName = "form-field",
 }: DatePickerProps) {
   const locale = useLocale();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -63,10 +71,16 @@ export default function DatePicker({
 
   const selected = useMemo(() => parseIso(value), [value]);
   const minIso = min ?? "";
+  const maxIso = max ?? "";
   const firstDayOfWeek = useMemo(() => localeFirstDay(locale), [locale]);
 
+  // When nothing is selected, open on `initialView` if given (e.g. a sensible
+  // birth year for date-of-birth fields), else the min month, else today.
+  const baseParts = () =>
+    selected ?? parseIso(initialView ?? "") ?? parseIso(min ?? "") ?? todayParts;
+
   const [view, setView] = useState(() => {
-    const base = selected ?? parseIso(min ?? "") ?? todayParts;
+    const base = baseParts();
     return { y: base.y, m: base.m };
   });
 
@@ -86,7 +100,7 @@ export default function DatePicker({
   }, [open, focusedDay, view, id]);
 
   const openPicker = () => {
-    const base = selected ?? parseIso(min ?? "") ?? todayParts;
+    const base = baseParts();
     setView({ y: base.y, m: base.m });
     setFocusedDay(base.d);
     setOpen(true);
@@ -131,15 +145,19 @@ export default function DatePicker({
     });
   };
 
+  const shiftYear = (delta: number) => setView((v) => ({ ...v, y: v.y + delta }));
+
   // Move the keyboard focus by N days, crossing month boundaries as needed and
-  // never landing on a day before `min`.
+  // never landing on a day outside the [min, max] range.
   const moveFocus = (deltaDays: number) => {
     const base = new Date(view.y, view.m, focusedDay);
     base.setDate(base.getDate() + deltaDays);
     const ny = base.getFullYear();
     const nm = base.getMonth();
     const nd = base.getDate();
-    if (minIso && toIso(ny, nm, nd) < minIso) return;
+    const iso = toIso(ny, nm, nd);
+    if (minIso && iso < minIso) return;
+    if (maxIso && iso > maxIso) return;
     if (ny !== view.y || nm !== view.m) setView({ y: ny, m: nm });
     setFocusedDay(nd);
   };
@@ -189,7 +207,7 @@ export default function DatePicker({
 
   return (
     <div
-      className={`form-field datepicker${error ? " is-invalid" : ""}`}
+      className={`${fieldClassName} datepicker${error || invalid ? " is-invalid" : ""}`}
       ref={rootRef}
     >
       <label htmlFor={id}>{label}</label>
@@ -216,23 +234,43 @@ export default function DatePicker({
           onKeyDown={onPopKeyDown}
         >
           <div className="dp-header">
-            <button
-              type="button"
-              className="dp-nav"
-              aria-label="Previous month"
-              onClick={() => shiftMonth(-1)}
-            >
-              ‹
-            </button>
+            <div className="dp-nav-group">
+              <button
+                type="button"
+                className="dp-nav"
+                aria-label="Previous year"
+                onClick={() => shiftYear(-1)}
+              >
+                «
+              </button>
+              <button
+                type="button"
+                className="dp-nav"
+                aria-label="Previous month"
+                onClick={() => shiftMonth(-1)}
+              >
+                ‹
+              </button>
+            </div>
             <span className="dp-month">{monthLabel}</span>
-            <button
-              type="button"
-              className="dp-nav"
-              aria-label="Next month"
-              onClick={() => shiftMonth(1)}
-            >
-              ›
-            </button>
+            <div className="dp-nav-group">
+              <button
+                type="button"
+                className="dp-nav"
+                aria-label="Next month"
+                onClick={() => shiftMonth(1)}
+              >
+                ›
+              </button>
+              <button
+                type="button"
+                className="dp-nav"
+                aria-label="Next year"
+                onClick={() => shiftYear(1)}
+              >
+                »
+              </button>
+            </div>
           </div>
           <div className="dp-grid" role="grid">
             {weekdays.map((w, i) => (
@@ -243,7 +281,8 @@ export default function DatePicker({
             {cells.map((d, i) => {
               if (d === null) return <span key={`b-${i}`} className="dp-blank" />;
               const iso = toIso(view.y, view.m, d);
-              const disabled = !!minIso && iso < minIso;
+              const disabled =
+                (!!minIso && iso < minIso) || (!!maxIso && iso > maxIso);
               const isSelected = !!selected && iso === value;
               const isToday =
                 d === todayParts.d &&

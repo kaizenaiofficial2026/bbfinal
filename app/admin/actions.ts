@@ -469,6 +469,32 @@ export async function updateEnquiryStatusAction(
   return { ok: true, note: `Status updated to “${parsed.status}”.` };
 }
 
+export async function updateCustomInquiryStatusAction(
+  formData: FormData,
+): Promise<{ ok: boolean; note: string }> {
+  await requireAdmin();
+  // Custom inquiries share the enquiry status enum (new/contacted/closed), so
+  // the enquiry status schema validates this one too.
+  const parsed = enquiryStatusUpdateSchema.parse({
+    id: formString(formData, "id"),
+    status: formString(formData, "status"),
+  });
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("custom_inquiries")
+    .update({ status: parsed.status })
+    .eq("id", parsed.id);
+
+  if (error) {
+    return { ok: false, note: error.message };
+  }
+
+  revalidatePath("/admin/custom-inquiries");
+  revalidatePath(`/admin/custom-inquiries/${parsed.id}`);
+
+  return { ok: true, note: `Status updated to “${parsed.status}”.` };
+}
+
 // Booking status is no longer editable by hand — it is derived purely from
 // payment (see lib/payments/reconcile.ts, which sets booking.status = 'paid' on
 // a confirmed capture). The manual updateBookingStatusAction was removed.

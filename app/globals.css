@@ -2524,6 +2524,12 @@ body.menu-open .menu-toggle span::after {
   margin-bottom: 10px;
 }
 
+.dp-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .dp-month {
   font-family: var(--font-display);
   font-size: 15px;
@@ -3807,12 +3813,25 @@ body.menu-open .menu-toggle span::after {
   border-radius: 999px;
   background: var(--paper);
   color: var(--ink-soft);
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
+  text-align: start;
+  cursor: pointer;
   transition:
     border-color 220ms var(--ease),
     color 220ms var(--ease),
     background 220ms var(--ease);
+}
+
+.inquiry-step:hover {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+.inquiry-step:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 .inquiry-step-index {
@@ -3937,17 +3956,30 @@ body.menu-open .menu-toggle span::after {
 }
 
 @media (max-width: 560px) {
-  /* Compact stepper: circles for all, label only for the active step. */
-  .inquiry-step {
-    flex: 0 0 auto;
+  /* Mobile: keep every step's label, but on a single horizontal row that
+     scrolls (swipe) instead of wrapping. min-width:0 lets this grid item shrink
+     below its content so the row scrolls instead of widening the page. */
+  .inquiry-wizard-head {
+    min-width: 0;
   }
 
-  .inquiry-step-name {
+  .inquiry-steps {
+    flex-wrap: nowrap;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 2px;
+    margin: -2px;
+  }
+
+  .inquiry-steps::-webkit-scrollbar {
     display: none;
   }
 
-  .inquiry-step.is-active .inquiry-step-name {
-    display: inline;
+  .inquiry-step {
+    flex: 0 0 auto;
   }
 
   .inquiry-nav .btn {
