@@ -129,6 +129,7 @@ export default function ContactForm() {
           defaultValue={state.values?.country}
           onChange={onCountryChange}
           emptyText={tAuth("noCountryMatches")}
+          required
         />
 
         <div className="form-field">

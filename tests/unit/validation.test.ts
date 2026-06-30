@@ -7,6 +7,8 @@ describe("public form validation", () => {
     const result = enquirySchema.safeParse({
       name: "Asha Perera",
       email: "asha@example.com",
+      phone: "+94 77 123 4567",
+      country: "Sri Lanka",
       message: "We would like a private Sri Lanka journey in August.",
       packageLabel: "Custom journey",
       source: "contact-form",
@@ -15,6 +17,19 @@ describe("public form validation", () => {
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it("rejects an enquiry missing required fields (phone, country, package)", () => {
+    const result = enquirySchema.safeParse({
+      name: "Asha Perera",
+      email: "asha@example.com",
+      message: "We would like a private Sri Lanka journey in August.",
+      source: "contact-form",
+      company: "",
+      startedAt: Date.now() - 5000,
+    });
+
+    expect(result.success).toBe(false);
   });
 
   it("rejects honeypot-filled enquiries", () => {

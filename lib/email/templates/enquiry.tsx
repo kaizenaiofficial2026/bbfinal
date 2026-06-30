@@ -5,6 +5,7 @@ type EnquiryEmailProps = {
   name: string;
   email: string;
   phone?: string | null;
+  country?: string | null;
   packageLabel?: string | null;
   message: string;
 };
@@ -19,6 +20,8 @@ export function EnquiryStaffNotification(props: EnquiryEmailProps) {
         Email: {props.email}
         <br />
         Phone: {props.phone || "Not provided"}
+        <br />
+        Country: {props.country || "Not provided"}
         <br />
         Journey: {props.packageLabel || "Custom / not selected"}
         <br />

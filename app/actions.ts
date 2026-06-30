@@ -66,6 +66,7 @@ export async function submitEnquiry(
     name: values.name,
     email: values.email,
     phone: values.phone,
+    country: values.country,
     packageLabel: values.package,
     message: values.message,
     source: "contact-form",
@@ -135,6 +136,7 @@ export async function submitEnquiry(
       name: parsed.data.name,
       email,
       phone: parsed.data.phone || null,
+      country: parsed.data.country || null,
       packageLabel: parsed.data.packageLabel || null,
       message: parsed.data.message,
     });

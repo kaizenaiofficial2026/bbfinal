@@ -3,8 +3,9 @@ import { z } from "zod";
 export const enquirySchema = z.object({
   name: z.string().trim().min(2, "Please enter your name.").max(120),
   email: z.email("Please enter a valid email address.").max(180),
-  phone: z.string().trim().max(60).optional().or(z.literal("")),
-  packageLabel: z.string().trim().max(160).optional().or(z.literal("")),
+  phone: z.string().trim().min(6, "Please enter your phone number.").max(60),
+  country: z.string().trim().min(1, "Please select your country.").max(80),
+  packageLabel: z.string().trim().min(1, "Please select a package.").max(160),
   message: z
     .string()
     .trim()
