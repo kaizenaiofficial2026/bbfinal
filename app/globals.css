@@ -1982,6 +1982,34 @@ body.menu-open .menu-toggle span::after {
     background 220ms var(--ease);
 }
 
+/* The country Combobox carries its own (auth-form) styling; inside the contact
+   form, align its label and field to match the surrounding .form-field inputs. */
+.contact-form .combobox-field {
+  gap: 8px;
+}
+
+.contact-form .combobox-field label {
+  font-family: var(--font-label);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.contact-form .combobox-control {
+  min-height: 50px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  background: var(--ivory);
+}
+
+.contact-form .combobox-control:focus-within {
+  border-color: var(--gold);
+  background: var(--paper);
+  box-shadow: none;
+}
+
 /* Custom dropdown (replaces native select) */
 .select {
   position: relative;
