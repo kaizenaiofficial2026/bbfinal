@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOutAction } from "@/app/admin/actions";
+import SubmitButton from "@/components/SubmitButton";
 
 const POLL_MS = 2500;
 
@@ -74,9 +75,7 @@ export function AdminLoginWaiting({ requestId }: { requestId: string }) {
             : "The active admin didn't respond in time. Please try again later."}
         </p>
         <form action={signOutAction}>
-          <button className="btn btn-primary" type="submit">
-            Back to login
-          </button>
+          <SubmitButton className="btn btn-primary">Back to login</SubmitButton>
         </form>
       </div>
     );
@@ -92,9 +91,7 @@ export function AdminLoginWaiting({ requestId }: { requestId: string }) {
       </p>
       <span className="admin-waiting-spinner" aria-hidden="true" />
       <form action={signOutAction}>
-        <button className="btn btn-line" type="submit">
-          Cancel
-        </button>
+        <SubmitButton className="btn btn-line">Cancel</SubmitButton>
       </form>
     </div>
   );

@@ -9,6 +9,7 @@ import { getCustomerUser } from "@/lib/customer/auth";
 import { isExpired } from "@/lib/security/request";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ChangePasswordWizard from "@/components/account/ChangePasswordWizard";
+import SubmitButton from "@/components/SubmitButton";
 import { logoutAction } from "./actions";
 
 export const metadata: Metadata = {
@@ -138,9 +139,9 @@ export default async function AccountPage() {
               </dl>
 
               <form action={logoutAction} className="account-signout">
-                <button className="btn btn-line" type="submit">
+                <SubmitButton className="btn btn-line">
                   {t("signOut")}
-                </button>
+                </SubmitButton>
               </form>
             </aside>
 

@@ -1,6 +1,7 @@
 import { signOutAction } from "./actions";
 import Image from "next/image";
 import Link from "next/link";
+import SubmitButton from "@/components/SubmitButton";
 import ScrollUnlock from "./ScrollUnlock";
 import { AdminNav } from "./_components/AdminNav";
 import AdminPresence from "./_components/AdminPresence";
@@ -47,9 +48,7 @@ export default function AdminLayout({
               View site ↗
             </a>
             <form action={signOutAction}>
-              <button className="admin-link-button" type="submit">
-                Sign out
-              </button>
+              <SubmitButton className="admin-link-button">Sign out</SubmitButton>
             </form>
           </div>
         </aside>

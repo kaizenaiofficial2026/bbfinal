@@ -13,6 +13,7 @@ import { getLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import CookieConsent from "@/components/CookieConsent";
+import ButtonNavLoading from "@/components/ButtonNavLoading";
 import PageviewTracker from "@/components/PageviewTracker";
 import { isRtl } from "@/i18n/routing";
 import "./globals.css";
@@ -135,6 +136,7 @@ export default async function RootLayout({
       <body className="is-loading">
         {children}
         <CookieConsent />
+        <ButtonNavLoading />
         <PageviewTracker />
         {/* Vercel Web Analytics + Speed Insights — self-mounting client
             components; cover both the public and admin trees from the root. */}

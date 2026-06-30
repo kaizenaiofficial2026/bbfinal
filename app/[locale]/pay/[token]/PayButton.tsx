@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import Spinner from "@/components/Spinner";
 
 declare global {
   interface Window {
@@ -90,6 +91,7 @@ export default function PayButton({
           }
         }}
       >
+        {pending ? <Spinner /> : null}
         {pending ? t("starting") : t("payNow")}
       </button>
       {error ? <p className="form-note" aria-live="polite">{error}</p> : null}

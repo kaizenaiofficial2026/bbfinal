@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import Spinner from "@/components/Spinner";
 
 type SubmitButtonProps = {
   children: React.ReactNode;
@@ -9,9 +10,9 @@ type SubmitButtonProps = {
 };
 
 /**
- * Submit button that disables itself and shows a pending label while the parent
- * form's server action is in flight — prevents double-submits and gives the
- * admin clear feedback on saves/uploads.
+ * Submit button that disables itself and shows an in-button spinner (plus a
+ * pending label) while the parent form's server action is in flight — prevents
+ * double-submits and gives the admin clear feedback on saves/uploads.
  */
 export function SubmitButton({
   children,
@@ -26,6 +27,7 @@ export function SubmitButton({
       disabled={pending}
       aria-busy={pending}
     >
+      {pending ? <Spinner /> : null}
       {pending ? pendingLabel : children}
     </button>
   );

@@ -6645,13 +6645,22 @@ html.lenis body {
 .admin-inline-form {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  /* The label stacks its caption above the select, so it's taller than the
+     button. Align children to the bottom so the button lines up with the
+     select rather than floating up beside the "Status" caption. */
+  align-items: flex-end;
   gap: 16px;
 }
 
 .admin-inline-form > label {
   flex: 0 1 320px;
   min-width: 0;
+}
+
+/* Match the select's height to the button (52px) so the bottom-aligned row is
+   flush — equal heights, tops and bottoms in line. */
+.admin-inline-form select {
+  min-height: 52px;
 }
 
 .admin-inline-form > div {
@@ -6819,6 +6828,29 @@ html.lenis body {
   animation: btnSpin 0.6s linear infinite;
 }
 
+/* Universal navigation loader: a .btn link clicked for an in-app navigation gets
+   `.is-navigating` (see components/ButtonNavLoading) until the route settles.
+   The spinner is drawn with a pseudo-element so no markup change is needed; any
+   trailing arrow icon is swapped out for it. */
+.btn.is-navigating {
+  pointer-events: none;
+}
+
+.btn.is-navigating > svg {
+  display: none;
+}
+
+.btn.is-navigating::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btnSpin 0.6s linear infinite;
+}
+
 @keyframes btnSpin {
   to {
     transform: rotate(360deg);
@@ -6826,7 +6858,8 @@ html.lenis body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn-spinner {
+  .btn-spinner,
+  .btn.is-navigating::after {
     animation-duration: 1.4s;
   }
 }

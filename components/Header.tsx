@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
+import SubmitButton from "@/components/SubmitButton";
 import { logoutAction } from "@/app/[locale]/account/actions";
 
 type HeaderAccount = { name: string } | null;
@@ -134,9 +135,9 @@ export default function Header({ account }: { account: HeaderAccount }) {
                   {tAuth("greeting", { name: firstName })}
                 </Link>
                 <form action={logoutAction}>
-                  <button className="auth-primary" type="submit">
+                  <SubmitButton className="auth-primary">
                     {tAuth("signOut")}
-                  </button>
+                  </SubmitButton>
                 </form>
               </>
             ) : (
@@ -165,9 +166,9 @@ export default function Header({ account }: { account: HeaderAccount }) {
                   {tAuth("greeting", { name: firstName })}
                 </Link>
                 <form action={logoutAction}>
-                  <button className="btn btn-primary" type="submit">
+                  <SubmitButton className="btn btn-primary">
                     {tAuth("signOut")}
-                  </button>
+                  </SubmitButton>
                 </form>
               </>
             ) : (
