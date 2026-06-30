@@ -144,7 +144,7 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
           <input name="imageFile" type="file" accept="image/*" />
         </label>
         <small className="form-hint">
-          Uploading replaces the URL. JPEG, PNG, WEBP or AVIF, up to 5 MB.
+          Uploading replaces the URL. JPEG, PNG, WEBP or AVIF, up to 4 MB.
         </small>
       </fieldset>
 

@@ -1986,6 +1986,13 @@ body.menu-open .menu-toggle span::after {
    form, align its label and field to match the surrounding .form-field inputs. */
 .contact-form .combobox-field {
   gap: 8px;
+  /* Allow the grid item (and its flex chain) to shrink to its column instead of
+     overflowing into the phone field on the right. */
+  min-width: 0;
+}
+
+.contact-form .combobox-field .combobox {
+  min-width: 0;
 }
 
 .contact-form .combobox-field label {
@@ -2997,6 +3004,13 @@ body.menu-open .menu-toggle span::after {
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 50%;
   color: rgba(255, 255, 255, 0.85);
+}
+
+.socials a svg {
+  /* Brand glyphs have differing viewBox aspect ratios; fix the height and let
+     the width follow so none are distorted. */
+  width: auto;
+  height: 16px;
 }
 
 .socials a:hover {

@@ -80,6 +80,16 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   reactCompiler: true,
+  experimental: {
+    // Admin image uploads run through Server Actions. Next caps action request
+    // bodies at 1MB by default, so any real photo (the app allows up to 4MB per
+    // image, and a destination can post BOTH a card and hero image in one form)
+    // failed the whole save with an opaque "Server Components render" error.
+    // Raise the limit to cover two 4MB images plus the form fields.
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
   images: {
     // Serve modern formats; the optimizer negotiates AVIF/WebP per browser and
     // falls back automatically.
