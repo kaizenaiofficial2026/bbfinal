@@ -1,15 +1,19 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useActionState, useCallback, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import Select, { type SelectOption } from "./Select";
+import Combobox, { type ComboboxOption } from "./Combobox";
 import Spinner from "./Spinner";
 import { useSubmitFeedback } from "./useSubmitFeedback";
 import { submitEnquiry } from "@/app/actions";
 import { initialEnquiryState } from "@/app/action-state";
+import { COUNTRIES, dialCodeForCountry } from "@/lib/data/countries";
 
 export default function ContactForm() {
   const t = useTranslations("contactPage");
+  const tAuth = useTranslations("auth");
+  const locale = useLocale();
   const [state, formAction, pending] = useActionState(
     submitEnquiry,
     initialEnquiryState,
@@ -22,25 +26,59 @@ export default function ContactForm() {
   );
   const [startedAt] = useState(() => Date.now());
 
-  const countryOptions: SelectOption[] = [
-    { label: t("countrySelect"), value: "" },
-    { label: "🇱🇰 Sri Lanka", value: "Sri Lanka" },
-    { label: "🇮🇳 India", value: "India" },
-    { label: "🇲🇻 Maldives", value: "Maldives" },
-    { label: "🇦🇪 United Arab Emirates", value: "United Arab Emirates" },
-    { label: "🇸🇦 Saudi Arabia", value: "Saudi Arabia" },
-    { label: "🇶🇦 Qatar", value: "Qatar" },
-    { label: "🇰🇼 Kuwait", value: "Kuwait" },
-    { label: "🇴🇲 Oman", value: "Oman" },
-    { label: "🇧🇭 Bahrain", value: "Bahrain" },
-    { label: "🇬🇧 United Kingdom", value: "United Kingdom" },
-    { label: "🇦🇺 Australia", value: "Australia" },
-    { label: "🇨🇦 Canada", value: "Canada" },
-    { label: "🇺🇸 United States", value: "United States" },
-    { label: "🇸🇬 Singapore", value: "Singapore" },
-    { label: "🇲🇾 Malaysia", value: "Malaysia" },
-    { label: `🌍 ${t("other")}`, value: "Other" },
-  ];
+  // Full country list with locale-aware names and flags; selecting a country
+  // pre-fills the phone field with its calling code (see onCountryChange).
+  const regionNames = useMemo(() => {
+    try {
+      return new Intl.DisplayNames([locale], { type: "region" });
+    } catch {
+      return null;
+    }
+  }, [locale]);
+
+  const countryOptions = useMemo<ComboboxOption[]>(() => {
+    return COUNTRIES.map((c) => {
+      let localized: string | undefined;
+      try {
+        localized = regionNames?.of(c.code);
+      } catch {
+        localized = undefined;
+      }
+      const label = localized && localized !== c.code ? localized : c.name;
+      return {
+        value: c.name, // stored value = canonical English name
+        label, // shown = locale-aware name
+        iconCode: c.code,
+        keywords: `${c.code} ${c.name} ${c.dial}`,
+      };
+    }).sort((a, b) => a.label.localeCompare(b.label, locale));
+  }, [regionNames, locale]);
+
+  const initialCode = useMemo(
+    () => COUNTRIES.find((c) => c.name === state.values?.country)?.code ?? "",
+    [state.values?.country],
+  );
+  const [countryCode, setCountryCode] = useState(initialCode);
+  const [phone, setPhone] = useState(state.values?.phone ?? "");
+
+  const onCountryChange = useCallback(
+    (_value: string, option?: ComboboxOption) => {
+      const code = option?.iconCode ?? "";
+      const newDial = dialCodeForCountry(code);
+      const oldDial = dialCodeForCountry(countryCode);
+      setCountryCode(code);
+      if (newDial) {
+        // Swap in the new calling code, stripping ONLY the exact previous
+        // "+<oldDial>" prefix so we never eat digits of the typed number.
+        setPhone((prev) => {
+          const stripRe = oldDial ? new RegExp(`^\\+${oldDial}\\s*`) : /^\+\s*/;
+          const rest = prev.replace(stripRe, "");
+          return `+${newDial} ${rest}`;
+        });
+      }
+    },
+    [countryCode],
+  );
 
   const packageOptions: SelectOption[] = [
     { label: t("packageSelect"), value: "" },
@@ -83,6 +121,16 @@ export default function ContactForm() {
             required
           />
         </div>
+        <Combobox
+          name="country"
+          label={t("country")}
+          placeholder={tAuth("countrySearchPlaceholder")}
+          options={countryOptions}
+          defaultValue={state.values?.country}
+          onChange={onCountryChange}
+          emptyText={tAuth("noCountryMatches")}
+        />
+
         <div className="form-field">
           <label htmlFor="phone">{t("phone")}</label>
           <input
@@ -90,18 +138,12 @@ export default function ContactForm() {
             name="phone"
             type="tel"
             autoComplete="tel"
-            placeholder="+1 555 000 0000"
-            defaultValue={state.values?.phone}
+            placeholder="+94 77 000 0000"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             required
           />
         </div>
-
-        <Select
-          name="country"
-          label={t("country")}
-          options={countryOptions}
-          defaultValue={state.values?.country}
-        />
 
         <Select
           name="package"
