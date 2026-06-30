@@ -184,8 +184,16 @@ export async function submitCustomInquiry(
 
   const data = parsed.data;
 
-  if (data.startedAt && Date.now() - data.startedAt < 2500) {
-    return { ok: false, note: t("waitMoment"), values };
+  // `startedAt` is a client-clock timestamp from form mount; Date.now() is the
+  // server clock. Only trap a small, NON-NEGATIVE elapsed (a genuine instant
+  // submit). A negative elapsed just means the visitor's device clock runs
+  // ahead of the server's — clock skew, not a bot — and must be allowed through,
+  // otherwise a fast device clock blocks the form permanently.
+  if (data.startedAt) {
+    const elapsed = Date.now() - data.startedAt;
+    if (elapsed >= 0 && elapsed < 2500) {
+      return { ok: false, note: t("waitMoment"), values };
+    }
   }
 
   // Make sure the address can actually receive mail (catches typos + fakes).

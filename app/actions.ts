@@ -32,7 +32,18 @@ function passedTimeTrap(startedAt?: number) {
     return true;
   }
 
-  return Date.now() - startedAt >= 2500;
+  // `startedAt` is stamped on the visitor's device (client clock) at form mount,
+  // while Date.now() here is the server clock. A NEGATIVE elapsed means the
+  // device clock runs AHEAD of the server's — that's clock skew, not a bot, so
+  // we must let it through. Without this guard, anyone whose laptop clock is
+  // fast got "please wait a moment" on every submit, forever. Only a small,
+  // non-negative elapsed indicates a genuine instant (bot) submission.
+  const elapsed = Date.now() - startedAt;
+  if (elapsed < 0) {
+    return true;
+  }
+
+  return elapsed >= 2500;
 }
 
 export async function submitEnquiry(
