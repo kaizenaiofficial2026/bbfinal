@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { TourPackage } from "@/lib/data/types";
 import { savePackageAction } from "../actions";
-import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { DirtySubmitButton } from "@/app/admin/_components/DirtySubmitButton";
 
 type PackageFormProps = {
   tourPackage?: TourPackage | null;
@@ -159,7 +159,7 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
         </label>
       </fieldset>
 
-      <SubmitButton pendingLabel="Saving…">Save package</SubmitButton>
+      <DirtySubmitButton pendingLabel="Saving…">Save package</DirtySubmitButton>
     </form>
   );
 }

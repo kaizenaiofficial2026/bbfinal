@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { Destination } from "@/lib/data/types";
 import { saveDestinationAction } from "../actions";
-import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { DirtySubmitButton } from "@/app/admin/_components/DirtySubmitButton";
 
 type DestinationFormProps = {
   destination?: Destination | null;
@@ -122,7 +122,7 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
         </label>
       </fieldset>
 
-      <SubmitButton pendingLabel="Saving…">Save destination</SubmitButton>
+      <DirtySubmitButton pendingLabel="Saving…">Save destination</DirtySubmitButton>
     </form>
   );
 }
