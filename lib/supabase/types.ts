@@ -192,6 +192,7 @@ export type Database = {
           details: Json;
           status: EnquiryStatus;
           ip_hash: string | null;
+          reference: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["custom_inquiries"]["Row"]> &
           Pick<

@@ -18,6 +18,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 export function CustomInquiryStaffNotification({
   inquiryType,
+  reference,
   fullName,
   email,
   mobile,
@@ -26,6 +27,7 @@ export function CustomInquiryStaffNotification({
   lines,
 }: {
   inquiryType: string;
+  reference?: string | null;
   fullName: string;
   email: string;
   mobile: string;
@@ -43,6 +45,9 @@ export function CustomInquiryStaffNotification({
       <Text style={paragraph}>
         {fullName} submitted a {typeLabel.toLowerCase()} inquiry.
       </Text>
+      {reference ? (
+        <Text style={detail}>Reference: {reference}</Text>
+      ) : null}
       <Text style={detail}>
         {lines.map((line, index) =>
           line.heading ? (

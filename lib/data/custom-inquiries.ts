@@ -13,7 +13,18 @@ export async function createCustomInquiry(
   inquiry: Database["public"]["Tables"]["custom_inquiries"]["Insert"],
 ) {
   const supabase = createSupabaseServiceClient();
-  const { error } = await supabase.from("custom_inquiries").insert(inquiry);
+  let { error } = await supabase.from("custom_inquiries").insert(inquiry);
+
+  // If the `reference` column hasn't been migrated yet (Postgres 42703 =
+  // undefined_column), retry without it so a public lead is never lost over a
+  // pending migration — the inquiry is saved, just without the stored reference.
+  if (error?.code === "42703" && "reference" in inquiry) {
+    const withoutReference = { ...inquiry };
+    delete (withoutReference as { reference?: unknown }).reference;
+    ({ error } = await supabase
+      .from("custom_inquiries")
+      .insert(withoutReference));
+  }
 
   if (error) {
     dbError(error);

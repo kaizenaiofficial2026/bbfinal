@@ -1,7 +1,7 @@
 import "server-only";
 
 import { env } from "@/lib/env";
-import { sendSms, type SmsResult } from "./client";
+import { sendSms } from "./client";
 
 /** "21/06/2026 11:14:46 AM" in Sri Lanka time, matching the agreed template. */
 export function formatColomboDateTime(date: Date = new Date()): string {
@@ -47,6 +47,22 @@ export function buildPaymentSms(input: {
   ].join("\n");
 }
 
+/** Pure builder for the "payment received" SMS from the customer's point of view. */
+export function buildCustomerPaymentSms(input: {
+  customerName: string;
+  reference: string;
+  amount: number;
+  currency: string;
+  date?: Date;
+}): string {
+  return [
+    `Dear ${input.customerName},`,
+    `We have received your payment of ${formatSmsAmount(input.currency, input.amount)}`,
+    `Date ${formatColomboDateTime(input.date)}`,
+    `Transaction Order Number "${input.reference}".`,
+  ].join("\n");
+}
+
 /** Pure builder for the "customer inquiry" SMS (business-facing). */
 export function buildInquirySms(input: { reference: string; date?: Date }): string {
   return [
@@ -57,21 +73,42 @@ export function buildInquirySms(input: { reference: string; date?: Date }): stri
   ].join("\n");
 }
 
-/** Notify the business team that a payment was received. Fail-soft. */
-export function sendPaymentSms(input: {
+/**
+ * Notify a payment was received. Sends TWO messages, each fail-soft:
+ *  - the business team (designated env number), business-worded;
+ *  - the customer (their own number, if we have one), customer-worded.
+ */
+export async function sendPaymentSms(input: {
   reference: string;
   amount: number;
   currency: string;
-}): Promise<SmsResult> {
-  return sendSms({
+  customerName?: string | null;
+  customerPhone?: string | null;
+}): Promise<void> {
+  await sendSms({
     to: env.smsTeamContact ?? "",
     message: buildPaymentSms(input),
   });
+
+  const customerPhone = input.customerPhone?.trim();
+  if (customerPhone) {
+    await sendSms({
+      to: customerPhone,
+      message: buildCustomerPaymentSms({
+        customerName: input.customerName?.trim() || "Customer",
+        reference: input.reference,
+        amount: input.amount,
+        currency: input.currency,
+      }),
+    });
+  }
 }
 
 /** Notify the business team that a custom inquiry was submitted. Fail-soft. */
-export function sendInquirySms(input: { reference: string }): Promise<SmsResult> {
-  return sendSms({
+export async function sendInquirySms(input: {
+  reference: string;
+}): Promise<void> {
+  await sendSms({
     to: env.smsTeamContact ?? "",
     message: buildInquirySms(input),
   });

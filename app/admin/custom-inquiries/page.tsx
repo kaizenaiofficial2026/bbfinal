@@ -29,6 +29,11 @@ export default async function AdminCustomInquiriesPage() {
             >
               <span>
                 {inquiry.first_name} {inquiry.last_name}
+                {inquiry.reference ? (
+                  <small className="admin-muted-block">
+                    {inquiry.reference}
+                  </small>
+                ) : null}
               </span>
               <span>{inquiry.email}</span>
               <StatusBadge status={inquiry.status} />

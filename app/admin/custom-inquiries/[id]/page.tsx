@@ -37,6 +37,7 @@ export default async function CustomInquiryPage({
       </div>
 
       <section className="admin-card admin-detail">
+        <p><strong>Reference</strong><span>{inquiry.reference || "—"}</span></p>
         <p><strong>Email</strong><span>{inquiry.email}</span></p>
         <p><strong>Mobile</strong><span>{inquiry.mobile}</span></p>
         <p>

@@ -82,12 +82,14 @@ export async function reconcilePayment(
       console.error("[invoice email failed]", error);
     }
 
-    // Business-facing SMS notification (fail-soft — sendPaymentSms never throws).
-    // Inside the guarded transition block, so it fires exactly once.
+    // Payment SMS — to the business (env number) and the customer (their number),
+    // each fail-soft. Inside the guarded transition block, so it fires once.
     await sendPaymentSms({
       reference: payment.bookings.reference,
       amount: payment.amount,
       currency: payment.currency,
+      customerName: payment.bookings.traveller_name,
+      customerPhone: payment.bookings.phone,
     });
   }
 

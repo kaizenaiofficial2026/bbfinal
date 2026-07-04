@@ -16,7 +16,8 @@ import {
   createPayToken,
   createPayTokenExpiry,
 } from "@/lib/payments/tokens";
-import { generateBookingReference, getRequestIpHash } from "@/lib/security/request";
+import { getRequestIpHash } from "@/lib/security/request";
+import { nextOrderReference } from "@/lib/data/reference-numbers";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 import { bookingSchema } from "@/lib/validation/booking";
 import { enquirySchema } from "@/lib/validation/enquiry";
@@ -243,7 +244,7 @@ export async function submitBooking(
     };
   }
 
-  const reference = generateBookingReference();
+  const reference = await nextOrderReference();
   const token = createPayToken();
 
   try {

@@ -113,6 +113,7 @@ export async function sendEnquiryEmails(input: {
 /** Custom inquiry (Package/Hotel/Air ticket/Transport): notify staff + ack the customer. */
 export async function sendCustomInquiryEmails(input: {
   inquiryType: string;
+  reference?: string | null;
   firstName: string;
   fullName: string;
   email: string;
@@ -137,6 +138,7 @@ export async function sendCustomInquiryEmails(input: {
       react: (
         <CustomInquiryStaffNotification
           inquiryType={input.inquiryType}
+          reference={input.reference}
           fullName={input.fullName}
           email={input.email}
           mobile={input.mobile}

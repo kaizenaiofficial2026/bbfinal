@@ -63,6 +63,7 @@ function makePayment(overrides: Partial<TestPayment> = {}): TestPayment {
       reference: "BB-AAAA",
       traveller_name: "Asha",
       email: "asha@example.com",
+      phone: "+94771234567",
       status: "awaiting_payment",
     },
     ...overrides,
@@ -105,6 +106,8 @@ describe("reconcilePayment", () => {
       reference: "BB-AAAA",
       amount: 1000,
       currency: "LKR",
+      customerName: "Asha",
+      customerPhone: "+94771234567",
     });
     expect(bookingsUpdateEq).toHaveBeenCalledTimes(1);
   });

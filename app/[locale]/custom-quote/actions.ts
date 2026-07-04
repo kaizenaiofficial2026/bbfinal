@@ -5,11 +5,8 @@ import { createCustomInquiry } from "@/lib/data/custom-inquiries";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { sendCustomInquiryEmails } from "@/lib/email/send";
 import { sendInquirySms } from "@/lib/sms/send";
-import {
-  generateInquiryReference,
-  getRequestIpHash,
-  scopedRateKey,
-} from "@/lib/security/request";
+import { getRequestIpHash, scopedRateKey } from "@/lib/security/request";
+import { nextInquiryReference } from "@/lib/data/reference-numbers";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 import { canUseSupabaseService } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/types";
@@ -236,6 +233,10 @@ export async function submitCustomInquiry(
 
     const { details, lines } = buildDetails(data);
 
+    // One BB-INQ-<n> reference for this inquiry, shared across the stored row,
+    // the staff email and the SMS so they all show the same number.
+    const reference = await nextInquiryReference();
+
     await createCustomInquiry({
       // A submission now spans Hotel + Air ticket + Transport. The enum column
       // just needs a valid value; the admin derives the "Custom inquiry" label
@@ -249,10 +250,12 @@ export async function submitCustomInquiry(
       mobile: data.mobile,
       details: details as Json,
       ip_hash: ipHash,
+      reference,
     });
 
     await sendCustomInquiryEmails({
       inquiryType: "custom",
+      reference,
       firstName: data.firstName,
       fullName: `${data.firstName} ${data.lastName}`,
       email,
@@ -263,8 +266,7 @@ export async function submitCustomInquiry(
     });
 
     // Business-facing SMS notification (fail-soft — sendInquirySms never throws).
-    // The reference is generated for the SMS only; it is not persisted.
-    await sendInquirySms({ reference: generateInquiryReference() });
+    await sendInquirySms({ reference });
 
     return {
       ok: true,

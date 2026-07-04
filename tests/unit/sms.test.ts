@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCustomerPaymentSms,
   buildInquirySms,
   buildPaymentSms,
   formatColomboDateTime,
@@ -37,7 +38,7 @@ describe("formatSmsAmount", () => {
 describe("buildPaymentSms", () => {
   it("matches the business payment template", () => {
     const message = buildPaymentSms({
-      reference: "BB-ABC123",
+      reference: "BB-ORD-1233",
       amount: 1999,
       currency: "USD",
       date: FIXED,
@@ -48,7 +49,29 @@ describe("buildPaymentSms", () => {
         "Dear BEYOND BORDERS,",
         "You have received a payment of USD 1,999.00",
         "Date 21/06/2026 11:14:46 AM",
-        'Transaction Order Number "BB-ABC123".',
+        'Transaction Order Number "BB-ORD-1233".',
+      ].join("\n"),
+    );
+    expect(message.length).toBeLessThanOrEqual(621);
+  });
+});
+
+describe("buildCustomerPaymentSms", () => {
+  it("greets the customer and words the receipt from their point of view", () => {
+    const message = buildCustomerPaymentSms({
+      customerName: "Asha Perera",
+      reference: "BB-ORD-1233",
+      amount: 1999,
+      currency: "USD",
+      date: FIXED,
+    });
+
+    expect(message).toBe(
+      [
+        "Dear Asha Perera,",
+        "We have received your payment of USD 1,999.00",
+        "Date 21/06/2026 11:14:46 AM",
+        'Transaction Order Number "BB-ORD-1233".',
       ].join("\n"),
     );
     expect(message.length).toBeLessThanOrEqual(621);
