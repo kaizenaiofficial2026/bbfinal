@@ -124,7 +124,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
         <PageHero
           title={tourPackage.title}
           label={t("heroLabel")}
-          image={tourPackage.image}
+          image={tourPackage.heroImage}
           summary={t("heroSummary", { title: tourPackage.title })}
           showBreadcrumbs={false}
           showLabel={false}

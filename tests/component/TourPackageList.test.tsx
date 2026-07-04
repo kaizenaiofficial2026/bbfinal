@@ -27,6 +27,7 @@ const base: TourPackage = {
   destinations: "Colombo",
   duration: "4 days / 3 nights",
   image: "/x.jpg",
+  heroImage: "/x.jpg",
   summary: "A polished city escape.",
   inclusions: [],
   itinerary: [],

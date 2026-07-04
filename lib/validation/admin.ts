@@ -26,6 +26,7 @@ export const packageAdminSchema = z.object({
   destinations: z.string().trim().min(2).max(220),
   duration: z.string().trim().min(2).max(120),
   image: z.string().trim().optional().or(z.literal("")),
+  heroImage: z.string().trim().optional().or(z.literal("")),
   summary: z.string().trim().min(10).max(2000),
   inclusions: z.string().trim().min(2),
   itinerary: z.string().trim().min(2),

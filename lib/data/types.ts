@@ -22,6 +22,7 @@ export type TourPackage = {
   destinations: string;
   duration: string;
   image: string;
+  heroImage: string;
   summary: string;
   inclusions: string[];
   itinerary: Array<{

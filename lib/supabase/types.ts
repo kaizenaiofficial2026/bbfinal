@@ -66,6 +66,7 @@ export type Database = {
           destinations_summary: string;
           duration: string;
           image: string;
+          hero_image: string;
           summary: string;
           inclusions: string[];
           price_amount: number | null;

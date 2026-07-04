@@ -27,6 +27,7 @@ function mapPackage(row: PackageWithItinerary, locale: string): TourPackage {
     destinations: tField(f, "destinations_summary", row.destinations_summary),
     duration: tField(f, "duration", row.duration),
     image: row.image,
+    heroImage: row.hero_image || row.image,
     summary: tField(f, "summary", row.summary),
     inclusions: tArray(f, "inclusions", row.inclusions),
     itinerary: (row.itinerary_items ?? []).map((item) => {

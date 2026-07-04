@@ -130,21 +130,41 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
           <Image
             className="admin-thumb"
             src={tourPackage.image}
-            alt="Current image"
+            alt="Current card image"
             width={200}
             height={116}
             unoptimized
           />
         ) : null}
         <label>
-          Image URL <input name="image" defaultValue={tourPackage?.image} />
+          Card image URL <input name="image" defaultValue={tourPackage?.image} />
         </label>
         <label>
-          Upload image
+          Upload card image
           <input name="imageFile" type="file" accept="image/*" />
         </label>
+        {tourPackage?.heroImage ? (
+          <Image
+            className="admin-thumb"
+            src={tourPackage.heroImage}
+            alt="Current hero image"
+            width={200}
+            height={116}
+            unoptimized
+          />
+        ) : null}
+        <label>
+          Hero image URL
+          <input name="heroImage" defaultValue={tourPackage?.heroImage} />
+        </label>
+        <label>
+          Upload hero image
+          <input name="heroImageFile" type="file" accept="image/*" />
+        </label>
         <small className="form-hint">
-          Uploading replaces the URL. JPEG, PNG, WEBP or AVIF, up to 4 MB.
+          The card image is the thumbnail on the tours list; the hero image is the
+          banner on the booking page. Uploading replaces the URL. JPEG, PNG, WEBP
+          or AVIF, up to 4 MB.
         </small>
       </fieldset>
 

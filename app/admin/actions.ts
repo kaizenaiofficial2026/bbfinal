@@ -319,6 +319,7 @@ export async function savePackageAction(formData: FormData) {
     destinations: formString(formData, "destinations"),
     duration: formString(formData, "duration"),
     image: formString(formData, "image"),
+    heroImage: formString(formData, "heroImage"),
     summary: formString(formData, "summary"),
     inclusions: formString(formData, "inclusions"),
     itinerary: formString(formData, "itinerary"),
@@ -328,7 +329,11 @@ export async function savePackageAction(formData: FormData) {
     status: formString(formData, "status"),
     sortOrder: formString(formData, "sortOrder"),
   });
-  const uploadedImage = await uploadMedia(formData.get("imageFile"), "packages");
+  // `image` is the card thumbnail; `hero_image` is the booking-page banner. Each
+  // can be set by upload or URL, and falls back to the other when only one is
+  // provided (mirrors destinations) so a package never renders with no image.
+  const uploadedCard = await uploadMedia(formData.get("imageFile"), "packages");
+  const uploadedHero = await uploadMedia(formData.get("heroImageFile"), "packages");
   const supabase = await createSupabaseServerClient();
   const payload = {
     slug: parsed.slug,
@@ -337,7 +342,8 @@ export async function savePackageAction(formData: FormData) {
     hotels: parsed.hotels,
     destinations_summary: parsed.destinations,
     duration: parsed.duration,
-    image: uploadedImage || parsed.image,
+    image: uploadedCard || parsed.image || uploadedHero || parsed.heroImage,
+    hero_image: uploadedHero || parsed.heroImage || uploadedCard || parsed.image,
     summary: parsed.summary,
     inclusions: lines(parsed.inclusions),
     price_amount: parsed.priceAmount === "" ? null : parsed.priceAmount,
