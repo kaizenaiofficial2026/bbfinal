@@ -35,14 +35,18 @@ export const env = {
   usdToLkrRate: Number(process.env.USD_TO_LKR_RATE ?? 300),
   mpgsWebhookSecret: process.env.MPGS_WEBHOOK_SECRET,
   payLinkTtlHours: Number(process.env.PAY_LINK_TTL_HOURS ?? 72),
-  // SMS notifications (smslenz.lk). Off by default; enable only once creds + the
-  // business mobile are configured. sender_id ("SMS Nick Name") must be an
-  // smslenz-approved sender — use "SMSlenzDEMO" for testing, "BB Tours SL" in prod.
+  // SMS notifications via the Dialog RichCommunication gateway. Off by default;
+  // enable only once the credentials + business mobile are configured. Auth is
+  // username + MD5(password) (see lib/sms/client.ts); `mask` is the registered
+  // sender name. The API key is not used by the send call (it's a portal-only
+  // credential) but kept here in case a future endpoint needs it.
   smsEnabled: bool(process.env.SMS_ENABLED),
-  smsBaseUrl: process.env.SMS_BASE_URL ?? "https://smslenz.lk/api/send-sms",
-  smsUserId: process.env.SMS_USER_ID,
+  smsBaseUrl:
+    process.env.SMS_BASE_URL ?? "https://richcommunication.dialog.lk/api/sms/send",
+  smsUsername: process.env.SMS_USERNAME,
+  smsPassword: process.env.SMS_PASSWORD,
   smsApiKey: process.env.SMS_API_KEY,
-  smsSenderId: process.env.SMS_SENDER_ID ?? "SMSlenzDEMO",
+  smsMask: process.env.SMS_MASK,
   smsTeamContact: process.env.SMS_TEAM_CONTACT,
 };
 

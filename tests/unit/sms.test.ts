@@ -5,6 +5,16 @@ import {
   formatColomboDateTime,
   formatSmsAmount,
 } from "@/lib/sms/send";
+import { normalizeMsisdn } from "@/lib/sms/client";
+
+describe("normalizeMsisdn (Dialog format)", () => {
+  it("produces 94XXXXXXXXX from the common input shapes", () => {
+    expect(normalizeMsisdn("+94771234567")).toBe("94771234567");
+    expect(normalizeMsisdn("0771234567")).toBe("94771234567");
+    expect(normalizeMsisdn("94771234567")).toBe("94771234567");
+    expect(normalizeMsisdn("+94 76 097 9222")).toBe("94760979222");
+  });
+});
 
 // 05:44:46 UTC + 5:30 (Asia/Colombo) = 11:14:46 on 21/06/2026 — matches the
 // reference timestamp in the agreed templates.

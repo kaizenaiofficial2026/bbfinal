@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
 import { env } from "@/lib/env";
 
 export type SmsResult = {
@@ -7,23 +8,47 @@ export type SmsResult = {
 };
 
 /**
- * SMS is usable only when explicitly enabled AND the credentials + recipient are
- * configured. Mirrors the email transport's fail-soft contract (getMailTransport).
+ * SMS is usable only when explicitly enabled AND the Dialog credentials +
+ * recipient are configured. Mirrors the email transport's fail-soft contract
+ * (getMailTransport).
  */
 export function canUseSms(): boolean {
   return Boolean(
-    env.smsEnabled && env.smsUserId && env.smsApiKey && env.smsTeamContact,
+    env.smsEnabled &&
+      env.smsUsername &&
+      env.smsPassword &&
+      env.smsMask &&
+      env.smsTeamContact,
   );
 }
 
 /**
- * Low-level send via the smslenz.lk API. Fail-soft by design: it never throws —
- * a missing config or a gateway error is logged and reported as skipped, so the
- * inquiry / payment flows that call it are never interrupted by SMS problems.
+ * Normalise a phone number to the Dialog MSISDN format: digits only, prefixed
+ * with the Sri Lanka country code `94` and no leading `+`. Handles the common
+ * inputs — `+94771234567`, `0771234567`, `94771234567`, `771234567`.
+ */
+export function normalizeMsisdn(input: string): string {
+  const digits = input.replace(/\D/g, "");
+  if (digits.startsWith("94")) return digits;
+  if (digits.startsWith("0")) return `94${digits.slice(1)}`;
+  return `94${digits}`;
+}
+
+/** Dialog's `CREATED` header timestamp: `YYYY-MM-DDTHH:mm:ss` (no milliseconds). */
+function createdTimestamp(): string {
+  return new Date().toISOString().replace(/\.\d+Z$/, "");
+}
+
+/**
+ * Low-level send via the Dialog RichCommunication gateway. Fail-soft by design:
+ * it never throws — a missing config or a gateway error is logged and reported
+ * as skipped, so the inquiry / payment flows that call it are never interrupted
+ * by SMS problems.
  *
- * smslenz expects: user_id, api_key, sender_id, contact (+94…), message (≤621).
- * Sent as JSON here; if a tenant rejects JSON, swap the body/header for
- * `new URLSearchParams(payload)` + form-urlencoded (params are identical).
+ * Auth is per request (no login / token): headers USER (username), DIGEST
+ * (MD5 of the password) and CREATED (timestamp). The body carries one message
+ * with the registered `mask` as the sender. The gateway answers HTTP 200 even
+ * for logical failures, so success is a top-level `resultCode` of 0.
  */
 export async function sendSms({
   to,
@@ -37,28 +62,52 @@ export async function sendSms({
     return { skipped: true };
   }
 
-  const payload = {
-    user_id: env.smsUserId,
-    api_key: env.smsApiKey,
-    sender_id: env.smsSenderId,
-    contact: to,
-    message,
+  const digest = createHash("md5")
+    .update(env.smsPassword ?? "")
+    .digest("hex");
+
+  const body = {
+    messages: [
+      {
+        clientRef: Date.now(),
+        number: normalizeMsisdn(to),
+        mask: env.smsMask,
+        text: message,
+      },
+    ],
   };
 
   try {
     const response = await fetch(env.smsBaseUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      // Do NOT follow redirects: smslenz answers unauthenticated/invalid requests
-      // with a 302 to its homepage. Following it would land on a 200 and report a
-      // false success. With manual handling a 3xx stays non-ok below.
+      headers: {
+        "Content-Type": "application/json",
+        USER: env.smsUsername ?? "",
+        DIGEST: digest,
+        CREATED: createdTimestamp(),
+      },
+      body: JSON.stringify(body),
       redirect: "manual",
     });
 
+    const raw = await response.text().catch(() => "");
+
     if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      console.error(`[sms failed] ${response.status} ${detail}`.trim());
+      console.error(`[sms failed] HTTP ${response.status} ${raw}`.trim());
+      return { skipped: true };
+    }
+
+    let resultCode: unknown;
+    try {
+      resultCode = (JSON.parse(raw) as { resultCode?: unknown }).resultCode;
+    } catch {
+      resultCode = undefined;
+    }
+
+    if (resultCode !== 0) {
+      console.error(
+        `[sms failed] gateway resultCode=${String(resultCode)} ${raw}`.trim(),
+      );
       return { skipped: true };
     }
 
