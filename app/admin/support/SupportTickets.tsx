@@ -12,7 +12,7 @@ type Ticket = {
   description: string;
   image?: string; // public URL of the attachment, if any
   status: string;
-  createdAt: string; // ISO timestamp
+  createdAtLabel: string; // formatted on the server (avoids hydration mismatch)
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -99,7 +99,7 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
                   </span>
                 </span>
                 <span className="support-ticket-meta">
-                  {new Date(ticket.createdAt).toLocaleString()}
+                  {ticket.createdAtLabel}
                 </span>
               </div>
               <h3 className="support-ticket-title">{ticket.title}</h3>

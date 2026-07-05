@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/admin/auth";
+import { formatDateTime } from "@/lib/admin/format";
 import { listSupportTickets } from "@/lib/data/support-tickets";
 import SupportTickets from "./SupportTickets";
 
@@ -11,7 +12,7 @@ export default async function AdminSupportPage() {
     description: ticket.description,
     image: ticket.image_url ?? undefined,
     status: ticket.status,
-    createdAt: ticket.created_at,
+    createdAtLabel: formatDateTime(ticket.created_at),
   }));
 
   return (
