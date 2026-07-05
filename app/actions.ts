@@ -244,10 +244,12 @@ export async function submitBooking(
     };
   }
 
-  const reference = await nextOrderReference();
   const token = createPayToken();
 
   try {
+    // nextOrderReference() hits the DB (sequence RPC) so it lives inside the
+    // try — a transient failure returns a structured note, not a raw throw.
+    const reference = await nextOrderReference();
     const booking = await createBooking({
       reference,
       tour_package_id: pkg.id,
