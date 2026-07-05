@@ -27,8 +27,19 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
   const [image, setImage] = useState<string | undefined>(undefined);
   const [fileKey, setFileKey] = useState(0);
   const [pending, setPending] = useState(false);
+  const [selected, setSelected] = useState<Ticket | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const detailRef = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  function openDetail(ticket: Ticket) {
+    setSelected(ticket);
+    detailRef.current?.showModal();
+  }
+
+  function closeDetail() {
+    detailRef.current?.close();
+  }
 
   function openModal() {
     formRef.current?.reset();
@@ -90,30 +101,48 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
       ) : (
         <div className="support-list">
           {tickets.map((ticket) => (
-            <article className="admin-card support-ticket" key={ticket.number}>
-              <div className="support-ticket-top">
-                <span className="support-ticket-heading">
-                  <span className="support-ticket-number">{ticket.number}</span>
-                  <span className={`support-status is-${ticket.status}`}>
-                    {STATUS_LABELS[ticket.status] ?? ticket.status}
-                  </span>
-                </span>
-                <span className="support-ticket-meta">
-                  {ticket.createdAtLabel}
-                </span>
-              </div>
-              <h3 className="support-ticket-title">{ticket.title}</h3>
-              {ticket.description ? (
-                <p className="support-ticket-desc">{ticket.description}</p>
-              ) : null}
+            <article
+              className="admin-card support-ticket"
+              key={ticket.number}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ticket ${ticket.number}: ${ticket.title}`}
+              onClick={() => openDetail(ticket)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openDetail(ticket);
+                }
+              }}
+            >
               {ticket.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  className="support-thumb"
-                  src={ticket.image}
-                  alt={`Attachment for ${ticket.number}`}
-                />
+                <div className="support-ticket-media">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={ticket.image}
+                    alt={`Attachment for ${ticket.number}`}
+                  />
+                </div>
               ) : null}
+              <div className="support-ticket-body">
+                <div className="support-ticket-eyebrow">
+                  <span className="support-ticket-eyebrow-left">
+                    <span className="support-ticket-number">
+                      {ticket.number}
+                    </span>
+                    <span className={`support-status is-${ticket.status}`}>
+                      {STATUS_LABELS[ticket.status] ?? ticket.status}
+                    </span>
+                  </span>
+                  <span className="support-ticket-meta">
+                    {ticket.createdAtLabel}
+                  </span>
+                </div>
+                <h3 className="support-ticket-title">{ticket.title}</h3>
+                {ticket.description ? (
+                  <p className="support-ticket-desc">{ticket.description}</p>
+                ) : null}
+              </div>
             </article>
           ))}
         </div>
@@ -219,6 +248,45 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
             </button>
           </div>
         </form>
+      </dialog>
+
+      <dialog ref={detailRef} className="support-modal">
+        {selected ? (
+          <div className="support-modal-inner support-detail">
+            <div className="support-ticket-eyebrow">
+              <span className="support-ticket-eyebrow-left">
+                <span className="support-ticket-number">{selected.number}</span>
+                <span className={`support-status is-${selected.status}`}>
+                  {STATUS_LABELS[selected.status] ?? selected.status}
+                </span>
+              </span>
+              <span className="support-ticket-meta">
+                {selected.createdAtLabel}
+              </span>
+            </div>
+            <h2 className="support-detail-title">{selected.title}</h2>
+            {selected.description ? (
+              <p className="support-detail-desc">{selected.description}</p>
+            ) : null}
+            {selected.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="support-detail-image"
+                src={selected.image}
+                alt={`Attachment for ${selected.number}`}
+              />
+            ) : null}
+            <div className="support-modal-actions">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={closeDetail}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        ) : null}
       </dialog>
     </>
   );

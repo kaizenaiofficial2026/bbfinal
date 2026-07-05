@@ -6080,18 +6080,61 @@ html.lenis body {
 }
 
 .support-ticket {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 200ms var(--ease),
+    box-shadow 200ms var(--ease),
+    transform 200ms var(--ease);
+}
+
+.support-ticket:hover {
+  border-color: rgba(179, 146, 79, 0.5);
+  box-shadow: 0 22px 48px -30px rgba(28, 26, 21, 0.42);
+  transform: translateY(-1px);
+}
+
+.support-ticket:focus-visible {
+  outline: 2px solid #b3924f;
+  outline-offset: 2px;
+}
+
+.support-ticket-media {
+  flex: 0 0 auto;
+  width: 148px;
+  height: 148px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--ivory);
+}
+
+.support-ticket-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.support-ticket-body {
+  flex: 1 1 auto;
+  min-width: 0;
   display: grid;
   gap: 10px;
 }
 
-.support-ticket-top {
+.support-ticket-eyebrow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
-.support-ticket-heading {
+.support-ticket-eyebrow-left {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -6142,13 +6185,36 @@ html.lenis body {
 
 .support-ticket-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 19px;
+  line-height: 1.3;
+  color: var(--ink);
 }
 
 .support-ticket-desc {
   margin: 0;
-  color: var(--ink);
+  max-width: 74ch;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.65;
   white-space: pre-wrap;
+  /* Clamp the preview to 3 lines with an ellipsis; the full text is in the
+     detail modal (click the card). */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .support-ticket {
+    flex-direction: column;
+  }
+
+  .support-ticket-media {
+    width: 100%;
+    height: 190px;
+  }
 }
 
 .support-thumb {
@@ -6163,12 +6229,39 @@ html.lenis body {
 
 .support-modal {
   width: min(760px, calc(100vw - 40px));
+  max-height: min(88vh, 920px);
+  overflow-y: auto;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--paper);
   color: var(--ink);
   box-shadow: var(--shadow-soft);
+}
+
+.support-detail-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.support-detail-desc {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.support-detail-image {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--ivory);
 }
 
 .support-modal::backdrop {
