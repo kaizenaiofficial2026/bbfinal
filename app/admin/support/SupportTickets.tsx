@@ -1,0 +1,213 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import Spinner from "@/components/Spinner";
+import { useToast } from "@/components/Toast";
+import { createSupportTicketAction } from "./actions";
+
+type Ticket = {
+  number: string;
+  title: string;
+  description: string;
+  image?: string; // public URL of the attachment, if any
+  createdAt: string; // ISO timestamp
+};
+
+export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
+  const router = useRouter();
+  const toast = useToast();
+  const [image, setImage] = useState<string | undefined>(undefined);
+  const [fileKey, setFileKey] = useState(0);
+  const [pending, setPending] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  function openModal() {
+    formRef.current?.reset();
+    setImage(undefined);
+    setFileKey((k) => k + 1);
+    dialogRef.current?.showModal();
+  }
+
+  function closeModal() {
+    dialogRef.current?.close();
+  }
+
+  function onImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setImage(undefined);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () =>
+      setImage(typeof reader.result === "string" ? reader.result : undefined);
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage() {
+    setImage(undefined);
+    setFileKey((k) => k + 1);
+  }
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    setPending(true);
+    const result = await createSupportTicketAction(formData);
+    setPending(false);
+
+    if (result.ok) {
+      toast.success(`Ticket ${result.number ?? ""} created.`.replace("  ", " "));
+      closeModal();
+      router.refresh();
+    } else {
+      toast.error(result.note);
+    }
+  }
+
+  return (
+    <>
+      <div className="support-head">
+        <p className="form-hint">Raise and track internal support tickets.</p>
+        <button type="button" className="btn btn-primary" onClick={openModal}>
+          Create ticket
+        </button>
+      </div>
+
+      {tickets.length === 0 ? (
+        <section className="admin-card">
+          <p className="support-empty">No tickets yet.</p>
+        </section>
+      ) : (
+        <div className="support-list">
+          {tickets.map((ticket) => (
+            <article className="admin-card support-ticket" key={ticket.number}>
+              <div className="support-ticket-top">
+                <span className="support-ticket-number">{ticket.number}</span>
+                <span className="support-ticket-meta">
+                  {new Date(ticket.createdAt).toLocaleString()}
+                </span>
+              </div>
+              <h3 className="support-ticket-title">{ticket.title}</h3>
+              {ticket.description ? (
+                <p className="support-ticket-desc">{ticket.description}</p>
+              ) : null}
+              {ticket.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  className="support-thumb"
+                  src={ticket.image}
+                  alt={`Attachment for ${ticket.number}`}
+                />
+              ) : null}
+            </article>
+          ))}
+        </div>
+      )}
+
+      <dialog ref={dialogRef} className="support-modal">
+        <form
+          ref={formRef}
+          className="support-modal-inner admin-form"
+          onSubmit={onSubmit}
+        >
+          <h2>Create ticket</h2>
+          <label>
+            Title
+            <input
+              name="title"
+              maxLength={140}
+              placeholder="Short summary"
+              required
+            />
+          </label>
+          <label>
+            Description
+            <textarea
+              name="description"
+              placeholder="Describe the issue…"
+              required
+            />
+          </label>
+          <div className="support-field">
+            <span className="support-field-label">Image (optional)</span>
+            <label className="support-dropzone">
+              <input
+                key={fileKey}
+                name="image"
+                className="support-file-input"
+                type="file"
+                accept="image/*"
+                onChange={onImageChange}
+              />
+              {image ? (
+                <span className="support-dropzone-preview">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    className="support-thumb"
+                    src={image}
+                    alt="Attachment preview"
+                  />
+                  <span className="support-dropzone-hint">
+                    Click to change image
+                  </span>
+                </span>
+              ) : (
+                <span className="support-dropzone-empty">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M12 15V4m0 0 4 4m-4-4L8 8"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M4 14v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <strong>Click to upload an image</strong>
+                  <small>PNG, JPG or WEBP</small>
+                </span>
+              )}
+            </label>
+            {image ? (
+              <button
+                type="button"
+                className="support-remove"
+                onClick={removeImage}
+              >
+                Remove image
+              </button>
+            ) : null}
+          </div>
+          <div className="support-modal-actions">
+            <button
+              type="button"
+              className="btn btn-line"
+              onClick={closeModal}
+              disabled={pending}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={pending}
+              aria-busy={pending}
+            >
+              {pending ? <Spinner /> : null}
+              {pending ? "Creating…" : "Create ticket"}
+            </button>
+          </div>
+        </form>
+      </dialog>
+    </>
+  );
+}

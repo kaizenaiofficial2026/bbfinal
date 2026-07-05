@@ -201,6 +201,24 @@ export type Database = {
           >;
         Update: Partial<Database["public"]["Tables"]["custom_inquiries"]["Row"]>;
       };
+      support_tickets: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          number: string;
+          title: string;
+          description: string;
+          image_url: string | null;
+          status: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["support_tickets"]["Row"]> &
+          Pick<
+            Database["public"]["Tables"]["support_tickets"]["Row"],
+            "number" | "title" | "description"
+          >;
+        Update: Partial<Database["public"]["Tables"]["support_tickets"]["Row"]>;
+      };
       customers: {
         Row: {
           id: string;

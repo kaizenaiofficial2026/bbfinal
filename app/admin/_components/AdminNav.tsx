@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/admin/custom-inquiries", label: "Custom inquiries" },
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/users", label: "Customers" },
+  { href: "/admin/support", label: "Support panel" },
   { href: "/admin/settings", label: "Settings" },
 ] as const;
 
