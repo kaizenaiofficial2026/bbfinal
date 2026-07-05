@@ -2,6 +2,7 @@ import "server-only";
 
 import { dbError } from "@/lib/data/errors";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import type { Database } from "@/lib/supabase/types";
 
 export type SupportTicketRow =
@@ -86,6 +87,61 @@ export async function createSupportTicket(input: {
   throw new Error(
     "Could not allocate a unique ticket number. Please try again.",
   );
+}
+
+/**
+ * Read all tickets via the SERVICE-ROLE client (bypasses RLS). For machine
+ * callers that have no admin session — specifically the token-authenticated
+ * support API. Never call this from an unauthenticated public path.
+ */
+export async function listSupportTicketsService(): Promise<SupportTicketRow[]> {
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("support_tickets")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    dbError(error);
+  }
+  return (data ?? []) as SupportTicketRow[];
+}
+
+/** Single ticket by id via the SERVICE-ROLE client (support API only). */
+export async function getSupportTicketService(
+  id: string,
+): Promise<SupportTicketRow | null> {
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("support_tickets")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) {
+    dbError(error);
+  }
+  return (data as SupportTicketRow | null) ?? null;
+}
+
+/**
+ * Update a ticket's status via the SERVICE-ROLE client (support API only —
+ * status is never changed from the Beyond Borders admin UI). Returns the updated
+ * row, or null if no ticket with that id exists.
+ */
+export async function updateSupportTicketStatusService(
+  id: string,
+  status: string,
+): Promise<SupportTicketRow | null> {
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("support_tickets")
+    .update({ status })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+  if (error) {
+    dbError(error);
+  }
+  return (data as SupportTicketRow | null) ?? null;
 }
 
 export async function listSupportTickets(): Promise<SupportTicketRow[]> {

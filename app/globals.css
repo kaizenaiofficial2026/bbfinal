@@ -6091,6 +6091,39 @@ html.lenis body {
   gap: 12px;
 }
 
+.support-ticket-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.support-status {
+  font-family: var(--font-label);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.support-status.is-open {
+  background: rgba(28, 26, 21, 0.07);
+  color: var(--ink-soft);
+}
+
+.support-status.is-in_progress {
+  background: rgba(179, 146, 79, 0.16);
+  color: #9d7936;
+}
+
+.support-status.is-closed {
+  background: rgba(46, 125, 50, 0.12);
+  color: #2e7d32;
+}
+
 .support-ticket-number {
   font-family: var(--font-label);
   font-weight: 700;

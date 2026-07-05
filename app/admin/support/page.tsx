@@ -10,6 +10,7 @@ export default async function AdminSupportPage() {
     title: ticket.title,
     description: ticket.description,
     image: ticket.image_url ?? undefined,
+    status: ticket.status,
     createdAt: ticket.created_at,
   }));
 

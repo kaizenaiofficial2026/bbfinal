@@ -48,6 +48,9 @@ export const env = {
   smsApiKey: process.env.SMS_API_KEY,
   smsMask: process.env.SMS_MASK,
   smsTeamContact: process.env.SMS_TEAM_CONTACT,
+  // Shared secret for the read-only support-tickets API (server-to-server, e.g.
+  // the Kaizen Portal dashboard). When unset the API is disabled (fails closed).
+  supportApiKey: process.env.SUPPORT_API_KEY,
 };
 
 export function hasSupabasePublicEnv() {

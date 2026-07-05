@@ -11,7 +11,14 @@ type Ticket = {
   title: string;
   description: string;
   image?: string; // public URL of the attachment, if any
+  status: string;
   createdAt: string; // ISO timestamp
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  open: "Open",
+  in_progress: "In progress",
+  closed: "Closed",
 };
 
 export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
@@ -85,7 +92,12 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
           {tickets.map((ticket) => (
             <article className="admin-card support-ticket" key={ticket.number}>
               <div className="support-ticket-top">
-                <span className="support-ticket-number">{ticket.number}</span>
+                <span className="support-ticket-heading">
+                  <span className="support-ticket-number">{ticket.number}</span>
+                  <span className={`support-status is-${ticket.status}`}>
+                    {STATUS_LABELS[ticket.status] ?? ticket.status}
+                  </span>
+                </span>
                 <span className="support-ticket-meta">
                   {new Date(ticket.createdAt).toLocaleString()}
                 </span>
