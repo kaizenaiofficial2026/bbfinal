@@ -1,4 +1,55 @@
 import { getAnalyticsOverview } from "@/lib/data/analytics";
+import { locales } from "@/i18n/routing";
+
+// Friendly names for the top-level public routes, so the dashboard reads
+// "Home / Tours / Contact" instead of "/ /tours /contacts".
+const STATIC_PAGE_LABELS: Record<string, string> = {
+  tours: "Tours",
+  destinations: "Destinations",
+  contacts: "Contact",
+  "custom-quote": "Custom quote",
+  about: "About us",
+  terms: "Terms & conditions",
+  login: "Login",
+  register: "Create account",
+  account: "My account",
+  "forgot-password": "Forgot password",
+  "reset-password": "Reset password",
+};
+
+/** Turn a URL slug ("sigiriya-rock") into a readable title ("Sigiriya Rock"). */
+function prettifySlug(slug: string): string {
+  return slug
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
+/** Human-readable page name for a tracked path (locale prefix stripped). */
+function pageLabel(rawPath: string): string {
+  const path = rawPath.split(/[?#]/)[0];
+  const segments = path.split("/").filter(Boolean);
+  if (
+    segments.length > 0 &&
+    (locales as readonly string[]).includes(segments[0])
+  ) {
+    segments.shift();
+  }
+  if (segments.length === 0) return "Home";
+
+  const [first, second] = segments;
+  if (first in STATIC_PAGE_LABELS) return STATIC_PAGE_LABELS[first];
+
+  switch (first) {
+    case "booking":
+      return second ? `Booking · ${prettifySlug(second)}` : "Booking";
+    case "pay":
+      return segments[2] === "result" ? "Payment result" : "Payment";
+    default:
+      // A top-level slug is a destination detail page.
+      return prettifySlug(first);
+  }
+}
 
 /** UTC YYYY-MM-DD for the last n days (oldest first), to match analytics_daily. */
 function lastNDays(n: number): string[] {
@@ -154,7 +205,9 @@ export async function AnalyticsPanel() {
           <ul className="admin-toppages">
             {overview.topPages.map((p) => (
               <li key={p.path}>
-                <span className="admin-toppages-path">{p.path}</span>
+                <span className="admin-toppages-path" title={p.path}>
+                  {pageLabel(p.path)}
+                </span>
                 <span className="admin-toppages-track">
                   <span
                     className="admin-toppages-fill"
