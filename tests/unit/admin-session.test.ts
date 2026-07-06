@@ -100,31 +100,52 @@ describe("admin single-active-session handoff — concurrent contenders", () => 
       status: "approved",
     });
 
-    // C is still waiting — now contesting the NEW holder B, who can decide.
+    // Approving the first requester DENIES the rest in the same click — the new
+    // holder is not immediately re-prompted.
     const presenceB = await getAdminPresence(USER, B.sid, B.email);
     expect(presenceB.active).toBe(true);
-    expect(presenceB.pending?.email).toBe(C.email);
+    expect(presenceB.pending).toBeNull();
   });
 
-  it("denies only the targeted contender; the other stays pending", async () => {
+  it("approve gives the seat to the FIRST requester and denies the rest", async () => {
+    await attemptAdminLogin(USER, A.sid, A.email);
+    const rb = await attemptAdminLogin(USER, B.sid, B.email); // first
+    const rc = await attemptAdminLogin(USER, C.sid, C.email); // second
+    const bId = (rb as { requestId: string }).requestId;
+    const cId = (rc as { requestId: string }).requestId;
+
+    // Admin clicks allow (the dialog shows the oldest = B).
+    expect(await decideAdminLogin(USER, A.sid, bId, "approve")).toBe("approved");
+
+    // First requester B is in; C is denied (not left contesting).
+    expect(await pollAdminLoginRequest(USER, B.sid, bId, B.email)).toMatchObject({
+      status: "approved",
+    });
+    expect(await pollAdminLoginRequest(USER, C.sid, cId, C.email)).toMatchObject({
+      status: "denied",
+    });
+  });
+
+  it("one 'keep my session' click denies ALL pending contenders at once", async () => {
     await attemptAdminLogin(USER, A.sid, A.email);
     const rb = await attemptAdminLogin(USER, B.sid, B.email);
     const rc = await attemptAdminLogin(USER, C.sid, C.email);
     const bId = (rb as { requestId: string }).requestId;
     const cId = (rc as { requestId: string }).requestId;
 
+    // A single deny resolves the whole batch.
     expect(await decideAdminLogin(USER, A.sid, bId, "deny")).toBe("denied");
 
-    // B learns it was denied; A keeps the seat; C is untouched.
+    // Both B and C are denied; A keeps the seat and is not re-prompted.
     expect(await pollAdminLoginRequest(USER, B.sid, bId, B.email)).toMatchObject({
+      status: "denied",
+    });
+    expect(await pollAdminLoginRequest(USER, C.sid, cId, C.email)).toMatchObject({
       status: "denied",
     });
     const presence = await getAdminPresence(USER, A.sid, A.email);
     expect(presence.active).toBe(true);
-    expect(presence.pending?.email).toBe(C.email);
-    expect(await pollAdminLoginRequest(USER, C.sid, cId, C.email)).toMatchObject({
-      status: "pending",
-    });
+    expect(presence.pending).toBeNull();
   });
 
   it("cancelling one contender leaves the other cleanly approvable", async () => {

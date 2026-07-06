@@ -369,27 +369,40 @@ export async function decideAdminLogin(
   if (!liveActive || liveActive.sid !== sid) return "invalid"; // only the holder decides
 
   const requests = pruneRequests(loaded.state.requests);
-  const req = requests.find(
-    (r) => r.id === requestId && r.status === "pending" && r.expiresAt > nowMs(),
-  );
-  if (!req) return "invalid";
+  const now = nowMs();
+  const isLivePending = (r: LoginRequest) =>
+    r.status === "pending" && r.expiresAt > now && r.sid !== sid;
+  const pendings = requests.filter(isLivePending);
+  if (pendings.length === 0) return "invalid";
+
+  // Mark every other pending contender denied, so ONE click resolves the whole
+  // batch — the admin never has to answer the same prompt again for it.
+  const denyAllPendingExcept = (keepSid: string | null) =>
+    requests.map((r) =>
+      isLivePending(r) && r.sid !== keepSid
+        ? { ...r, status: "denied" as const }
+        : r,
+    );
 
   if (decision === "approve") {
-    // Hand the seat to this requester; the current admin is now superseded. Any
-    // OTHER contenders stay queued and now contest the new holder.
+    // Hand the seat to the FIRST (oldest) requester and deny everyone else in the
+    // same click. pendings is oldest-first; we honour the id the admin acted on
+    // (which the UI shows as the oldest), falling back to the oldest so the
+    // earliest requester always wins even if the acted-on id went stale.
+    const winner = pendings.find((r) => r.id === requestId) ?? pendings[0];
     await save(loaded, userId, {
-      active: makeActive(req.sid, req.email),
-      requests: requests.filter((r) => r.sid !== req.sid),
+      active: makeActive(winner.sid, winner.email),
+      requests: denyAllPendingExcept(winner.sid).filter(
+        (r) => r.sid !== winner.sid,
+      ),
     });
     return "approved";
   }
 
-  // Deny only this one (so its waiter sees the outcome); keep other contenders.
+  // "Keep my session" → deny ALL pending contenders at once, keep the seat.
   await save(loaded, userId, {
     active: makeActive(sid, liveActive.email),
-    requests: requests.map((r) =>
-      r.id === req.id ? { ...r, status: "denied" as const } : r,
-    ),
+    requests: denyAllPendingExcept(null),
   });
   return "denied";
 }
