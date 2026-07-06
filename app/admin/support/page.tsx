@@ -7,6 +7,7 @@ export default async function AdminSupportPage() {
   await requireAdmin();
   const rows = await listSupportTickets();
   const tickets = rows.map((ticket) => ({
+    id: ticket.id,
     number: ticket.number,
     title: ticket.title,
     description: ticket.description,

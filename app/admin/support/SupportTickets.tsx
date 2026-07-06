@@ -4,9 +4,14 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Spinner from "@/components/Spinner";
 import { useToast } from "@/components/Toast";
-import { createSupportTicketAction } from "./actions";
+import {
+  createSupportTicketAction,
+  deleteSupportTicketAction,
+  updateSupportTicketAction,
+} from "./actions";
 
 type Ticket = {
+  id: string;
   number: string;
   title: string;
   description: string;
@@ -27,10 +32,15 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
   const [image, setImage] = useState<string | undefined>(undefined);
   const [fileKey, setFileKey] = useState(0);
   const [pending, setPending] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [selected, setSelected] = useState<Ticket | null>(null);
+  const [editing, setEditing] = useState<Ticket | null>(null);
+  const [removed, setRemoved] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const detailRef = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  const isEdit = editing !== null;
 
   function openDetail(ticket: Ticket) {
     setSelected(ticket);
@@ -43,7 +53,18 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
 
   function openModal() {
     formRef.current?.reset();
+    setEditing(null);
     setImage(undefined);
+    setRemoved(false);
+    setFileKey((k) => k + 1);
+    dialogRef.current?.showModal();
+  }
+
+  function openEdit(ticket: Ticket) {
+    closeDetail();
+    setEditing(ticket);
+    setImage(ticket.image);
+    setRemoved(false);
     setFileKey((k) => k + 1);
     dialogRef.current?.showModal();
   }
@@ -58,6 +79,7 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
       setImage(undefined);
       return;
     }
+    setRemoved(false);
     const reader = new FileReader();
     reader.onload = () =>
       setImage(typeof reader.result === "string" ? reader.result : undefined);
@@ -66,6 +88,7 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
 
   function removeImage() {
     setImage(undefined);
+    setRemoved(true);
     setFileKey((k) => k + 1);
   }
 
@@ -73,12 +96,48 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     setPending(true);
+
+    if (editing) {
+      formData.set("id", editing.id);
+      formData.set("existingImage", editing.image ?? "");
+      formData.set("removeImage", removed ? "1" : "");
+      const result = await updateSupportTicketAction(formData);
+      setPending(false);
+      if (result.ok) {
+        toast.success(`Ticket ${editing.number} updated.`);
+        closeModal();
+        router.refresh();
+      } else {
+        toast.error(result.note);
+      }
+      return;
+    }
+
     const result = await createSupportTicketAction(formData);
     setPending(false);
-
     if (result.ok) {
       toast.success(`Ticket ${result.number ?? ""} created.`.replace("  ", " "));
       closeModal();
+      router.refresh();
+    } else {
+      toast.error(result.note);
+    }
+  }
+
+  async function onDelete(ticket: Ticket) {
+    if (
+      !window.confirm(
+        `Delete ticket ${ticket.number}? This can’t be undone.`,
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    const result = await deleteSupportTicketAction(ticket.id);
+    setDeleting(false);
+    if (result.ok) {
+      toast.success(`Ticket ${ticket.number} deleted.`);
+      closeDetail();
       router.refresh();
     } else {
       toast.error(result.note);
@@ -151,16 +210,18 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
       <dialog ref={dialogRef} className="support-modal">
         <form
           ref={formRef}
+          key={editing?.number ?? "new"}
           className="support-modal-inner admin-form"
           onSubmit={onSubmit}
         >
-          <h2>Create ticket</h2>
+          <h2>{isEdit ? `Edit ticket ${editing?.number}` : "Create ticket"}</h2>
           <label>
             Title
             <input
               name="title"
               maxLength={140}
               placeholder="Short summary"
+              defaultValue={editing?.title ?? ""}
               required
             />
           </label>
@@ -169,6 +230,7 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
             <textarea
               name="description"
               placeholder="Describe the issue…"
+              defaultValue={editing?.description ?? ""}
               required
             />
           </label>
@@ -244,7 +306,13 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
               aria-busy={pending}
             >
               {pending ? <Spinner /> : null}
-              {pending ? "Creating…" : "Create ticket"}
+              {pending
+                ? isEdit
+                  ? "Saving…"
+                  : "Creating…"
+                : isEdit
+                  ? "Save changes"
+                  : "Create ticket"}
             </button>
           </div>
         </form>
@@ -276,14 +344,35 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
                 alt={`Attachment for ${selected.number}`}
               />
             ) : null}
-            <div className="support-modal-actions">
+            <div className="support-modal-actions support-detail-actions">
               <button
                 type="button"
-                className="btn btn-primary"
-                onClick={closeDetail}
+                className="btn btn-danger"
+                onClick={() => onDelete(selected)}
+                disabled={deleting}
+                aria-busy={deleting}
               >
-                Close
+                {deleting ? <Spinner /> : null}
+                {deleting ? "Deleting…" : "Delete"}
               </button>
+              <span className="support-detail-actions-end">
+                <button
+                  type="button"
+                  className="btn btn-line"
+                  onClick={() => openEdit(selected)}
+                  disabled={deleting}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={closeDetail}
+                  disabled={deleting}
+                >
+                  Close
+                </button>
+              </span>
             </div>
           </div>
         ) : null}

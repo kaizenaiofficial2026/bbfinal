@@ -90,6 +90,50 @@ export async function createSupportTicket(input: {
 }
 
 /**
+ * Update a ticket's editable content (title, description, image) from the admin
+ * panel via the admin session (RLS "Admins update" policy). Status is NOT
+ * touched here — it is only ever changed through the support API (Kaizen panel).
+ */
+export async function updateSupportTicketContent(input: {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string | null;
+}): Promise<SupportTicketRow> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("support_tickets")
+    .update({
+      title: input.title,
+      description: input.description,
+      image_url: input.imageUrl,
+    })
+    .eq("id", input.id)
+    .select("*")
+    .single();
+  if (error) {
+    dbError(error);
+  }
+  return data as SupportTicketRow;
+}
+
+/**
+ * Delete a ticket. The table has no RLS delete policy, so this uses the
+ * SERVICE-ROLE client — it is only ever reached behind requireAdmin() in the
+ * delete action.
+ */
+export async function deleteSupportTicket(id: string): Promise<void> {
+  const supabase = createSupabaseServiceClient();
+  const { error } = await supabase
+    .from("support_tickets")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    dbError(error);
+  }
+}
+
+/**
  * Read all tickets via the SERVICE-ROLE client (bypasses RLS). For machine
  * callers that have no admin session — specifically the token-authenticated
  * support API. Never call this from an unauthenticated public path.

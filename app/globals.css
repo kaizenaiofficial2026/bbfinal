@@ -6289,6 +6289,18 @@ html.lenis body {
   margin-top: 6px;
 }
 
+/* Detail view: Delete sits on the left, Edit + Close group on the right. */
+.support-detail-actions {
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.support-detail-actions-end {
+  display: inline-flex;
+  gap: 12px;
+}
+
 /* Custom file upload (replaces the native "Choose File" control) */
 .support-field {
   display: grid;
