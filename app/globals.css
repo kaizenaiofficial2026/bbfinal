@@ -7090,6 +7090,27 @@ html.lenis body {
   border: 1px solid var(--line);
 }
 
+/* Direct-to-storage image upload field (admin content forms). */
+.admin-media-field {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--ivory);
+}
+
+.admin-media-field + .admin-media-field {
+  margin-top: 4px;
+}
+
+.admin-media-uploading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
 .admin-skeleton {
   display: block;
   border-radius: var(--radius-sm);

@@ -1,33 +1,27 @@
 "use client";
 
-import Image from "next/image";
+import { useState } from "react";
 import type { TourPackage } from "@/lib/data/types";
 import { savePackageAction } from "../actions";
 import { DirtySubmitButton } from "@/app/admin/_components/DirtySubmitButton";
-import { useUploadGuard } from "@/app/admin/_components/useUploadGuard";
+import { MediaUploadField } from "@/app/admin/_components/MediaUploadField";
 
 type PackageFormProps = {
   tourPackage?: TourPackage | null;
 };
 
 export default function PackageForm({ tourPackage }: PackageFormProps) {
-  const { error, onFileChange, guardSubmit } = useUploadGuard();
+  // Block Save while an image is still uploading to storage.
+  const [uploading, setUploading] = useState(0);
+  const onBusyChange = (busy: boolean) =>
+    setUploading((count) => Math.max(0, count + (busy ? 1 : -1)));
   const itinerary =
     tourPackage?.itinerary
       .map((item) => `${item.day} | ${item.title} | ${item.description}`)
       .join("\n") ?? "";
 
   return (
-    <form
-      className="admin-form"
-      action={savePackageAction}
-      onSubmit={guardSubmit}
-    >
-      {error ? (
-        <p className="admin-alert" role="alert">
-          {error}
-        </p>
-      ) : null}
+    <form className="admin-form" action={savePackageAction}>
       <input type="hidden" name="id" value={tourPackage?.id ?? ""} />
 
       <fieldset className="admin-fieldset">
@@ -139,56 +133,22 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
 
       <fieldset className="admin-fieldset">
         <legend>Media</legend>
-        {tourPackage?.image ? (
-          <Image
-            className="admin-thumb"
-            src={tourPackage.image}
-            alt="Current card image"
-            width={200}
-            height={116}
-            unoptimized
-          />
-        ) : null}
-        <label>
-          Card image URL <input name="image" defaultValue={tourPackage?.image} />
-        </label>
-        <label>
-          Upload card image
-          <input
-            name="imageFile"
-            type="file"
-            accept="image/*"
-            onChange={onFileChange}
-          />
-        </label>
-        {tourPackage?.heroImage ? (
-          <Image
-            className="admin-thumb"
-            src={tourPackage.heroImage}
-            alt="Current hero image"
-            width={200}
-            height={116}
-            unoptimized
-          />
-        ) : null}
-        <label>
-          Hero image URL
-          <input name="heroImage" defaultValue={tourPackage?.heroImage} />
-        </label>
-        <label>
-          Upload hero image
-          <input
-            name="heroImageFile"
-            type="file"
-            accept="image/*"
-            onChange={onFileChange}
-          />
-        </label>
-        <small className="form-hint">
-          The card image is the thumbnail on the tours list; the hero image is the
-          banner on the booking page. Uploading replaces the URL. JPEG, PNG, WEBP
-          or AVIF, up to 8 MB each.
-        </small>
+        <MediaUploadField
+          label="Card image"
+          urlName="image"
+          prefix="packages"
+          defaultUrl={tourPackage?.image}
+          onBusyChange={onBusyChange}
+          hint="The thumbnail on the tours list."
+        />
+        <MediaUploadField
+          label="Hero image"
+          urlName="heroImage"
+          prefix="packages"
+          defaultUrl={tourPackage?.heroImage}
+          onBusyChange={onBusyChange}
+          hint="The banner on the booking page. JPEG, PNG, WEBP or AVIF, up to 8 MB each. Both images can be changed in one save."
+        />
       </fieldset>
 
       <fieldset className="admin-fieldset">
@@ -202,8 +162,8 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
         </label>
       </fieldset>
 
-      <DirtySubmitButton pendingLabel="Saving…" disabled={!!error}>
-        Save package
+      <DirtySubmitButton pendingLabel="Saving…" disabled={uploading > 0}>
+        {uploading > 0 ? "Uploading image…" : "Save package"}
       </DirtySubmitButton>
     </form>
   );

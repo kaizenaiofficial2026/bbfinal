@@ -15,6 +15,7 @@ import {
 import { sendAccountVerifiedEmail } from "@/lib/email/send";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import {
   changePasswordSchema,
   destinationAdminSchema,
@@ -116,6 +117,64 @@ async function uploadMedia(file: FormDataEntryValue | null, prefix: string) {
   const { data } = supabase.storage.from("media").getPublicUrl(path);
 
   return data.publicUrl;
+}
+
+const UPLOAD_PREFIXES = ["destinations", "packages"] as const;
+type UploadPrefix = (typeof UPLOAD_PREFIXES)[number];
+
+export type MediaUploadTicket =
+  | { ok: true; path: string; token: string; publicUrl: string }
+  | { ok: false; note: string };
+
+/**
+ * Mint a short-lived signed URL for the browser to upload an image DIRECTLY to
+ * Supabase Storage, bypassing the Server Action request body entirely. Image
+ * bytes never transit the Next/Vercel function, so the platform's ~4.5MB request
+ * body cap (which broke uploading two images at once) no longer applies. Only the
+ * resulting public URL is submitted with the form. Admin-gated; validates type
+ * and size the same way uploadMedia does, and pins the storage path so the token
+ * can't be used to write anywhere else.
+ */
+export async function createMediaUploadUrlAction(input: {
+  prefix: string;
+  filename: string;
+  contentType: string;
+  size: number;
+}): Promise<MediaUploadTicket> {
+  await requireAdmin();
+
+  if (!UPLOAD_PREFIXES.includes(input.prefix as UploadPrefix)) {
+    return { ok: false, note: "Invalid upload target." };
+  }
+  if (!ALLOWED_MEDIA_TYPES.includes(input.contentType)) {
+    return {
+      ok: false,
+      note: "Unsupported image type. Use JPEG, PNG, WEBP or AVIF.",
+    };
+  }
+  if (!Number.isFinite(input.size) || input.size <= 0) {
+    return { ok: false, note: "That file looks empty." };
+  }
+  if (input.size > MAX_MEDIA_BYTES) {
+    return { ok: false, note: "Image is too large. The maximum size is 8MB." };
+  }
+
+  const extension = (input.filename.split(".").pop() || "bin")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .slice(0, 5);
+  const path = `${input.prefix}/${crypto.randomUUID()}.${extension || "bin"}`;
+
+  const service = createSupabaseServiceClient();
+  const { data, error } = await service.storage
+    .from("media")
+    .createSignedUploadUrl(path);
+  if (error || !data) {
+    return { ok: false, note: "Could not start the upload. Please try again." };
+  }
+
+  const { data: pub } = service.storage.from("media").getPublicUrl(data.path);
+  return { ok: true, path: data.path, token: data.token, publicUrl: pub.publicUrl };
 }
 
 export async function signInAction(formData: FormData) {

@@ -1,29 +1,23 @@
 "use client";
 
-import Image from "next/image";
+import { useState } from "react";
 import type { Destination } from "@/lib/data/types";
 import { saveDestinationAction } from "../actions";
 import { DirtySubmitButton } from "@/app/admin/_components/DirtySubmitButton";
-import { useUploadGuard } from "@/app/admin/_components/useUploadGuard";
+import { MediaUploadField } from "@/app/admin/_components/MediaUploadField";
 
 type DestinationFormProps = {
   destination?: Destination | null;
 };
 
 export default function DestinationForm({ destination }: DestinationFormProps) {
-  const { error, onFileChange, guardSubmit } = useUploadGuard();
+  // Block Save while an image is still uploading to storage.
+  const [uploading, setUploading] = useState(0);
+  const onBusyChange = (busy: boolean) =>
+    setUploading((count) => Math.max(0, count + (busy ? 1 : -1)));
 
   return (
-    <form
-      className="admin-form"
-      action={saveDestinationAction}
-      onSubmit={guardSubmit}
-    >
-      {error ? (
-        <p className="admin-alert" role="alert">
-          {error}
-        </p>
-      ) : null}
+    <form className="admin-form" action={saveDestinationAction}>
       <input type="hidden" name="id" value={destination?.id ?? ""} />
 
       <fieldset className="admin-fieldset">
@@ -84,55 +78,21 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
 
       <fieldset className="admin-fieldset">
         <legend>Media</legend>
-        {destination?.image ? (
-          <Image
-            className="admin-thumb"
-            src={destination.image}
-            alt="Current card image"
-            width={200}
-            height={116}
-            unoptimized
-          />
-        ) : null}
-        <label>
-          Card image URL
-          <input name="cardImage" defaultValue={destination?.image} />
-        </label>
-        <label>
-          Upload card image
-          <input
-            name="cardImageFile"
-            type="file"
-            accept="image/*"
-            onChange={onFileChange}
-          />
-        </label>
-        {destination?.heroImage ? (
-          <Image
-            className="admin-thumb"
-            src={destination.heroImage}
-            alt="Current hero image"
-            width={200}
-            height={116}
-            unoptimized
-          />
-        ) : null}
-        <label>
-          Hero image URL
-          <input name="heroImage" defaultValue={destination?.heroImage} />
-        </label>
-        <label>
-          Upload hero image
-          <input
-            name="heroImageFile"
-            type="file"
-            accept="image/*"
-            onChange={onFileChange}
-          />
-        </label>
-        <small className="form-hint">
-          Uploading replaces the URL. JPEG, PNG, WEBP or AVIF, up to 8 MB each.
-        </small>
+        <MediaUploadField
+          label="Card image"
+          urlName="cardImage"
+          prefix="destinations"
+          defaultUrl={destination?.image}
+          onBusyChange={onBusyChange}
+        />
+        <MediaUploadField
+          label="Hero image"
+          urlName="heroImage"
+          prefix="destinations"
+          defaultUrl={destination?.heroImage}
+          onBusyChange={onBusyChange}
+          hint="Uploading replaces the URL. JPEG, PNG, WEBP or AVIF, up to 8 MB each. Both images can be changed in one save."
+        />
       </fieldset>
 
       <fieldset className="admin-fieldset">
@@ -146,8 +106,8 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
         </label>
       </fieldset>
 
-      <DirtySubmitButton pendingLabel="Saving…" disabled={!!error}>
-        Save destination
+      <DirtySubmitButton pendingLabel="Saving…" disabled={uploading > 0}>
+        {uploading > 0 ? "Uploading image…" : "Save destination"}
       </DirtySubmitButton>
     </form>
   );
