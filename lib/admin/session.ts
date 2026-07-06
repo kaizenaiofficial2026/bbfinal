@@ -47,10 +47,17 @@ type LoginRequest = {
 
 export type AdminSessionState = {
   active: ActiveHolder | null;
-  request: LoginRequest | null;
+  // A QUEUE of contesting login requests, one per waiting session (keyed by sid).
+  // Previously a single slot, which two simultaneous contenders would clobber in
+  // an endless loop — each overwriting the other's request every poll, so the
+  // active admin's "Allow" always targeted a since-replaced id and never took.
+  requests: LoginRequest[];
 };
 
-const EMPTY_STATE: AdminSessionState = { active: null, request: null };
+const EMPTY_STATE: AdminSessionState = { active: null, requests: [] };
+
+// Cap the queue so a burst of attempts can't bloat user_metadata.
+const MAX_REQUESTS = 12;
 
 function nowMs() {
   return Date.now();
@@ -91,13 +98,28 @@ function normalizeRequest(raw: unknown): LoginRequest | null {
   };
 }
 
+function normalizeRequests(raw: unknown): LoginRequest[] {
+  const list = Array.isArray(raw) ? raw : [];
+  const out: LoginRequest[] = [];
+  for (const item of list) {
+    const req = normalizeRequest(item);
+    if (req) out.push(req);
+  }
+  return out;
+}
+
 function normalizeState(raw: unknown): AdminSessionState {
-  if (!raw || typeof raw !== "object") return { ...EMPTY_STATE };
+  if (!raw || typeof raw !== "object") return { active: null, requests: [] };
   const r = raw as Record<string, unknown>;
-  return {
-    active: normalizeActive(r.active),
-    request: normalizeRequest(r.request),
-  };
+  // Prefer the queue; fall back to a legacy single `request` for any in-flight
+  // state written before this shape (harmless, self-heals on the next write).
+  const requests = Array.isArray(r.requests)
+    ? normalizeRequests(r.requests)
+    : (() => {
+        const legacy = normalizeRequest(r.request);
+        return legacy ? [legacy] : [];
+      })();
+  return { active: normalizeActive(r.active), requests };
 }
 
 type ServiceClient = ReturnType<typeof createSupabaseServiceClient>;
@@ -139,6 +161,59 @@ async function save(
 
 function makeActive(sid: string, email: string): ActiveHolder {
   return { sid, email, expiresAt: nowMs() + ACTIVE_TTL_MS };
+}
+
+// Drop expired requests, keep at most one entry per session (the latest), sort
+// oldest-first, and cap the total. Keeping non-pending (denied) entries lets a
+// waiter still read its outcome; they age out via expiresAt.
+function pruneRequests(requests: LoginRequest[]): LoginRequest[] {
+  const now = nowMs();
+  const bySid = new Map<string, LoginRequest>();
+  for (const req of requests) {
+    if (req.expiresAt <= now) continue;
+    const existing = bySid.get(req.sid);
+    if (!existing || req.createdAt >= existing.createdAt) {
+      bySid.set(req.sid, req);
+    }
+  }
+  return Array.from(bySid.values())
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .slice(-MAX_REQUESTS);
+}
+
+// Replace (or add) this session's request in the queue without touching others.
+function upsertRequest(
+  requests: LoginRequest[],
+  req: LoginRequest,
+): LoginRequest[] {
+  return pruneRequests([...requests.filter((r) => r.sid !== req.sid), req]);
+}
+
+// The oldest still-pending request not owned by the current holder — i.e. the
+// next one the active admin is asked to decide on.
+function nextPending(
+  requests: LoginRequest[],
+  holderSid: string,
+): LoginRequest | null {
+  const now = nowMs();
+  for (const req of requests) {
+    if (req.status === "pending" && req.expiresAt > now && req.sid !== holderSid) {
+      return req;
+    }
+  }
+  return null;
+}
+
+function makeRequest(sid: string, email: string): LoginRequest {
+  const now = nowMs();
+  return {
+    id: crypto.randomUUID(),
+    sid,
+    email,
+    status: "pending",
+    createdAt: now,
+    expiresAt: now + REQUEST_TTL_MS,
+  };
 }
 
 // ── Cookie helpers ──────────────────────────────────────────────────────────
@@ -185,26 +260,20 @@ export async function attemptAdminLogin(
 
   const liveActive = isLive(loaded.state.active) ? loaded.state.active : null;
 
-  // Seat is free (or already ours) → take it directly, clearing any stale request.
+  // Seat is free (or already ours) → take it directly, clearing the queue.
   if (!liveActive || liveActive.sid === sid) {
-    await save(loaded, userId, { active: makeActive(sid, email), request: null });
+    await save(loaded, userId, { active: makeActive(sid, email), requests: [] });
     return { active: true };
   }
 
-  // Someone else holds it → register a pending request for the active admin.
-  const requestId = crypto.randomUUID();
+  // Someone else holds it → add THIS session's request to the queue (coexisting
+  // with any other contenders, never overwriting them).
+  const req = makeRequest(sid, email);
   await save(loaded, userId, {
     active: loaded.state.active,
-    request: {
-      id: requestId,
-      sid,
-      email,
-      status: "pending",
-      createdAt: nowMs(),
-      expiresAt: nowMs() + REQUEST_TTL_MS,
-    },
+    requests: upsertRequest(loaded.state.requests, req),
   });
-  return { active: false, contested: true, requestId };
+  return { active: false, contested: true, requestId: req.id };
 }
 
 // ── Heartbeat: am I still the holder? (used by requireAdmin) ─────────────────
@@ -224,7 +293,7 @@ export async function heartbeatAdminSession(
     if (liveActive.expiresAt - nowMs() < HEARTBEAT_REFRESH_BELOW_MS) {
       await save(loaded, userId, {
         active: makeActive(sid, email),
-        request: loaded.state.request,
+        requests: pruneRequests(loaded.state.requests),
       });
     }
     return true;
@@ -232,7 +301,7 @@ export async function heartbeatAdminSession(
 
   if (!liveActive) {
     // No live holder (previous admin's tab went idle) → reclaim the seat.
-    await save(loaded, userId, { active: makeActive(sid, email), request: null });
+    await save(loaded, userId, { active: makeActive(sid, email), requests: [] });
     return true;
   }
 
@@ -273,18 +342,14 @@ export async function getAdminPresence(
   if (liveActive && liveActive.expiresAt - nowMs() < HEARTBEAT_REFRESH_BELOW_MS) {
     await save(loaded, userId, {
       active: makeActive(sid, email),
-      request: loaded.state.request,
+      requests: pruneRequests(loaded.state.requests),
     });
   }
 
-  const req = loaded.state.request;
-  const pending =
-    req &&
-    req.status === "pending" &&
-    req.expiresAt > nowMs() &&
-    req.sid !== sid
-      ? { id: req.id, email: req.email, createdAt: req.createdAt }
-      : null;
+  const req = nextPending(loaded.state.requests, sid);
+  const pending = req
+    ? { id: req.id, email: req.email, createdAt: req.createdAt }
+    : null;
 
   return { active: true, pending };
 }
@@ -303,23 +368,28 @@ export async function decideAdminLogin(
   const liveActive = isLive(loaded.state.active) ? loaded.state.active : null;
   if (!liveActive || liveActive.sid !== sid) return "invalid"; // only the holder decides
 
-  const req = loaded.state.request;
-  if (!req || req.id !== requestId || req.status !== "pending" || req.expiresAt <= nowMs()) {
-    return "invalid";
-  }
+  const requests = pruneRequests(loaded.state.requests);
+  const req = requests.find(
+    (r) => r.id === requestId && r.status === "pending" && r.expiresAt > nowMs(),
+  );
+  if (!req) return "invalid";
 
   if (decision === "approve") {
-    // Hand the seat to the requester; the current admin is now superseded.
+    // Hand the seat to this requester; the current admin is now superseded. Any
+    // OTHER contenders stay queued and now contest the new holder.
     await save(loaded, userId, {
       active: makeActive(req.sid, req.email),
-      request: { ...req, status: "approved" },
+      requests: requests.filter((r) => r.sid !== req.sid),
     });
     return "approved";
   }
 
+  // Deny only this one (so its waiter sees the outcome); keep other contenders.
   await save(loaded, userId, {
     active: makeActive(sid, liveActive.email),
-    request: { ...req, status: "denied" },
+    requests: requests.map((r) =>
+      r.id === req.id ? { ...r, status: "denied" as const } : r,
+    ),
   });
   return "denied";
 }
@@ -346,35 +416,35 @@ export async function pollAdminLoginRequest(
   // Already the holder (approved + handed over) → we're in.
   if (liveActive && liveActive.sid === sid) return { status: "approved" };
 
-  const req = loaded.state.request;
-  if (req && req.id === requestId && req.sid === sid) {
+  // Our request is keyed by session, so find it by sid (tolerating an id that
+  // drifted). Because contenders no longer overwrite each other, this stays put.
+  const req =
+    loaded.state.requests.find((r) => r.sid === sid && r.id === requestId) ??
+    loaded.state.requests.find((r) => r.sid === sid);
+  if (req) {
     if (req.status === "denied") return { status: "denied" };
     if (req.status === "approved") return { status: "approved" };
     if (req.expiresAt <= nowMs()) return { status: "expired" };
-    return { status: "pending" };
+    // Tell the client to adopt the current id if it changed.
+    return req.id === requestId
+      ? { status: "pending" }
+      : { status: "pending", requestId: req.id };
   }
 
-  // Our request is gone (e.g. clobbered by a concurrent heartbeat write).
+  // Our request is gone entirely.
   if (!liveActive) {
     // Seat is free now → just take it.
-    await save(loaded, userId, { active: makeActive(sid, email), request: null });
+    await save(loaded, userId, { active: makeActive(sid, email), requests: [] });
     return { status: "approved" };
   }
 
-  // Seat still held by someone else → re-register a fresh pending request.
-  const newId = crypto.randomUUID();
+  // Seat still held by someone else → re-register (appending, not clobbering).
+  const fresh = makeRequest(sid, email);
   await save(loaded, userId, {
     active: loaded.state.active,
-    request: {
-      id: newId,
-      sid,
-      email,
-      status: "pending",
-      createdAt: nowMs(),
-      expiresAt: nowMs() + REQUEST_TTL_MS,
-    },
+    requests: upsertRequest(loaded.state.requests, fresh),
   });
-  return { status: "pending", requestId: newId };
+  return { status: "pending", requestId: fresh.id };
 }
 
 // ── Release the seat (logout / abandon) ──────────────────────────────────────
@@ -387,14 +457,17 @@ export async function releaseAdminSession(
   const loaded = await load(userId);
   if (!loaded) return;
 
-  let next = loaded.state;
-  if (loaded.state.active && loaded.state.active.sid === sid) {
-    next = { ...next, active: null };
+  let changed = false;
+  let active = loaded.state.active;
+  if (active && active.sid === sid) {
+    active = null;
+    changed = true;
   }
-  if (loaded.state.request && loaded.state.request.sid === sid) {
-    next = { ...next, request: { ...loaded.state.request, status: "denied" } };
+  const requests = loaded.state.requests.filter((r) => r.sid !== sid);
+  if (requests.length !== loaded.state.requests.length) {
+    changed = true;
   }
-  if (next !== loaded.state) {
-    await save(loaded, userId, next);
+  if (changed) {
+    await save(loaded, userId, { active, requests });
   }
 }
