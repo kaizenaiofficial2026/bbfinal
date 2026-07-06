@@ -1,15 +1,29 @@
+"use client";
+
 import Image from "next/image";
 import type { Destination } from "@/lib/data/types";
 import { saveDestinationAction } from "../actions";
 import { DirtySubmitButton } from "@/app/admin/_components/DirtySubmitButton";
+import { useUploadGuard } from "@/app/admin/_components/useUploadGuard";
 
 type DestinationFormProps = {
   destination?: Destination | null;
 };
 
 export default function DestinationForm({ destination }: DestinationFormProps) {
+  const { error, onFileChange, guardSubmit } = useUploadGuard();
+
   return (
-    <form className="admin-form" action={saveDestinationAction}>
+    <form
+      className="admin-form"
+      action={saveDestinationAction}
+      onSubmit={guardSubmit}
+    >
+      {error ? (
+        <p className="admin-alert" role="alert">
+          {error}
+        </p>
+      ) : null}
       <input type="hidden" name="id" value={destination?.id ?? ""} />
 
       <fieldset className="admin-fieldset">
@@ -86,7 +100,12 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
         </label>
         <label>
           Upload card image
-          <input name="cardImageFile" type="file" accept="image/*" />
+          <input
+            name="cardImageFile"
+            type="file"
+            accept="image/*"
+            onChange={onFileChange}
+          />
         </label>
         {destination?.heroImage ? (
           <Image
@@ -104,10 +123,15 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
         </label>
         <label>
           Upload hero image
-          <input name="heroImageFile" type="file" accept="image/*" />
+          <input
+            name="heroImageFile"
+            type="file"
+            accept="image/*"
+            onChange={onFileChange}
+          />
         </label>
         <small className="form-hint">
-          Uploading replaces the URL. JPEG, PNG, WEBP or AVIF, up to 4 MB.
+          Uploading replaces the URL. JPEG, PNG, WEBP or AVIF, up to 8 MB each.
         </small>
       </fieldset>
 
@@ -122,7 +146,9 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
         </label>
       </fieldset>
 
-      <DirtySubmitButton pendingLabel="Saving…">Save destination</DirtySubmitButton>
+      <DirtySubmitButton pendingLabel="Saving…" disabled={!!error}>
+        Save destination
+      </DirtySubmitButton>
     </form>
   );
 }

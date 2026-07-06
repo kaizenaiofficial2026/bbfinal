@@ -1,20 +1,33 @@
+"use client";
+
 import Image from "next/image";
 import type { TourPackage } from "@/lib/data/types";
 import { savePackageAction } from "../actions";
 import { DirtySubmitButton } from "@/app/admin/_components/DirtySubmitButton";
+import { useUploadGuard } from "@/app/admin/_components/useUploadGuard";
 
 type PackageFormProps = {
   tourPackage?: TourPackage | null;
 };
 
 export default function PackageForm({ tourPackage }: PackageFormProps) {
+  const { error, onFileChange, guardSubmit } = useUploadGuard();
   const itinerary =
     tourPackage?.itinerary
       .map((item) => `${item.day} | ${item.title} | ${item.description}`)
       .join("\n") ?? "";
 
   return (
-    <form className="admin-form" action={savePackageAction}>
+    <form
+      className="admin-form"
+      action={savePackageAction}
+      onSubmit={guardSubmit}
+    >
+      {error ? (
+        <p className="admin-alert" role="alert">
+          {error}
+        </p>
+      ) : null}
       <input type="hidden" name="id" value={tourPackage?.id ?? ""} />
 
       <fieldset className="admin-fieldset">
@@ -141,7 +154,12 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
         </label>
         <label>
           Upload card image
-          <input name="imageFile" type="file" accept="image/*" />
+          <input
+            name="imageFile"
+            type="file"
+            accept="image/*"
+            onChange={onFileChange}
+          />
         </label>
         {tourPackage?.heroImage ? (
           <Image
@@ -159,12 +177,17 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
         </label>
         <label>
           Upload hero image
-          <input name="heroImageFile" type="file" accept="image/*" />
+          <input
+            name="heroImageFile"
+            type="file"
+            accept="image/*"
+            onChange={onFileChange}
+          />
         </label>
         <small className="form-hint">
           The card image is the thumbnail on the tours list; the hero image is the
           banner on the booking page. Uploading replaces the URL. JPEG, PNG, WEBP
-          or AVIF, up to 4 MB.
+          or AVIF, up to 8 MB each.
         </small>
       </fieldset>
 
@@ -179,7 +202,9 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
         </label>
       </fieldset>
 
-      <DirtySubmitButton pendingLabel="Saving…">Save package</DirtySubmitButton>
+      <DirtySubmitButton pendingLabel="Saving…" disabled={!!error}>
+        Save package
+      </DirtySubmitButton>
     </form>
   );
 }

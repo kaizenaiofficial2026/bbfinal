@@ -82,12 +82,15 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   experimental: {
     // Admin image uploads run through Server Actions. Next caps action request
-    // bodies at 1MB by default, so any real photo (the app allows up to 4MB per
-    // image, and a destination can post BOTH a card and hero image in one form)
-    // failed the whole save with an opaque "Server Components render" error.
-    // Raise the limit to cover two 4MB images plus the form fields.
+    // bodies at 1MB by default, so any real photo (the app allows up to 8MB per
+    // image, and a package/destination can post BOTH a card and hero image in one
+    // form) failed the whole save with an opaque "unexpected response" error that
+    // dropped the admin onto the error page. Raise the limit to comfortably cover
+    // two 8MB images plus the form fields and multipart overhead. The forms also
+    // validate sizes in the browser so an over-limit upload is caught with a
+    // friendly message before it is ever sent.
     serverActions: {
-      bodySizeLimit: "10mb",
+      bodySizeLimit: "20mb",
     },
   },
   images: {

@@ -8,6 +8,8 @@ type DirtySubmitButtonProps = {
   children: React.ReactNode;
   pendingLabel?: string;
   className?: string;
+  /** Extra disable condition (e.g. a client-side validation error). */
+  disabled?: boolean;
 };
 
 // Serialise the form's current values into a comparable string. Files are keyed
@@ -34,6 +36,7 @@ export function DirtySubmitButton({
   children,
   pendingLabel = "Saving…",
   className = "btn btn-primary",
+  disabled = false,
 }: DirtySubmitButtonProps) {
   const { pending } = useFormStatus();
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -61,7 +64,7 @@ export function DirtySubmitButton({
       ref={buttonRef}
       className={className}
       type="submit"
-      disabled={pending || !dirty}
+      disabled={pending || !dirty || disabled}
       aria-busy={pending}
     >
       {pending ? <Spinner /> : null}

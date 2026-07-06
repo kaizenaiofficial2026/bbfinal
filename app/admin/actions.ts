@@ -82,11 +82,11 @@ const ALLOWED_MEDIA_TYPES = [
   "image/webp",
   "image/avif",
 ];
-// 4MB per image. Kept comfortably under the hosting request-body ceiling so an
-// upload is rejected here with a friendly message rather than crashing the
-// Server Action. The Next.js action body limit is raised to match in
-// next.config.ts (its 1MB default silently broke every real photo upload).
-const MAX_MEDIA_BYTES = 4 * 1024 * 1024;
+// 8MB per image. Kept comfortably under the Server Action body ceiling
+// (bodySizeLimit in next.config.ts) so two images plus form fields fit in one
+// request. This is the server-side backstop; the admin forms also enforce it in
+// the browser and block the submit with a friendly message before any upload.
+const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 
 async function uploadMedia(file: FormDataEntryValue | null, prefix: string) {
   if (!(file instanceof File) || file.size === 0) {
@@ -98,7 +98,7 @@ async function uploadMedia(file: FormDataEntryValue | null, prefix: string) {
   }
 
   if (file.size > MAX_MEDIA_BYTES) {
-    throw new Error("Image is too large. The maximum size is 4MB.");
+    throw new Error("Image is too large. The maximum size is 8MB.");
   }
 
   const supabase = await createSupabaseServerClient();
