@@ -198,6 +198,8 @@
     "heroTitle": "Secure payment",
     "heroSummary": "Complete payment through Beyond Borders' hosted bank checkout.",
     "paymentRequest": "Payment request",
+    "orderSummary": "Order summary",
+    "reference": "Reference",
     "traveller": "Traveller",
     "amount": "Amount",
     "status": "Status",

@@ -52,6 +52,33 @@ export default async function AdminPage() {
         </Link>
       </div>
 
+      <section className="admin-card admin-stack">
+        <div className="admin-card-head">
+          <h2>Recent bookings</h2>
+          <Link className="admin-back" href="/admin/bookings">
+            View all →
+          </Link>
+        </div>
+        {bookings.length === 0 ? (
+          <p className="form-hint">No bookings yet.</p>
+        ) : (
+          <div className="admin-table">
+            <div className="admin-table-head">
+              <span>Reference</span>
+              <span>Traveller</span>
+              <span>Status</span>
+            </div>
+            {bookings.slice(0, 5).map((booking) => (
+              <Link href={`/admin/bookings/${booking.id}`} key={booking.id}>
+                <span>{booking.reference}</span>
+                <span className="admin-muted">{booking.traveller_name}</span>
+                <StatusBadge status={booking.status} />
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
       {isSuperAdmin ? (
         <section className="admin-card admin-stack">
           <div className="admin-card-head">
@@ -80,33 +107,6 @@ export default async function AdminPage() {
           )}
         </section>
       ) : null}
-
-      <section className="admin-card admin-stack">
-        <div className="admin-card-head">
-          <h2>Recent bookings</h2>
-          <Link className="admin-back" href="/admin/bookings">
-            View all →
-          </Link>
-        </div>
-        {bookings.length === 0 ? (
-          <p className="form-hint">No bookings yet.</p>
-        ) : (
-          <div className="admin-table">
-            <div className="admin-table-head">
-              <span>Reference</span>
-              <span>Traveller</span>
-              <span>Status</span>
-            </div>
-            {bookings.slice(0, 5).map((booking) => (
-              <Link href={`/admin/bookings/${booking.id}`} key={booking.id}>
-                <span>{booking.reference}</span>
-                <span className="admin-muted">{booking.traveller_name}</span>
-                <StatusBadge status={booking.status} />
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

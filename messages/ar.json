@@ -198,6 +198,8 @@
     "heroTitle": "دفع آمن",
     "heroSummary": "أكمل الدفع عبر صفحة الدفع المصرفية المستضافة من Beyond Borders.",
     "paymentRequest": "طلب الدفع",
+    "orderSummary": "ملخص الطلب",
+    "reference": "الرقم المرجعي",
     "traveller": "المسافر",
     "amount": "المبلغ",
     "status": "الحالة",

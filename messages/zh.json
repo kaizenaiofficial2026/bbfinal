@@ -198,6 +198,8 @@
     "heroTitle": "安全支付",
     "heroSummary": "通过 Beyond Borders 托管的银行结账完成付款。",
     "paymentRequest": "付款请求",
+    "orderSummary": "订单摘要",
+    "reference": "参考编号",
     "traveller": "旅客",
     "amount": "金额",
     "status": "状态",
