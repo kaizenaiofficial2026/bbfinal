@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSuperAdmin } from "@/lib/admin/auth";
 import { getAdminDestination } from "@/lib/data/destinations";
 import { DeleteButton } from "@/app/admin/_components/DeleteButton";
 import { deleteDestinationAction } from "../../actions";
@@ -15,7 +15,7 @@ export default async function EditDestinationPage({
   params,
   searchParams,
 }: DestinationPageProps) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const { id } = await params;
   const { error } = await searchParams;
   const destination = await getAdminDestination(id);

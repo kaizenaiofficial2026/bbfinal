@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSuperAdmin } from "@/lib/admin/auth";
 import { getAdminPackage } from "@/lib/data/packages";
 import { DeleteButton } from "@/app/admin/_components/DeleteButton";
 import { deletePackageAction } from "../../actions";
@@ -15,7 +15,7 @@ export default async function EditPackagePage({
   params,
   searchParams,
 }: PackagePageProps) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const { id } = await params;
   const { error } = await searchParams;
   const tourPackage = await getAdminPackage(id);

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSuperAdmin } from "@/lib/admin/auth";
 import DestinationForm from "../DestinationForm";
 
 export default async function NewDestinationPage() {
-  await requireAdmin();
+  await requireSuperAdmin();
 
   return (
     <div className="admin-stack">

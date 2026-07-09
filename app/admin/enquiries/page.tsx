@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSuperAdmin } from "@/lib/admin/auth";
 import { listEnquiries } from "@/lib/data/enquiries";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 
 export default async function AdminEnquiriesPage() {
-  await requireAdmin();
+  await requireSuperAdmin();
   const enquiries = await listEnquiries();
 
   return (

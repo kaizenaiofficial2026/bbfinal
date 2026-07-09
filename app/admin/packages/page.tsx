@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSuperAdmin } from "@/lib/admin/auth";
 import { listAdminPackages } from "@/lib/data/packages";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 
 export default async function AdminPackagesPage() {
-  await requireAdmin();
+  await requireSuperAdmin();
   const packages = await listAdminPackages();
 
   return (

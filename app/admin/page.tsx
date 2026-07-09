@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin/auth";
+import { isSuperAdminEmail, requireAdmin } from "@/lib/admin/auth";
 import { listBookings } from "@/lib/data/bookings";
 import { listEnquiries } from "@/lib/data/enquiries";
 import { listAdminDestinations } from "@/lib/data/destinations";
@@ -8,11 +8,15 @@ import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { AnalyticsPanel } from "@/app/admin/_components/AnalyticsPanel";
 
 export default async function AdminPage() {
-  await requireAdmin();
+  const user = await requireAdmin();
+  const isSuperAdmin = isSuperAdminEmail(user.email);
+
+  // Second-level admins can't manage packages/destinations/enquiries, so their
+  // dashboard omits those metrics and the recent-enquiries feed.
   const [packages, destinations, enquiries, bookings] = await Promise.all([
-    listAdminPackages(),
-    listAdminDestinations(),
-    listEnquiries(),
+    isSuperAdmin ? listAdminPackages() : Promise.resolve([]),
+    isSuperAdmin ? listAdminDestinations() : Promise.resolve([]),
+    isSuperAdmin ? listEnquiries() : Promise.resolve([]),
     listBookings(),
   ]);
 
@@ -30,46 +34,52 @@ export default async function AdminPage() {
       <AnalyticsPanel />
 
       <div className="admin-metrics">
-        <Link href="/admin/packages">
-          Packages <strong>{packages.length}</strong>
-        </Link>
-        <Link href="/admin/destinations">
-          Destinations <strong>{destinations.length}</strong>
-        </Link>
-        <Link href="/admin/enquiries">
-          New enquiries <strong>{newEnquiries}</strong>
-        </Link>
+        {isSuperAdmin ? (
+          <>
+            <Link href="/admin/packages">
+              Packages <strong>{packages.length}</strong>
+            </Link>
+            <Link href="/admin/destinations">
+              Destinations <strong>{destinations.length}</strong>
+            </Link>
+            <Link href="/admin/enquiries">
+              New enquiries <strong>{newEnquiries}</strong>
+            </Link>
+          </>
+        ) : null}
         <Link href="/admin/bookings">
           Bookings <strong>{bookings.length}</strong>
         </Link>
       </div>
 
-      <section className="admin-card admin-stack">
-        <div className="admin-card-head">
-          <h2>Recent enquiries</h2>
-          <Link className="admin-back" href="/admin/enquiries">
-            View all →
-          </Link>
-        </div>
-        {enquiries.length === 0 ? (
-          <p className="form-hint">No enquiries yet.</p>
-        ) : (
-          <div className="admin-table">
-            <div className="admin-table-head">
-              <span>Name</span>
-              <span>Email</span>
-              <span>Status</span>
-            </div>
-            {enquiries.slice(0, 5).map((enquiry) => (
-              <Link href={`/admin/enquiries/${enquiry.id}`} key={enquiry.id}>
-                <span>{enquiry.name}</span>
-                <span className="admin-muted">{enquiry.email}</span>
-                <StatusBadge status={enquiry.status} />
-              </Link>
-            ))}
+      {isSuperAdmin ? (
+        <section className="admin-card admin-stack">
+          <div className="admin-card-head">
+            <h2>Recent enquiries</h2>
+            <Link className="admin-back" href="/admin/enquiries">
+              View all →
+            </Link>
           </div>
-        )}
-      </section>
+          {enquiries.length === 0 ? (
+            <p className="form-hint">No enquiries yet.</p>
+          ) : (
+            <div className="admin-table">
+              <div className="admin-table-head">
+                <span>Name</span>
+                <span>Email</span>
+                <span>Status</span>
+              </div>
+              {enquiries.slice(0, 5).map((enquiry) => (
+                <Link href={`/admin/enquiries/${enquiry.id}`} key={enquiry.id}>
+                  <span>{enquiry.name}</span>
+                  <span className="admin-muted">{enquiry.email}</span>
+                  <StatusBadge status={enquiry.status} />
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <section className="admin-card admin-stack">
         <div className="admin-card-head">

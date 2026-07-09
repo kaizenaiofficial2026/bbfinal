@@ -3,12 +3,13 @@
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 
+// `superOnly` sections are hidden from (and blocked for) second-level admins.
 const LINKS = [
   { href: "/admin", label: "Dashboard" },
-  { href: "/admin/packages", label: "Packages" },
-  { href: "/admin/destinations", label: "Destinations" },
-  { href: "/admin/enquiries", label: "Enquiries" },
-  { href: "/admin/custom-inquiries", label: "Custom inquiries" },
+  { href: "/admin/packages", label: "Packages", superOnly: true },
+  { href: "/admin/destinations", label: "Destinations", superOnly: true },
+  { href: "/admin/enquiries", label: "Enquiries", superOnly: true },
+  { href: "/admin/custom-inquiries", label: "Custom enquiries", superOnly: true },
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/users", label: "Customers" },
   { href: "/admin/support", label: "Support panel" },
@@ -28,12 +29,15 @@ function NavPending() {
 }
 
 /** Sidebar navigation with active-section highlighting + per-link loading. */
-export function AdminNav() {
+export function AdminNav({ isSuperAdmin = true }: { isSuperAdmin?: boolean }) {
   const pathname = usePathname();
+  const links = isSuperAdmin
+    ? LINKS
+    : LINKS.filter((link) => !("superOnly" in link && link.superOnly));
 
   return (
     <nav className="admin-nav" aria-label="Admin sections">
-      {LINKS.map((link) => {
+      {links.map((link) => {
         // Dashboard ("/admin") matches exactly; section links also match their
         // detail/edit children (e.g. /admin/bookings/123).
         const active =

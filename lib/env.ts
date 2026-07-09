@@ -11,6 +11,14 @@ export const env = {
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean),
+  // Subset of ADMIN_ALLOWED_EMAILS with SUPER-admin (full) access. Allowlisted
+  // emails NOT listed here are second-level admins with restricted access (see
+  // lib/admin/auth.ts). If empty, every admin is a super admin — preserving the
+  // original single-tier behaviour.
+  superAdminEmails: (process.env.SUPER_ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean),
   smtpHost: process.env.SMTP_HOST ?? "smtp.zoho.com",
   smtpPort: Number(process.env.SMTP_PORT ?? 465),
   smtpUser: process.env.SMTP_USER,

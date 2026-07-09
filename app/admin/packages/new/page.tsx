@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSuperAdmin } from "@/lib/admin/auth";
 import PackageForm from "../PackageForm";
 
 export default async function NewPackagePage() {
-  await requireAdmin();
+  await requireSuperAdmin();
 
   return (
     <div className="admin-stack">

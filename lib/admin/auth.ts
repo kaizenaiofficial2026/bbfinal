@@ -71,6 +71,28 @@ export async function getAdminUser() {
   return null;
 }
 
+/**
+ * Admin tiers. A SUPER admin has full access; a second-level admin is limited to
+ * Dashboard (view), Bookings, Customers, Support panel and Settings. The tier is
+ * config-driven (SUPER_ADMIN_EMAILS) rather than stored in the DB, so no schema
+ * change is needed — both tiers are `role = 'admin'` in `profiles` (RLS's
+ * `is_admin()` stays the coarse gate; the fine-grained limits are enforced in the
+ * app layer: nav filtering + page/action guards).
+ */
+export function isSuperAdminEmail(email: string | null | undefined): boolean {
+  const value = (email ?? "").trim().toLowerCase();
+  if (!value) return false;
+  // No super list configured → every admin is a super admin (single-tier).
+  if (env.superAdminEmails.length === 0) return true;
+  return env.superAdminEmails.includes(value);
+}
+
+export async function getAdminContext() {
+  const user = await getAdminUser();
+  if (!user) return null;
+  return { user, isSuperAdmin: isSuperAdminEmail(user.email) };
+}
+
 export async function requireAdmin() {
   const user = await getAdminUser();
 
@@ -87,5 +109,18 @@ export async function requireAdmin() {
     redirect("/admin/login?kicked=1");
   }
 
+  return user;
+}
+
+/**
+ * Guard for SUPER-admin-only areas (Packages, Destinations, Enquiries, Custom
+ * enquiries and their write actions). A signed-in second-level admin is sent back
+ * to the dashboard rather than shown content they can't manage.
+ */
+export async function requireSuperAdmin() {
+  const user = await requireAdmin();
+  if (!isSuperAdminEmail(user.email)) {
+    redirect("/admin");
+  }
   return user;
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSuperAdmin } from "@/lib/admin/auth";
 import { getEnquiry } from "@/lib/data/enquiries";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { formatDateTime } from "@/lib/admin/format";
@@ -11,7 +11,7 @@ type EnquiryPageProps = {
 };
 
 export default async function EnquiryPage({ params }: EnquiryPageProps) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const { id } = await params;
   const enquiry = await getEnquiry(id);
 

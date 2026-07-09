@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getAdminUser, requireAdmin } from "@/lib/admin/auth";
+import { getAdminUser, requireAdmin, requireSuperAdmin } from "@/lib/admin/auth";
 import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
 import {
   attemptAdminLogin,
@@ -141,7 +141,7 @@ export async function createMediaUploadUrlAction(input: {
   contentType: string;
   size: number;
 }): Promise<MediaUploadTicket> {
-  await requireAdmin();
+  await requireSuperAdmin();
 
   if (!UPLOAD_PREFIXES.includes(input.prefix as UploadPrefix)) {
     return { ok: false, note: "Invalid upload target." };
@@ -319,7 +319,7 @@ export async function resetAdminPasswordAction(formData: FormData) {
 }
 
 export async function saveDestinationAction(formData: FormData) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const parsed = destinationAdminSchema.parse({
     id: formString(formData, "id"),
     slug: formString(formData, "slug"),
@@ -368,7 +368,7 @@ export async function saveDestinationAction(formData: FormData) {
 }
 
 export async function savePackageAction(formData: FormData) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const parsed = packageAdminSchema.parse({
     id: formString(formData, "id"),
     slug: formString(formData, "slug"),
@@ -450,7 +450,7 @@ export async function savePackageAction(formData: FormData) {
 }
 
 export async function deletePackageAction(formData: FormData) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const id = formString(formData, "id");
   if (!id) {
     redirect("/admin/packages");
@@ -488,7 +488,7 @@ export async function deletePackageAction(formData: FormData) {
 }
 
 export async function deleteDestinationAction(formData: FormData) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const id = formString(formData, "id");
   if (!id) {
     redirect("/admin/destinations");
@@ -517,7 +517,7 @@ export async function deleteDestinationAction(formData: FormData) {
 export async function updateEnquiryStatusAction(
   formData: FormData,
 ): Promise<{ ok: boolean; note: string }> {
-  await requireAdmin();
+  await requireSuperAdmin();
   const parsed = enquiryStatusUpdateSchema.parse({
     id: formString(formData, "id"),
     status: formString(formData, "status"),
@@ -541,7 +541,7 @@ export async function updateEnquiryStatusAction(
 export async function updateCustomInquiryStatusAction(
   formData: FormData,
 ): Promise<{ ok: boolean; note: string }> {
-  await requireAdmin();
+  await requireSuperAdmin();
   // Custom inquiries share the enquiry status enum (new/contacted/closed), so
   // the enquiry status schema validates this one too.
   const parsed = enquiryStatusUpdateSchema.parse({

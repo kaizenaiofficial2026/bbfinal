@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSuperAdmin } from "@/lib/admin/auth";
 import { getCustomInquiry } from "@/lib/data/custom-inquiries";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { formatDateTime } from "@/lib/admin/format";
@@ -13,7 +13,7 @@ type CustomInquiryPageProps = {
 export default async function CustomInquiryPage({
   params,
 }: CustomInquiryPageProps) {
-  await requireAdmin();
+  await requireSuperAdmin();
   const { id } = await params;
   const inquiry = await getCustomInquiry(id);
 
@@ -24,11 +24,11 @@ export default async function CustomInquiryPage({
   return (
     <div className="admin-stack">
       <Link className="admin-back" href="/admin/custom-inquiries">
-        ← All custom inquiries
+        ← All custom enquiries
       </Link>
       <div className="admin-head">
         <div>
-          <span className="section-kicker">Custom inquiry</span>
+          <span className="section-kicker">Custom enquiry</span>
           <h1>
             {inquiry.first_name} {inquiry.last_name}
           </h1>

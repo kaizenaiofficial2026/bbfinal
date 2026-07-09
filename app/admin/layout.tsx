@@ -7,14 +7,20 @@ import { AdminNav } from "./_components/AdminNav";
 import AdminPresence from "./_components/AdminPresence";
 import AdminTopbar from "./_components/AdminTopbar";
 import { ToastProvider } from "@/components/Toast";
+import { getAdminContext } from "@/lib/admin/auth";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Resolve the tier so the nav only shows areas this admin may use. Second-level
+  // admins never see Packages / Destinations / Enquiries / Custom enquiries.
+  const ctx = await getAdminContext();
+  const isSuperAdmin = ctx?.isSuperAdmin ?? true;
+
   return (
     <ToastProvider>
       <AdminPresence />
@@ -37,7 +43,7 @@ export default function AdminLayout({
               unoptimized
             />
           </Link>
-          <AdminNav />
+          <AdminNav isSuperAdmin={isSuperAdmin} />
           <div className="admin-sidebar-footer">
             <a
               className="admin-view-site"
