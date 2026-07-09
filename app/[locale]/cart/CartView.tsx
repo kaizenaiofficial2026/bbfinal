@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/navigation";
 import Spinner from "@/components/Spinner";
+import PaymentMethods from "@/components/PaymentMethods";
 import { useCart } from "@/components/cart/CartProvider";
 import { imageSrc } from "@/lib/images";
 import { checkoutCartAction, type CheckoutState } from "./actions";
@@ -13,6 +14,7 @@ const initialState: CheckoutState = { ok: false };
 
 export default function CartView() {
   const t = useTranslations("cart");
+  const tc = useTranslations("common");
   const router = useRouter();
   const { items, subtotal, currency, removeItem, clear, ready } = useCart();
   const [state, formAction, pending] = useActionState(
@@ -127,6 +129,7 @@ export default function CartView() {
           </p>
         ) : null}
         <p className="cart-summary-note">{t("checkoutNote")}</p>
+        <PaymentMethods label={tc("weAccept")} />
         <Link className="cart-continue" href="/tours">
           {t("continueShopping")}
         </Link>

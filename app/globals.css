@@ -8849,3 +8849,45 @@ body.menu-open .cookie-consent {
     position: static;
   }
 }
+
+/* ── "We accept" payment-method badges ── */
+.payment-methods {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.payment-methods-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.payment-methods-logos {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.payment-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 5px 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(28, 26, 21, 0.05);
+}
+.payment-logo svg {
+  height: 100%;
+  width: auto;
+  display: block;
+}
+/* Cart summary sits on a tinted panel — keep the divider subtle there. */
+.cart-summary .payment-methods {
+  border-top-color: var(--line);
+}

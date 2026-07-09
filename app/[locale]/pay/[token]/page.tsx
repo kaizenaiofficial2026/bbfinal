@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import PageHero from "@/components/PageHero";
+import PaymentMethods from "@/components/PaymentMethods";
 import SiteShell from "@/components/SiteShell";
 import { getPaymentByToken, orderReference } from "@/lib/data/payments";
 import { env } from "@/lib/env";
@@ -18,7 +19,10 @@ export default async function PayPage({ params }: PayPageProps) {
 
   if (!payment?.bookings?.length) notFound();
 
-  const t = await getTranslations("pay");
+  const [t, tc] = await Promise.all([
+    getTranslations("pay"),
+    getTranslations("common"),
+  ]);
   const bookings = payment.bookings;
   const single = bookings.length === 1;
   const reference = orderReference(payment);
@@ -87,6 +91,8 @@ export default async function PayPage({ params }: PayPageProps) {
               ) : null}
               {expired ? <p className="form-note">{t("expiredNote")}</p> : null}
               {paid ? <p className="form-note">{t("alreadyPaid")}</p> : null}
+
+              <PaymentMethods label={tc("weAccept")} />
             </article>
           </div>
         </section>
