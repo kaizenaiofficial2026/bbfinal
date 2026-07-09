@@ -6,9 +6,11 @@
 |---|---|
 | **Document** | Developer Guide |
 | **Project** | Beyond Borders Website & Admin Platform |
-| **Version** | v1.0 |
+| **Version** | v1.1 |
 | **Maintained by** | Kaizen AI |
 | **Prepared by** | Kaizen AI for Beyond Borders |
+
+> **v1.1 changes:** SMS now runs on the **Dialog RichCommunication** gateway (implemented, replacing the earlier smslenz stub); a **Support panel + token-authenticated Kaizen Portal API** was added; admin content images now upload **directly to storage via signed URLs** (bypassing the serverless body-size limit); **sequential reference numbers** (`BB-ORD-####` / `BB-INQ-####`) were added; the single-active-admin handoff was re-architected as a **request queue**; branded **error boundaries** and expanded test coverage were added. Test totals and env/schema tables are updated throughout.
 
 ---
 
@@ -27,9 +29,11 @@
 11. [Performance & Load/Stress Testing](#11-performance--loadstress-testing)
 12. [Internationalization (i18n)](#12-internationalization-i18n)
 13. [Payments (MPGS / Seylan)](#13-payments-mpgs--seylan)
-14. [Future Development Notes](#14-future-development-notes)
-15. [Backup & Recovery](#15-backup--recovery)
-16. [Appendix — Command & Troubleshooting Reference](#16-appendix--command--troubleshooting-reference)
+14. [Notifications — Email & SMS](#14-notifications--email--sms)
+15. [Support Panel & Kaizen Portal API](#15-support-panel--kaizen-portal-api)
+16. [Future Development Notes](#16-future-development-notes)
+17. [Backup & Recovery](#17-backup--recovery)
+18. [Appendix — Command & Troubleshooting Reference](#18-appendix--command--troubleshooting-reference)
 
 ---
 
@@ -50,8 +54,10 @@ A bilingual-by-design (7 languages), server-rendered marketing + booking site fo
 - Public marketing pages (home, about, tours, destinations, destination detail pages).
 - Lead capture: contact enquiries and a 4-step "custom quote" wizard (package / hotel / air ticket / transport).
 - Customer accounts with **admin-approval gating** before a customer may purchase.
-- Online booking and **deferred card payment** via Mastercard Payment Gateway Services (MPGS) Hosted Checkout.
-- A staff admin panel: content CMS (packages, destinations), enquiries, custom inquiries, bookings, payments, customers, settings, and first-party web analytics.
+- Online booking and **deferred card payment** via Mastercard Payment Gateway Services (MPGS) Hosted Checkout, with **sequential human-friendly reference numbers** (`BB-ORD-####`).
+- **Email + SMS notifications** (Zoho SMTP; Dialog RichCommunication SMS) on bookings, payments and inquiries.
+- A staff admin panel: content CMS (packages, destinations), enquiries, custom inquiries, bookings, payments, customers, a **Support panel**, settings, and first-party web analytics.
+- A **token-authenticated Support API** so an external Kaizen operations dashboard can read and update support tickets server-to-server.
 
 ---
 
@@ -68,8 +74,9 @@ The platform is a modern server-rendered web application with a managed Postgres
 | **File Storage** | Admin-uploaded images (packages, destinations) | **Supabase Storage** (`media` public bucket) |
 | **Payments** | Card payment processing | **MPGS Hosted Checkout** (Mastercard Payment Gateway Services, Seylan Bank acquirer) |
 | **Email** | Transactional email (enquiry/booking notifications, pay links, receipts, OTP codes) | **Zoho SMTP** via Nodemailer + React Email |
-| **SMS** | Booking/enquiry notifications | **smslenz.lk** *(built, disabled — future phase)* |
+| **SMS** | Payment + custom-inquiry notifications | **Dialog RichCommunication** SMS gateway *(implemented; gated by `SMS_ENABLED`)* |
 | **Web Analytics** | First-party page views + product analytics | Self-hosted `page_views` table + **Vercel Analytics / Speed Insights** |
+| **Ops integration** | Server-to-server Support-ticket API for the Kaizen dashboard | Bearer-token authenticated route handlers (`/api/support-tickets`) |
 
 ### Request flow (high level)
 
@@ -84,9 +91,11 @@ Next.js App (proxy.ts middleware → next-intl locale routing + auth session ref
   │
   ├── Server Components / Server Actions ──► Supabase Postgres (RLS)
   │                                          └─► Supabase Storage (media)
+  ├── Browser ──(signed upload URL)────────► Supabase Storage   (admin image upload bypasses the function body)
   ├── /api/payments/* ───────────────────► MPGS Hosted Checkout  ◄── 3DS / card capture (browser ↔ gateway iframe)
+  ├── /api/support-tickets/* ◄────────────  Kaizen Portal (bearer-token, server-to-server)
   ├── /api/track ────────────────────────► page_views (first-party analytics)
-  └── Email/SMS side-effects ────────────► Zoho SMTP / smslenz
+  └── Email/SMS side-effects ────────────► Zoho SMTP / Dialog RichCommunication
 ```
 
 **Rendering model:** Public routes are cached/static where possible; the admin app and authenticated/payment routes are dynamic (server-rendered on demand). Middleware (`proxy.ts`, exported as Next's middleware) runs on every request to handle locale routing, refresh the customer's Supabase session cookies, and gate `/admin/*`.
@@ -109,6 +118,7 @@ Exact, current versions (from `package.json`):
 | **i18n** | `next-intl` — 7 locales (en, ar, hi, kn, te, ur, zh), `ar`/`ur` RTL | `^4.13.0` |
 | **Validation** | Zod | `^4.4.3` |
 | **Email** | Nodemailer (Zoho SMTP) + React Email | `nodemailer ^9.0.1`, `@react-email/components ^1.0.12` |
+| **SMS** | Dialog RichCommunication gateway (custom client in `lib/sms`, `USER`/`DIGEST`=MD5/`CREATED` auth) | — (built on `node:crypto`, no SDK) |
 | **Payments** | MPGS Hosted Checkout (custom client in `lib/payments`) | — |
 | **Motion / UX** | `motion` (Framer Motion successor) + `lenis` smooth scroll | `motion ^12.40.0`, `lenis ^1.3.23` |
 | **Reference data** | airport codes, airline codes, country/state/city pickers | `@nwpr/airport-codes`, `airline-codes`, `country-state-city` |
@@ -156,27 +166,32 @@ beyond-borders-next/
 │   │   ├── custom-inquiries/ (+ [id])
 │   │   ├── bookings/ (+ [id])
 │   │   ├── users/                # Customers: verify / activate / deactivate
+│   │   ├── support/              # Support panel: ticket CRUD (KZN-#### numbers)
 │   │   ├── settings/             # Admin password change, etc.
-│   │   ├── _components/
-│   │   └── actions.ts            # Admin server actions
+│   │   ├── _components/          # AdminPresence, MediaUploadField, DirtySubmitButton…
+│   │   ├── error.tsx             # Admin error boundary (branded, recoverable)
+│   │   └── actions.ts            # Admin server actions (+ signed-upload-URL action)
 │   ├── api/
-│   │   ├── admin/{login,session}/      # Admin login + single-session polling
+│   │   ├── admin/{login,session}/      # Admin login + single-session handoff polling
+│   │   ├── support-tickets/ (+ [id])   # Token-authenticated Kaizen Portal API
 │   │   ├── payments/{create-session,webhook}/   # MPGS session + notifications
 │   │   ├── track/                # First-party analytics beacon
 │   │   ├── cities/  places/      # Reference-data lookups for forms
+│   ├── [locale]/error.tsx        # Public error boundary (branded, recoverable)
 │   └── actions.ts                # Public enquiry + booking server actions
 ├── components/                   # Reusable UI (Header, Footer, forms, DatePicker, Select…)
 │   └── account/
 ├── lib/
-│   ├── data/                     # Supabase-backed data access (packages, bookings, analytics, rate-limit…)
+│   ├── data/                     # Supabase-backed data access (packages, bookings, analytics, rate-limit, reference-numbers, support-tickets…)
 │   ├── supabase/                 # server / service-role / public client factories
 │   ├── auth/                     # password-reset (OTP) logic
-│   ├── admin/                    # admin auth + single-active-session control
+│   ├── admin/                    # admin auth, single-active-session queue, direct-upload helper
 │   ├── customer/                 # customer auth guards (requireCustomer / requireVerifiedCustomer)
-│   ├── validation/               # Zod schemas (admin, account, custom-inquiry…)
+│   ├── api/                      # support-api bearer-token authorizer
+│   ├── validation/               # Zod schemas (admin, account, custom-inquiry, support…)
 │   ├── payments/                 # MPGS client, reconcile, currency helpers
 │   ├── email/ (+ templates/)     # Nodemailer transport + React Email templates
-│   ├── sms/                      # smslenz client (disabled by default)
+│   ├── sms/                      # Dialog RichCommunication client + send helpers
 │   ├── security/                 # IP hashing, rate-key scoping, retry-after
 │   ├── format/                   # price/date formatting
 │   ├── i18n/                     # i18n helpers
@@ -290,20 +305,27 @@ Actual secret values are **not** stored in this document — they live in Vercel
 | `USD_TO_LKR_RATE` | Legacy conversion rate (fallback util only; unused while settling in USD) | Vercel + `.env` | No |
 | `MPGS_WEBHOOK_SECRET` | Notification secret for webhook verification | **Vercel only** — never committed/pushed | **YES** |
 | `PAY_LINK_TTL_HOURS` | Pay-link lifetime (default 72h) | Vercel + `.env` | No |
-| `SMS_ENABLED` | Master switch for SMS (off) | Vercel + `.env` | No |
-| `SMS_BASE_URL` / `SMS_USER_ID` / `SMS_API_KEY` / `SMS_SENDER_ID` / `SMS_TEAM_CONTACT` | smslenz config (future phase) | Vercel only (key is secret) | key: **YES** |
+| `SMS_ENABLED` | Master switch for SMS | Vercel + `.env` | No |
+| `SMS_BASE_URL` | Dialog endpoint (default `https://richcommunication.dialog.lk/api/sms/send`) | Vercel + `.env` | No |
+| `SMS_USERNAME` | Dialog gateway username (`USER` header) | Vercel only | sensitive |
+| `SMS_PASSWORD` | Dialog password — sent **MD5-hashed** as the `DIGEST` header, never in clear | **Vercel only / server only** | **YES** |
+| `SMS_MASK` | Registered sender mask / sender name (e.g. `BB Tours SL`) | Vercel + `.env` | No |
+| `SMS_TEAM_CONTACT` | Business mobile that receives payment/inquiry alerts | Vercel + `.env` | No |
+| `SMS_API_KEY` | Reserved (Dialog auth uses username + MD5 digest; not required for send) | Vercel only | sensitive |
+| `SUPPORT_API_KEY` | Shared bearer secret for the Kaizen Portal Support API. Unset ⇒ API returns `503` | **Vercel only / server only** | **YES** |
 | `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Reserved for a future Redis-backed limiter (not wired; DB limiter is used instead) | — | — |
 
 **Security discipline**
 
 - Anything prefixed `NEXT_PUBLIC_` is exposed to the browser — **never** put a secret behind that prefix.
-- The Supabase **service-role key**, **MPGS API password**, and **webhook secret** are highly sensitive and must exist **server-side only**. A static audit (§9) fails the build if a `"use client"` file references the service-role key.
+- The Supabase **service-role key**, **MPGS API password**, **webhook secret**, **SMS password**, and **`SUPPORT_API_KEY`** are highly sensitive and must exist **server-side only**. A static audit (§9) fails the build if a `"use client"` file references the service-role key.
+- `.env.example` is a **template** — keep placeholder values in it; never paste a real secret (e.g. a real `SUPPORT_API_KEY`) into the committed example.
 
 ---
 
 ## 8. Database Schema & Data Model
 
-Backend is **Supabase / PostgreSQL** with **14 tables**, all under Row-Level Security. Migrations live in `supabase/migrations/` (timestamp-versioned). The data-access layer is in `lib/data/`, `lib/auth/`, `lib/admin/`, `lib/customer/`.
+Backend is **Supabase / PostgreSQL** with **15 tables**, all under Row-Level Security, plus two sequences and a set of `SECURITY DEFINER` RPCs. Migrations live in `supabase/migrations/` (**16 timestamp-versioned migrations**, additive/idempotent). The data-access layer is in `lib/data/`, `lib/auth/`, `lib/admin/`, `lib/customer/`.
 
 ### Enumerated types
 
@@ -328,11 +350,17 @@ Backend is **Supabase / PostgreSQL** with **14 tables**, all under Row-Level Sec
 **Lead capture (admin-readable only):**
 
 - **`enquiries`** — contact-form submissions. `name`, `email`, `phone`, `message`, `status`, `source`, `ip_hash`.
-- **`custom_inquiries`** — multi-type quote wizard. `inquiry_type`, `first_name`, `last_name`, `country_city`, `passport_number`, `email`, `mobile`, `details` (JSONB — type-specific fields), `status`, `ip_hash`.
+- **`custom_inquiries`** — multi-type quote wizard. `inquiry_type`, `first_name`, `last_name`, `country_city`, `passport_number`, `email`, `mobile`, `details` (JSONB — type-specific fields), `reference` (`BB-INQ-####`), `status`, `ip_hash`.
+
+**Support (admin-readable; also read/updated by the token-authenticated Portal API):**
+
+- **`support_tickets`** — internal support tickets raised from the admin Support panel. `id`, `number` (unique `KZN-####`, random-but-unique via a 23505 retry loop), `title`, `description`, `image_url` (optional screenshot in the `media` bucket), `status` (`open` → `in_progress` → `closed`, `CHECK`-constrained), `created_at`, `updated_at`. **Status is only ever changed by the Kaizen Portal API**, never from the Beyond Borders admin UI.
+
+> **Sequential reference numbers:** `bookings.reference` carries a human-friendly `BB-ORD-####`, and `custom_inquiries.reference` carries `BB-INQ-####` — both drawn from Postgres **sequences** (`order_number_seq`, `inquiry_number_seq`, starting at 1000) via `SECURITY DEFINER` RPCs. This gives staff and customers stable, readable IDs (shown on emails, SMS and the admin panel) instead of raw UUIDs, while guaranteeing uniqueness under concurrency. The app **falls back to a random suffix** if the sequence RPC is unavailable, so a lead/booking is never blocked.
 
 **Booking & payment:**
 
-- **`bookings`** — `reference` (unique), FK `tour_package_id`, `traveller_name`, `email`, `phone`, `travel_dates`, `travellers (>0)`, `status`, `quoted_amount`, `currency`, `ip_hash`, `user_id` (FK `auth.users`, links the customer who booked).
+- **`bookings`** — `reference` (unique, `BB-ORD-####`), FK `tour_package_id`, `traveller_name`, `email`, `phone`, `travel_dates`, `travellers (>0)`, `status`, `quoted_amount`, `currency`, `ip_hash`, `user_id` (FK `auth.users`, links the customer who booked).
 - **`payments`** — FK `booking_id → bookings(id)` `ON DELETE CASCADE`. `mpgs_order_id` (unique), `mpgs_session_id`, `mpgs_transaction_id`, `amount (>0)`, `currency`, `status`, `pay_token` (unique), `pay_token_expires_at`, `gateway_result` (JSONB audit of the full gateway response).
 
 **Identity:**
@@ -345,7 +373,7 @@ Backend is **Supabase / PostgreSQL** with **14 tables**, all under Row-Level Sec
 - **`rate_limit_events`** — sliding-window limiter ledger. `action`, `ip_hash`, `created_at`.
 - **`password_reset_codes`** — OTP reset. `email`, `user_id`, `audience` (`customer`/`admin`), `code_hash` (salted SHA-256 — plaintext never stored), `expires_at`, `attempts`, `consumed_at` (single-use).
 - **`page_views`** — first-party analytics. `path`, `visitor_hash` (salted IP hash — no raw IP, no cookies), `referrer`, `country`.
-- **`admin_login_lock`** — single-active-admin seat. Single-row table (`id boolean PK CHECK(id)`), `user_id`, `email`, `acquired_at`, `expires_at`.
+- **`admin_login_lock`** — *legacy.* An earlier single-row implementation of the single-active-admin seat. The seat + handoff now lives entirely in the admin user's `user_metadata.admin_session` (a request **queue** — see §9.2), so this table is no longer read/written by the app; it remains only so old migrations apply cleanly and can be dropped in a future cleanup migration.
 
 ### Functions, triggers & RPCs
 
@@ -353,7 +381,8 @@ Backend is **Supabase / PostgreSQL** with **14 tables**, all under Row-Level Sec
 - `is_admin()` — `SECURITY DEFINER`; true when `auth.uid()` is an `admin` in `profiles`. Used throughout RLS.
 - `is_verified_customer()` — `SECURITY DEFINER`; true when `auth.uid()` is a `verified` customer.
 - `analytics_summary(days)`, `analytics_top_pages(days, max)`, `analytics_daily(days)` — `SECURITY DEFINER`, `STABLE`, `EXECUTE` granted to `service_role` only; power the admin dashboard.
-- `acquire_admin_login_lock(user_id, email, expires_at)` — `SECURITY DEFINER`; atomic upsert of the single seat row (claims if free or expired, renews if held by the same user). `EXECUTE` granted to `service_role` only.
+- `next_order_number()` / `next_inquiry_number()` — `SECURITY DEFINER`; return the next value from `order_number_seq` / `inquiry_number_seq` for the `BB-ORD-####` / `BB-INQ-####` references. `EXECUTE` granted to `service_role` only.
+- `acquire_admin_login_lock(user_id, email, expires_at)` — *legacy* (see `admin_login_lock` above); retained but no longer called.
 
 ### Storage
 
@@ -370,6 +399,7 @@ Backend is **Supabase / PostgreSQL** with **14 tables**, all under Row-Level Sec
 | payments | own booking (customer) **or** admin | admin² | admin | — |
 | customers | own **or** admin | self (`id = auth.uid()`) | admin | admin |
 | profiles | own **or** admin | admin | admin | admin |
+| support_tickets | admin | admin | admin | *(service role — Portal API; no RLS delete policy)* |
 | rate_limit_events / password_reset_codes / page_views / admin_login_lock | **service role only** (RLS on, no policies) | service | service | service |
 
 > ¹ Anonymous public submissions are written by the **service-role** client (RLS-exempt), then read by staff under RLS. ² Admins insert `payments` when generating a pay link; machine writes (create-session, reconcile) use the service role.
@@ -422,7 +452,7 @@ Notes: `'unsafe-inline'` is required for Next's framework inline scripts/styles 
   - **Staff/admins** — bootstrapped from `ADMIN_ALLOWED_EMAILS`; on first login a `profiles` row (`role = admin`) is created. Admin identity is checked against the allowlist, not self-service.
 - **Session refresh** happens in middleware (`proxy.ts` → `refreshCustomerSession`): the only place that can write rotated auth cookies back to the browser, so a returning customer isn't silently logged out when the short-lived access token expires.
 - **Sign-out uses `scope: 'local'`** deliberately — a global sign-out would invalidate the shared admin account's other sessions. (See single-active-admin below.)
-- **Single-active-admin seat:** one shared admin account is coordinated via the `admin_login_lock` table + `user_metadata.admin_session`. A new login either claims a free/expired seat, renews its own, or registers a **pending request** that the current holder approves/denies (the `/admin/login/waiting` handoff). Liveness is a lease (active ≈ 60s, refreshed via heartbeat on each admin request; login requests expire ≈ 120s). All seat logic **fails open** so an internal error never locks staff out.
+- **Single-active-admin seat + interactive handoff:** one shared admin account is coordinated entirely in the admin user's `user_metadata.admin_session`. Each browser gets a random session id (`admin_sid` httpOnly cookie); the metadata holds the current seat holder plus a **queue of pending login requests** (one per contesting session). A new login either claims a free/expired seat, renews its own, or **enqueues a pending request** the current holder resolves on the `/admin/login/waiting` handoff screen. Because it's a queue (not a single slot), **multiple people contesting at once no longer clobber each other's request** — a real bug that previously deadlocked the handoff. Decisions are batch-aware: **"Keep my session" denies every waiting request at once**, and **"Allow" hands the seat to the first (oldest) requester and denies the rest** in one click. Liveness is a lease (active ≈ 60s, refreshed via heartbeat on each admin request/poll; login requests expire ≈ 120s), it **self-heals** a lost metadata write by re-registering on the next poll, and all seat logic **fails open** so an internal error never locks staff out. Sign-out uses `scope:'local'` so resolving the seat never invalidates the shared account's other tokens. *(The legacy `admin_login_lock` table is no longer used — see §8.)*
 
 ### 9.3 Authorization & route protection
 
@@ -506,6 +536,29 @@ All form input is validated server-side with **Zod** schemas in `lib/validation/
 - **Privacy:** analytics store only a **salted IP hash** (no raw IP, no cookies, no PII) — `page_views.visitor_hash`. Rate-limit and analytics tables are service-role-only.
 - A reserved-email guard (`isReservedEmailDomain`) skips outbound mail to `*.test` addresses so QA never emails real inboxes.
 
+### 9.10 Authenticated Portal API (`/api/support-tickets`)
+
+The Kaizen operations dashboard reads/updates support tickets server-to-server through a small, hardened API (`lib/api/support-auth.ts` → `authorizeSupportApi`):
+
+- **Shared-secret bearer token** (`Authorization: Bearer <SUPPORT_API_KEY>`). The key is **server-only** and never shipped to any browser.
+- **Constant-time comparison:** the presented token and the expected key are each hashed with **SHA-256** and compared via **`crypto.timingSafeEqual`** — the equal-length hashes prevent both timing side-channels and length leakage.
+- **Fails closed:** a missing/malformed header or wrong key returns **`401`**; if `SUPPORT_API_KEY` is unset the API returns **`503`** (disabled) rather than allowing through.
+- **Least privilege:** only the ticket endpoints are exposed. Reads/updates use the service-role client *behind* the token check; the browser never has ticket write access. `PATCH` accepts **only** the status field, validated against the `open`/`in_progress`/`closed` enum — the Portal can move a ticket's lifecycle but nothing else. All responses are `no-store`.
+
+### 9.11 Direct-to-storage uploads (signed URLs)
+
+Admin package/destination images upload **straight from the browser to Supabase Storage**, not through the Server Action body:
+
+- A tiny **admin-gated** server action (`createMediaUploadUrlAction`) validates the file's declared **type and size (≤ 8 MB)** and mints a short-lived **signed upload URL** (service role) pinned to a random path under a fixed prefix (`destinations/` or `packages/`).
+- The browser `PUT`s the bytes to that signed URL (anon client, `uploadToSignedUrl`); the form then submits **only the resulting public URL**.
+- **Why it matters:** image bytes never transit the serverless function, so the platform's **~4.5 MB request-body limit can't break a multi-image save** (a real bug when changing both card + hero at once), the payload stays tiny, and the signed URL grants write access to exactly one path for a short window — no broad browser upload permission.
+
+### 9.12 Graceful failure & error boundaries
+
+- **Branded error boundaries** on both the public site (`app/[locale]/error.tsx`) and the admin panel (`app/admin/error.tsx`): an unexpected server error renders a recoverable "we hit a snag / try again" page in-shell instead of a raw Next.js stack trace — no internal details leak to visitors.
+- **Structured, fail-soft server actions:** public and admin form actions wrap DB/email/SMS/storage work and return typed `{ ok, note }` results the UI surfaces inline; notifications (email/SMS) are **best-effort** and never block or fail the primary action.
+- Payment **reconciliation is idempotent** and the webhook returns `200` for unknown orders (no probing) — see §9.7.
+
 ---
 
 ## 10. Testing & QA
@@ -518,13 +571,15 @@ The project ships with a deep, multi-layer automated suite plus a documented man
 |---|---|---|---|---|
 | **Type check** | `tsc --noEmit` | whole repo | — | strict TypeScript correctness |
 | **Lint** | ESLint (+ React Compiler hook rules) | whole repo | — | code quality; blocks `setState`-in-effect & ref-access-in-render |
-| **Unit** | Vitest | `tests/unit/` | **96 tests** across 16 files | validation, dates, formatting, rate-key/IP, retry-after, payment currency, payment tokens, reconcile, security utils, i18n localize, SMS, email deliverability |
-| **Component** | Vitest + Testing Library | `tests/component/` | **33 tests** across 9 files | ContactForm, BookingRequestForm, CustomInquiryForm, Combobox, PasswordInput, PayButton, StatusBadge, Toast, TourPackageList |
+| **Unit** | Vitest | `tests/unit/` | **111 tests** across 17 files | validation, dates, formatting, rate-key/IP, retry-after, payment currency, payment tokens, reconcile, security utils, i18n localize, SMS, email deliverability, **single-active-admin handoff queue** |
+| **Component** | Vitest + Testing Library | `tests/component/` | **34 tests** across 10 files | ContactForm, BookingRequestForm, CustomInquiryForm, Combobox, PasswordInput, PayButton, StatusBadge, Toast, TourPackageList |
 | **Integration** | Vitest (test DB) | `tests/integration/` | **14 tests** across 3 files | **RLS policies**, password-reset flow end-to-end, data + analytics RPCs |
 | **Security audit** | custom Node script | `tests/security/audit.mjs` | 5 check groups | deps, committed secrets, hardcoded secrets, service-key leakage, dangerous patterns |
-| **E2E / browser** | Playwright (Chromium) | `tests/e2e/` | **44 tests** across 14 specs | full user journeys, responsiveness, accessibility, SEO, performance, security headers |
+| **E2E / browser** | Playwright (Chromium) | `tests/e2e/` | **44 tests** across 13 specs | full user journeys, responsiveness, accessibility, SEO, performance, security headers |
 
-**Totals: ~143 Vitest tests (unit + component + integration) and 44 Playwright E2E tests** — ~187 automated checks, plus the static security and type/lint gates.
+**Totals: 159 Vitest tests (111 unit + 34 component + 14 integration) and 44 Playwright E2E tests — 203 automated tests**, plus the static security audit and the `tsc`/ESLint gates.
+
+The **admin-handoff** suite (`tests/unit/admin-session.test.ts`) deserves a call-out: it exercises the real session logic against an in-memory metadata store and proves the properties that were previously broken — two contenders' requests coexist without clobbering, "Allow" actually takes (not `"invalid"`), the first requester wins and the rest are denied, one "Keep my session" denies the whole batch, and a lost metadata write self-heals.
 
 ### 10.2 What the E2E suite verifies (`tests/e2e/`)
 
@@ -625,6 +680,8 @@ Run against a **local production build** (`npm run build && npm run start`) on t
 - **Images:** Next image optimizer serves **AVIF/WebP**, `minimumCacheTTL` = 1 year; Supabase Storage host is whitelisted for optimization.
 - **Edge headers + HSTS preload**, long-lived immutable static assets via Vercel's CDN.
 - **Vercel Speed Insights** captures real-user Core Web Vitals in production; `react-scan` (`npm run react:scan`) is available for local render-cost profiling.
+- **Uploads bypass the function:** admin images go browser→Supabase Storage via a signed URL (§9.11), so large multipart bodies never occupy serverless compute or hit the platform body-size cap.
+- **React Compiler** (enabled in `next.config.ts`) auto-memoizes components, and the ESLint React-Compiler rules block the anti-patterns (`setState`-in-effect, ref-access-in-render) that would defeat it.
 - A Playwright `performance.spec` asserts a basic perf budget in CI-adjacent runs.
 
 ---
@@ -650,9 +707,109 @@ Run against a **local production build** (`npm run build && npm run start`) on t
 
 ---
 
-## 14. Future Development Notes
+## 14. Notifications — Email & SMS
 
-- **SMS notifications** (smslenz.lk) — fully built (`lib/sms/`, `scripts/verify-sms.ts`) but **disabled** (`SMS_ENABLED=false`). Enable once the approved sender ID and business mobile are configured; flip the env and verify with `npm run sms:verify`.
+The platform notifies both staff and customers on the key lifecycle events. Every send is **fail-soft** — a mail/SMS outage never blocks the underlying booking, payment or inquiry.
+
+### 14.1 Email (Zoho SMTP + React Email)
+
+- Transport is Nodemailer over **Zoho SMTP** (`lib/email/`), with templates authored as **React Email** components (`lib/email/templates/`) for consistent, well-rendered HTML.
+- Sends cover: enquiry + custom-inquiry notifications to the team inbox, booking + **payment receipt** to the customer, **pay-link** emails, and **OTP** codes for password resets. Reference numbers (`BB-ORD`/`BB-INQ`) are rendered on the relevant templates.
+- **Safety:** the transport returns `null` when SMTP is unset (so tests send nothing), and `isReservedEmailDomain()` skips `*.test` addresses. Deliverability is pre-checked (MX/A) before a real send (§9.6).
+- Verify connectivity with `npm run email:verify`.
+
+### 14.2 SMS (Dialog RichCommunication gateway)
+
+`lib/sms/` — a dependency-free client built directly on `node:crypto`:
+
+- **Endpoint:** `POST https://richcommunication.dialog.lk/api/sms/send` (`SMS_BASE_URL`).
+- **Auth (per-request, no login/session):** headers `USER` (`SMS_USERNAME`), `DIGEST` = **MD5(`SMS_PASSWORD`)** — the password is never sent in clear — and `CREATED` (a `YYYY-MM-DDTHH:mm:ss` timestamp). The registered **`SMS_MASK`** is the sender name.
+- **Result handling:** the gateway returns HTTP `200` even for logical failures, so success is treated as a top-level **`resultCode === 0`**; everything is wrapped so a failure is logged and swallowed (fail-soft).
+- **What fires:**
+  - **Payment made** → an SMS to **both** the business number (business-worded, "Dear BEYOND BORDERS…") **and** the customer's own number (customer-worded, "Dear `<name>`…"), quoting the `BB-ORD-####` reference.
+  - **New custom inquiry** → an SMS to the **business number only** (never the customer), quoting `BB-INQ-####`.
+- **Master switch:** `SMS_ENABLED`; the client is inert unless it's on **and** the Dialog credentials + mask are present. Verify with `npm run sms:verify`.
+
+> **Number formatting:** the client normalizes recipients to Dialog's MSISDN format (digits, country-prefixed). Confirm the business/customer numbers are provided in a form that normalizes correctly before enabling in production.
+
+### 14.3 Notification & OTP routing (flow diagram)
+
+Every lifecycle event fans out to a defined set of channels. The diagram below is the **agreed routing**; the table under it is the precise per-event matrix.
+
+```mermaid
+flowchart LR
+  %% Triggers
+  P(["Package purchased<br/>(payment captured)"])
+  C(["Contact-us enquiry"])
+  Q(["Custom inquiry"])
+  UPC(["Customer<br/>password change"])
+  UPF(["Customer<br/>forgot password"])
+  APW(["Admin password<br/>change / forgot"])
+
+  %% Destinations
+  AP[["Admin panel"]]
+  RES["reservations@beyondborders.lk<br/>(team inbox)"]
+  CUST["Customer's email"]
+  SMSB["SMS · business numbers<br/>(SMS_TEAM_CONTACT)"]
+  SMSC["SMS · customer's mobile"]
+  OTPU["OTP e-mail to<br/>customer's registered email"]
+  OTPA["OTP e-mail to<br/>reservations@ only"]
+
+  P --> AP & RES & CUST & SMSB & SMSC
+  C --> AP & RES & CUST
+  Q --> AP & RES & CUST & SMSB
+  UPC --> OTPU
+  UPF --> OTPU
+  APW --> OTPA
+```
+
+| Event | Admin panel | Team email (`reservations@`) | Customer email | SMS |
+|---|:---:|:---:|:---:|---|
+| **Package purchased** (payment captured) | ✓ | ✓ | ✓ (receipt / invoice) | Business numbers **+ customer's mobile** → *3 numbers* |
+| **Contact-us enquiry** | ✓ | ✓ | ✓ (acknowledgement) | — |
+| **Custom inquiry** | ✓ | ✓ | ✓ (acknowledgement) | Business numbers → *2 numbers* |
+| **Customer password change** | — | — | **OTP** → customer's registered email | — |
+| **Customer forgot password** | — | — | **OTP** → customer's registered email | — |
+| **Admin password change / forgot** | — | **OTP → `reservations@` only** (never a typed address) | — | — |
+
+**Notes**
+
+- **Email** is wired exactly as above (`lib/email/send.tsx`): `sendInvoiceEmails` (payment) and `sendEnquiryEmails` / `sendCustomInquiryEmails` each notify the team inbox **and** the customer; the OTP audience split (customer's own address vs. the `reservations@` security inbox) is enforced in `lib/auth/password-reset.ts` (see §9.8).
+- **SMS** fires only on **payment** and **custom inquiry** — a plain contact-us enquiry sends **no SMS**. Payment SMS is customer-worded to the customer and business-worded to the team; inquiry SMS goes to the business only.
+- **Multiple business numbers (spec vs. current build):** the agreed design is **3 numbers** on a purchase (2 business + the customer) and **2 numbers** on a custom inquiry (2 business). The SMS client currently sends to a **single** `SMS_TEAM_CONTACT` (plus the customer's mobile on payments). To reach the full business list, make `SMS_TEAM_CONTACT` a comma-separated list and have `sendPaymentSms` / `sendInquirySms` fan out over it — an isolated change in `lib/sms/send.ts`; the per-message send path and templates stay the same.
+
+---
+
+## 15. Support Panel & Kaizen Portal API
+
+An internal support-ticket workflow spanning the Beyond Borders admin panel and the external Kaizen operations dashboard.
+
+### 15.1 Admin Support panel (`/admin/support`)
+
+- Staff **create, edit and delete** tickets (title, description, optional screenshot). Each ticket gets a unique **`KZN-####`** number — random, made collision-proof by a unique constraint + `23505` retry loop.
+- Screenshots upload to the `media` bucket (under a `support/` prefix); the list clamps long descriptions with a click-through **detail modal**.
+- **Status is read-only in this UI.** A ticket's lifecycle (`open` → `in_progress` → `closed`) is changed **only** by the Kaizen Portal via the API below — the separation is deliberate so the operations dashboard owns triage state.
+
+### 15.2 Portal API (`/api/support-tickets`)
+
+Server-to-server, bearer-token authenticated (§9.10). All responses are `no-store`.
+
+| Method / Route | Purpose | Notes |
+|---|---|---|
+| `GET /api/support-tickets` | List all tickets (newest first) | Camel-cased JSON payload |
+| `GET /api/support-tickets/:id` | Fetch a single ticket | `404` if not found |
+| `PATCH /api/support-tickets/:id` | Update **status only** | Body `{ "status": "open" \| "in_progress" \| "closed" }`; `400` on invalid status, `404` if missing |
+
+- **Auth:** `Authorization: Bearer <SUPPORT_API_KEY>`; `401` on wrong/missing token, `503` if the key is unconfigured (constant-time compare — §9.10).
+- **Data access:** reads/updates use the service-role client *behind* the token gate. The `PATCH` payload is validated against the status enum, so the Portal can advance a ticket's lifecycle but cannot alter its content.
+- **Integration note:** point the Kaizen dashboard at `https://<site>/api/support-tickets` with the shared `SUPPORT_API_KEY` (set identically on both the Beyond Borders deployment and the Portal). Rotate the key on both sides together.
+
+---
+
+## 16. Future Development Notes
+
+- **SMS notifications** (Dialog RichCommunication) — implemented and wired (payment + custom-inquiry alerts, §14.2). Currently gated by `SMS_ENABLED`; turn it on once the registered sender **mask** and business mobile are finalized on the Dialog account, then verify with `npm run sms:verify`. *(The Dialog password/API key shared during setup should be rotated before go-live.)*
+- **Legacy cleanup** — the unused `admin_login_lock` table + `acquire_admin_login_lock` RPC (superseded by the `user_metadata` handoff queue) can be dropped in a future migration.
 - **Phase 2 / AI enhancements** (AI chat agent, AI receptionist) — see the *Welcome & Thank You Pack* recommendations.
 - **i18n** — human proofing of the 7 machine-translated catalogs; RTL visual QA; finalize static editorial copy.
 - **Rate-limit housekeeping** — `rate_limit_events`, `password_reset_codes`, and `page_views` grow unbounded; schedule periodic pruning (suggested SQL is in each migration's comments). A Redis-backed limiter (Upstash) is stubbed in env but not wired; the DB limiter is sufficient at current volume.
@@ -661,7 +818,7 @@ Run against a **local production build** (`npm run build && npm run start`) on t
 
 ---
 
-## 15. Backup & Recovery
+## 17. Backup & Recovery
 
 Critical: the database holds **live customer PII** (names, contact details, passport numbers, bookings).
 
@@ -673,7 +830,7 @@ Critical: the database holds **live customer PII** (names, contact details, pass
 
 ---
 
-## 16. Appendix — Command & Troubleshooting Reference
+## 18. Appendix — Command & Troubleshooting Reference
 
 ### Command reference
 
@@ -702,6 +859,10 @@ Critical: the database holds **live customer PII** (names, contact details, pass
 - **Payment "currency not supported"** → the production **MID isn't provisioned** for that currency; the bank must enable it (not an app fix).
 - **Checkout blocked / blank gateway frame** → CSP `MPGS_BASE_URL` origin mismatch; ensure prod `MPGS_BASE_URL` is set and redeploy.
 - **A user appears rate-limited unfairly** → limits are per-(IP, account); to unblock immediately, truncate the relevant rows in `rate_limit_events`. The limiter fails open, so an outage of that table won't lock anyone out.
+- **"We hit a snag" when uploading BOTH images at once** → this was the platform's ~4.5 MB request-body cap; images now upload direct-to-storage via signed URLs (§9.11), so ensure the deploy includes that change and that the CSP allows Supabase in `connect-src` (it does).
+- **Support API returns `503`** → `SUPPORT_API_KEY` isn't set on the deployment; `401` → the Portal is sending the wrong/no bearer token. Set the **same** key on both the site and the Kaizen Portal.
+- **SMS not sending / `AUTHENTICATION_FAILURE`** → check `SMS_USERNAME` exactly (underscores vs hyphens matter), that `SMS_PASSWORD` is correct (it's sent as an **MD5 digest**), that `SMS_MASK` is the registered sender, and that `SMS_ENABLED=true`. Probe with `npm run sms:verify`.
+- **Admin handoff seemed stuck when two people logged in at once** → fixed: requests are a queue now (§9.2); "Keep my session" denies the whole batch and "Allow" gives the first requester the seat.
 - **Two dev servers fighting over port 3000** → `pkill -f "next dev"` (and `next start`) before relaunching.
 
 ---
