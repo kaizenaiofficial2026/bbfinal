@@ -78,6 +78,7 @@ export default async function AccountPage() {
           title={t("greeting", { name: customer.full_name })}
           label={t("accountLabel")}
           image="/assets/images/heroes/pricing-header.jpg"
+          showBreadcrumbs={false}
           summary={
             customer.verified ? t("verifiedSummary") : t("unverifiedSummary")
           }
