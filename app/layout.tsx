@@ -102,7 +102,21 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
   icons: {
-    icon: "/assets/images/brand/favicon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      {
+        url: "/assets/images/brand/bb-icon-32.png",
+        type: "image/png",
+        sizes: "32x32",
+      },
+      {
+        url: "/assets/images/brand/bb-icon.png",
+        type: "image/png",
+        sizes: "512x512",
+      },
+    ],
+    apple: "/assets/images/brand/bb-icon-180.png",
+    shortcut: "/favicon.ico",
   },
   openGraph: {
     type: "website",
