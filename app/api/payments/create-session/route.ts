@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPaymentByToken } from "@/lib/data/payments";
+import { getPaymentByToken, orderReference } from "@/lib/data/payments";
 import { env } from "@/lib/env";
 import { createCheckoutSession } from "@/lib/payments/mpgs";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const { token } = await request.json();
   const payment = await getPaymentByToken(String(token ?? ""));
 
-  if (!payment?.bookings) {
+  if (!payment?.bookings?.length) {
     return NextResponse.json({ error: "Payment not found." }, { status: 404 });
   }
 
@@ -60,7 +60,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Payment link expired." }, { status: 410 });
   }
 
-  if (payment.status === "captured" || payment.bookings.status === "paid") {
+  const alreadyPaid =
+    payment.status === "captured" ||
+    payment.bookings.every((b) => b.status === "paid");
+  if (alreadyPaid) {
     return NextResponse.json({ error: "Payment already completed." }, { status: 409 });
   }
 
@@ -74,7 +77,7 @@ export async function POST(request: Request) {
       orderId: payment.mpgs_order_id,
       amount: payment.amount,
       currency: payment.currency,
-      description: `Beyond Borders booking ${payment.bookings.reference}`,
+      description: `Beyond Borders order ${orderReference(payment)}`,
       returnUrl: `${env.siteUrl}/pay/${payment.pay_token}/result`,
     });
   } catch (caught) {

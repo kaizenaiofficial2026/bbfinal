@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getBooking } from "@/lib/data/bookings";
-import { listPaymentsForBooking } from "@/lib/data/payments";
+import { getPaymentById } from "@/lib/data/payments";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import {
   derivedBookingStatus,
@@ -21,7 +21,11 @@ export default async function BookingPage({ params }: BookingPageProps) {
 
   if (!booking) notFound();
 
-  const payments = await listPaymentsForBooking(booking.id);
+  // This booking belongs to an order (a payment covering one or more bookings).
+  const payment = booking.payment_id
+    ? await getPaymentById(booking.payment_id)
+    : null;
+  const orderBookings = payment?.bookings ?? [];
 
   return (
     <div className="admin-stack">
@@ -58,7 +62,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
           <strong>Paid</strong> only once a payment is confirmed, otherwise{" "}
           <strong>Awaiting payment</strong>. It can&apos;t be changed by hand.
         </p>
-        {payments.length === 0 ? (
+        {!payment ? (
           <p className="form-hint">No payments recorded yet.</p>
         ) : (
           <div className="admin-table">
@@ -67,18 +71,41 @@ export default async function BookingPage({ params }: BookingPageProps) {
               <span>Amount</span>
               <span>Status</span>
             </div>
-            {payments.map((payment) => (
-              <div key={payment.id}>
-                <span>{payment.mpgs_order_id}</span>
-                <span className="admin-muted">
-                  {formatCurrency(payment.amount, payment.currency)}
-                </span>
-                <StatusBadge status={payment.status} />
-              </div>
-            ))}
+            <div>
+              <span>{payment.reference ?? payment.mpgs_order_id}</span>
+              <span className="admin-muted">
+                {formatCurrency(payment.amount, payment.currency)}
+              </span>
+              <StatusBadge status={payment.status} />
+            </div>
           </div>
         )}
       </section>
+
+      {orderBookings.length > 1 ? (
+        <section className="admin-card admin-stack">
+          <h2>Order items ({orderBookings.length})</h2>
+          <p className="form-hint">
+            This booking is part of a multi-package order paid together.
+          </p>
+          <div className="admin-table">
+            <div className="admin-table-head">
+              <span>Reference</span>
+              <span>Package</span>
+              <span>Amount</span>
+            </div>
+            {orderBookings.map((item) => (
+              <Link href={`/admin/bookings/${item.id}`} key={item.id}>
+                <span>{item.reference}</span>
+                <span className="admin-muted">
+                  {item.tour_packages?.title ?? "Package"}
+                </span>
+                <span>{formatCurrency(item.quoted_amount, item.currency)}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

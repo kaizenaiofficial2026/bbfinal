@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
-import { getPaymentByToken } from "@/lib/data/payments";
+import { getPaymentByToken, orderReference } from "@/lib/data/payments";
 import { env } from "@/lib/env";
 import { reconcilePayment } from "@/lib/payments/reconcile";
 
@@ -19,53 +19,67 @@ export default async function PaymentResultPage({ params }: ResultPageProps) {
   let message = t("resultNotFound");
   let paid = false;
 
-  if (payment?.bookings && env.paymentsEnabled) {
+  const bookings = payment?.bookings ?? [];
+  if (bookings.length && env.paymentsEnabled) {
     // Idempotent: safe even if the webhook already finalized this payment, or
     // the customer refreshes this page — no duplicate receipt is sent.
-    const result = await reconcilePayment(payment);
+    const result = await reconcilePayment(payment!);
     paid = result.captured;
     message = result.captured ? t("resultReceived") : t("resultNotConfirmed");
-  } else if (payment?.bookings) {
-    paid = payment.status === "captured" || payment.bookings.status === "paid";
+  } else if (bookings.length) {
+    paid =
+      payment!.status === "captured" || bookings.every((b) => b.status === "paid");
     message = t("resultDisabled");
   }
 
-  const booking = payment?.bookings ?? null;
-  const displayAmount = booking?.quoted_amount ?? payment?.amount ?? 0;
-  const displayCurrency = booking?.currency ?? payment?.currency ?? "USD";
+  const hasOrder = bookings.length > 0;
+  const single = bookings.length === 1;
+  const reference = payment ? orderReference(payment) : "";
 
   return (
     <SiteShell>
       <main>
         <PageHero
           title={t("resultTitle")}
-          label={booking?.reference ?? "Beyond Borders"}
+          label={reference || "Beyond Borders"}
           image="/assets/images/heroes/pricing-header.jpg"
           summary={message}
         />
         <section className="section section-paper">
           <div className="container pay-layout">
-            {booking ? (
+            {hasOrder && payment ? (
               <article className="booking-summary-card">
                 <span className="booking-form-label">{t("orderSummary")}</span>
-                <h1>{booking.tour_packages?.title ?? t("defaultBooking")}</h1>
+                <h1>
+                  {single
+                    ? (bookings[0].tour_packages?.title ?? t("defaultBooking"))
+                    : t("order")}
+                </h1>
                 <div className="booking-total-row">
                   <span>{t("reference")}</span>
-                  <strong>{booking.reference}</strong>
+                  <strong>{reference}</strong>
                 </div>
                 <div className="booking-total-row">
                   <span>{t("traveller")}</span>
-                  <strong>{booking.traveller_name}</strong>
+                  <strong>{bookings[0].traveller_name}</strong>
                 </div>
-                <div className="booking-total-row">
-                  <span>{t("amount")}</span>
+                {bookings.map((b) => (
+                  <div className="booking-total-row booking-line-item" key={b.id}>
+                    <span>{b.tour_packages?.title ?? t("defaultBooking")}</span>
+                    <strong>
+                      {b.currency} {(b.quoted_amount ?? 0).toFixed(2)}
+                    </strong>
+                  </div>
+                ))}
+                <div className="booking-total-row booking-total-final">
+                  <span>{single ? t("amount") : t("total")}</span>
                   <strong>
-                    {displayCurrency} {displayAmount.toFixed(2)}
+                    {payment.currency} {payment.amount.toFixed(2)}
                   </strong>
                 </div>
                 <div className="booking-total-row">
                   <span>{t("status")}</span>
-                  <strong>{paid ? t("paid") : payment?.status}</strong>
+                  <strong>{paid ? t("paid") : payment.status}</strong>
                 </div>
                 {paid ? <p className="form-note">{t("alreadyPaid")}</p> : null}
               </article>

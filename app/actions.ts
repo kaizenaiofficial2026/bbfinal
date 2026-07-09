@@ -2,22 +2,14 @@
 
 import { getLocale, getTranslations } from "next-intl/server";
 import { localeRedirect } from "@/lib/i18n/redirect";
-import { createBooking } from "@/lib/data/bookings";
+import { createOrder } from "@/lib/data/orders";
 import { createEnquiry } from "@/lib/data/enquiries";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { requireVerifiedCustomer } from "@/lib/customer/auth";
-import {
-  canUseSupabaseService,
-  createSupabaseServiceClient,
-} from "@/lib/supabase/service";
+import { canUseSupabaseService } from "@/lib/supabase/service";
 import { sendEnquiryEmails } from "@/lib/email/send";
-import {
-  createMpgsOrderId,
-  createPayToken,
-  createPayTokenExpiry,
-} from "@/lib/payments/tokens";
 import { getRequestIpHash } from "@/lib/security/request";
-import { nextOrderReference } from "@/lib/data/reference-numbers";
+import { passedTimeTrap } from "@/lib/security/time-trap";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 import { bookingSchema } from "@/lib/validation/booking";
 import { enquirySchema } from "@/lib/validation/enquiry";
@@ -26,25 +18,6 @@ import type { BookingState, EnquiryState } from "@/app/action-state";
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
-}
-
-function passedTimeTrap(startedAt?: number) {
-  if (!startedAt) {
-    return true;
-  }
-
-  // `startedAt` is stamped on the visitor's device (client clock) at form mount,
-  // while Date.now() here is the server clock. A NEGATIVE elapsed means the
-  // device clock runs AHEAD of the server's — that's clock skew, not a bot, so
-  // we must let it through. Without this guard, anyone whose laptop clock is
-  // fast got "please wait a moment" on every submit, forever. Only a small,
-  // non-negative elapsed indicates a genuine instant (bot) submission.
-  const elapsed = Date.now() - startedAt;
-  if (elapsed < 0) {
-    return true;
-  }
-
-  return elapsed >= 2500;
 }
 
 export async function submitEnquiry(
@@ -222,76 +195,38 @@ export async function submitBooking(
     };
   }
 
-  const service = createSupabaseServiceClient();
-
-  // The payable amount is the package's flat price, read server-side — never
-  // trust a client-supplied amount.
-  const { data: pkg, error: pkgError } = await service
-    .from("tour_packages")
-    .select("id, title, price_amount, currency, status")
-    .eq("id", parsed.data.tourPackageId)
-    .maybeSingle();
-
-  if (pkgError || !pkg || pkg.status !== "published") {
-    return { ok: false, note: t("journeyNotAvailable"), values };
-  }
-
-  if (pkg.price_amount == null) {
-    return {
-      ok: false,
-      note: t("noInstantCheckout"),
-      values,
-    };
-  }
-
-  const token = createPayToken();
-
-  try {
-    // nextOrderReference() hits the DB (sequence RPC) so it lives inside the
-    // try — a transient failure returns a structured note, not a raw throw.
-    const reference = await nextOrderReference();
-    const booking = await createBooking({
-      reference,
-      tour_package_id: pkg.id,
-      user_id: session.user.id,
-      traveller_name: session.customer.full_name,
+  // Create a one-item order (a payment covering a single booking). The price and
+  // currency are re-derived server-side inside createOrder — never trusted from
+  // the client. Cart checkout uses the exact same path with multiple items.
+  const order = await createOrder({
+    customer: {
+      userId: session.user.id,
+      fullName: session.customer.full_name,
       email: session.customer.email,
       phone: session.customer.phone,
-      travel_dates: parsed.data.travelDates,
-      travellers: parsed.data.travellers,
-      notes: parsed.data.notes || null,
-      status: "awaiting_payment",
-      quoted_amount: pkg.price_amount,
-      currency: pkg.currency,
-      ip_hash: ipHash,
-    });
+    },
+    items: [
+      {
+        tourPackageId: parsed.data.tourPackageId,
+        travelDates: parsed.data.travelDates,
+        travellers: parsed.data.travellers,
+        notes: parsed.data.notes || null,
+      },
+    ],
+    ipHash,
+  });
 
-    // The Seylan MPGS merchant now settles in USD, so we charge the package's
-    // native price/currency directly — no conversion. create-session and
-    // reconcile use the payment's amount/currency as-is.
-    const { error: paymentError } = await service.from("payments").insert({
-      booking_id: booking.id,
-      mpgs_order_id: createMpgsOrderId(reference),
-      amount: pkg.price_amount,
-      currency: pkg.currency,
-      status: "initiated",
-      pay_token: token,
-      pay_token_expires_at: createPayTokenExpiry(),
-    });
-
-    if (paymentError) {
-      throw new Error(paymentError.message);
-    }
-  } catch (error) {
-    console.error(error);
-
+  if (!order.ok) {
     return {
       ok: false,
-      note: t("bookingError"),
+      note:
+        order.reason === "not-available"
+          ? t("journeyNotAvailable")
+          : t("bookingError"),
       values,
     };
   }
 
   // Send the verified customer straight into the hosted MPGS checkout.
-  localeRedirect(`/pay/${token}`, await getLocale());
+  localeRedirect(`/pay/${order.token}`, await getLocale());
 }

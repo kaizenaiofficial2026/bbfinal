@@ -223,9 +223,9 @@ export async function sendInvoiceEmails(input: {
   travellerName: string;
   email: string;
   reference: string;
-  packageTitle: string;
   amount: number;
   currency: string;
+  items: { title: string; amount: number; currency: string }[];
   transactionId?: string | null;
 }) {
   const invoice = <InvoiceEmail {...input} />;
@@ -233,12 +233,12 @@ export async function sendInvoiceEmails(input: {
   await sendBestEffort("invoice", [
     sendEmail({
       to: input.email,
-      subject: `Invoice for booking ${input.reference}`,
+      subject: `Invoice for order ${input.reference}`,
       react: invoice,
     }),
     sendEmail({
       to: env.emailTeamInbox,
-      subject: `Payment received — booking ${input.reference}`,
+      subject: `Payment received — order ${input.reference}`,
       react: invoice,
     }),
   ]);

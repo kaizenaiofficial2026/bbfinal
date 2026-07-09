@@ -196,7 +196,8 @@
     "verifyChangeLabel": "تغيير كلمة المرور",
     "backLabel": "رجوع",
     "passwordsDontMatch": "كلمتا المرور الجديدتان غير متطابقتين.",
-    "datePlaceholder": "اختر تاريخًا"
+    "datePlaceholder": "اختر تاريخًا",
+    "orderItems": "{count} رحلات"
   },
   "pay": {
     "heroTitle": "دفع آمن",
@@ -206,6 +207,8 @@
     "reference": "الرقم المرجعي",
     "traveller": "المسافر",
     "amount": "المبلغ",
+    "order": "طلبك",
+    "total": "الإجمالي",
     "status": "الحالة",
     "paid": "مدفوع",
     "expired": "منتهي الصلاحية",
@@ -269,7 +272,9 @@
     "errSelectDates": "يرجى اختيار تواريخ سفرك.",
     "errEndBeforeStart": "لا يمكن أن يكون تاريخ الانتهاء قبل تاريخ البدء.",
     "errDatePast": "يرجى اختيار تواريخ في المستقبل.",
-    "datePlaceholder": "اختر تاريخًا"
+    "datePlaceholder": "اختر تاريخًا",
+    "addToCart": "أضِف إلى السلة",
+    "addedToCart": "تمت إضافة “{title}” إلى سلتك."
   },
   "aboutPage": {
     "heroTitle": "من نحن",
@@ -493,5 +498,27 @@
     "Pickup": "استقبال",
     "Perday": "باليوم",
     "Two or more": "اثنتان أو أكثر"
+  },
+  "cart": {
+    "title": "السلة",
+    "heroSummary": "راجع الرحلات المختارة وادفع ثمنها معًا.",
+    "empty": "سلتك فارغة",
+    "emptyNote": "أضِف رحلات إلى سلتك لحجز عدة رحلات معًا.",
+    "loading": "جارٍ تحميل سلتك…",
+    "continueShopping": "تصفح الرحلات",
+    "summary": "ملخص الطلب",
+    "items": "العناصر",
+    "subtotal": "المجموع الفرعي",
+    "checkout": "إتمام الدفع",
+    "processing": "جارٍ البدء…",
+    "checkoutNote": "سيتم نقلك إلى صفحة الدفع الآمنة.",
+    "remove": "إزالة",
+    "travellersCount": "{count} مسافرين",
+    "cartWithCount": "السلة ({count})",
+    "waitMoment": "يرجى الانتظار لحظة قبل المحاولة مرة أخرى.",
+    "rateLimited": "محاولات كثيرة جدًا. يرجى المحاولة بعد حوالي {minutes} دقيقة.",
+    "notAvailable": "إحدى الباقات لم تعد متاحة. يرجى مراجعة سلتك.",
+    "mixedCurrency": "يجب أن تستخدم جميع الباقات في الطلب الواحد نفس العملة.",
+    "checkoutError": "تعذّر بدء الدفع. يرجى المحاولة مرة أخرى."
   }
 }

@@ -53,19 +53,25 @@ type TestPayment = Parameters<typeof reconcilePayment>[0];
 function makePayment(overrides: Partial<TestPayment> = {}): TestPayment {
   return {
     id: "pay-1",
-    booking_id: "book-1",
+    reference: "BB-AAAA",
     mpgs_order_id: "BB-AAAA-1",
     amount: 1000,
     currency: "LKR",
     status: "pending",
-    bookings: {
-      id: "book-1",
-      reference: "BB-AAAA",
-      traveller_name: "Asha",
-      email: "asha@example.com",
-      phone: "+94771234567",
-      status: "awaiting_payment",
-    },
+    // A payment now covers an ARRAY of bookings (an order).
+    bookings: [
+      {
+        id: "book-1",
+        reference: "BB-AAAA",
+        traveller_name: "Asha",
+        email: "asha@example.com",
+        phone: "+94771234567",
+        status: "awaiting_payment",
+        quoted_amount: 1000,
+        currency: "LKR",
+        tour_packages: { title: "Test Journey" },
+      },
+    ],
     ...overrides,
   } as TestPayment;
 }

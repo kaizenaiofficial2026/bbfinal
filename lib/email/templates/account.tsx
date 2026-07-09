@@ -71,35 +71,43 @@ export function AccountVerified({ fullName }: { fullName: string }) {
 export function InvoiceEmail({
   travellerName,
   reference,
-  packageTitle,
   amount,
   currency,
+  items,
   transactionId,
   paidAt,
 }: {
   travellerName: string;
   reference: string;
-  packageTitle: string;
   amount: number;
   currency: string;
+  items: { title: string; amount: number; currency: string }[];
   transactionId?: string | null;
   paidAt?: string;
 }) {
+  const journeys = items.length > 0 ? items : [{ title: "Beyond Borders journey", amount, currency }];
+  const multiple = journeys.length > 1;
   return (
     <EmailShell
-      preview={`Invoice for booking ${reference}`}
+      preview={`Invoice for order ${reference}`}
       title="Payment received — your invoice"
     >
       <Text style={paragraph}>
-        Hi {travellerName}, thank you. We&apos;ve received your payment for
-        booking {reference}. Your invoice is below.
+        Hi {travellerName}, thank you. We&apos;ve received your payment for order{" "}
+        {reference}. Your invoice is below.
       </Text>
       <Text style={detail}>
-        Invoice / Booking: {reference}
+        Order: {reference}
         <br />
-        Journey: {packageTitle}
+        {multiple ? "Journeys:" : "Journey:"}
         <br />
-        Amount paid: {currency} {amount.toFixed(2)}
+        {journeys.map((item, index) => (
+          <span key={index}>
+            &nbsp;&nbsp;• {item.title} — {item.currency} {item.amount.toFixed(2)}
+            <br />
+          </span>
+        ))}
+        Total paid: {currency} {amount.toFixed(2)}
         <br />
         {transactionId ? (
           <>

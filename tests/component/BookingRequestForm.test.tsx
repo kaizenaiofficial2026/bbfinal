@@ -15,7 +15,7 @@ import BookingRequestForm from "@/components/BookingRequestForm";
 describe("BookingRequestForm", () => {
   it("carries the package context in hidden fields", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" slug="glamour-of-sri-lanka" amount={1000} currency="USD" />,
     );
 
     expect(
@@ -29,7 +29,7 @@ describe("BookingRequestForm", () => {
 
   it("collects no card details (payment happens on the hosted checkout)", () => {
     render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" slug="glamour-of-sri-lanka" amount={1000} currency="USD" />,
     );
 
     expect(screen.queryByLabelText(/card number/i)).toBeNull();
@@ -41,7 +41,7 @@ describe("BookingRequestForm", () => {
 
   it("includes a concealed honeypot field", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" slug="glamour-of-sri-lanka" amount={1000} currency="USD" />,
     );
 
     const honeypot = container.querySelector('input[name="company"]');
@@ -51,7 +51,7 @@ describe("BookingRequestForm", () => {
 
   it("uses the custom date pickers feeding a hidden dates field", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" slug="glamour-of-sri-lanka" amount={1000} currency="USD" />,
     );
 
     // The native <input type="date"> was replaced with the themed DatePicker,
@@ -67,7 +67,7 @@ describe("BookingRequestForm", () => {
 
   it("blocks submit and asks for dates when none are selected", () => {
     const { container } = render(
-      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" amount={1000} currency="USD" />,
+      <BookingRequestForm packageId="pkg-1" packageTitle="Glamour of Sri Lanka" slug="glamour-of-sri-lanka" amount={1000} currency="USD" />,
     );
 
     fireEvent.submit(container.querySelector("form") as HTMLFormElement);

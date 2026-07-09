@@ -8,6 +8,8 @@ import type { Database } from "@/lib/supabase/types";
 
 export type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
 export type BookingWithPackage = BookingRow & {
+  // Link to the payment (order) covering this booking — not in the generated type.
+  payment_id?: string | null;
   tour_packages?: {
     title: string;
     slug: string;
@@ -15,9 +17,27 @@ export type BookingWithPackage = BookingRow & {
   } | null;
 };
 
-export async function createBooking(
-  booking: Database["public"]["Tables"]["bookings"]["Insert"],
-) {
+// A booking to create as part of an order. Loosely typed (the service client is
+// untyped) so it can carry `payment_id`, which links the booking to the payment
+// (order) covering it — a column the generated Database type doesn't include yet.
+export type BookingInsert = {
+  reference: string;
+  tour_package_id: string;
+  user_id: string | null;
+  traveller_name: string;
+  email: string;
+  phone: string | null;
+  travel_dates: string;
+  travellers: number;
+  notes: string | null;
+  status: string;
+  quoted_amount: number | null;
+  currency: string;
+  ip_hash: string | null;
+  payment_id?: string;
+};
+
+export async function createBooking(booking: BookingInsert) {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase
     .from("bookings")
@@ -30,6 +50,21 @@ export async function createBooking(
   }
 
   return data as BookingWithPackage;
+}
+
+/** Insert several bookings at once (a multi-package order). */
+export async function createBookings(rows: BookingInsert[]) {
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .insert(rows)
+    .select("*, tour_packages(title, slug, image)");
+
+  if (error) {
+    dbError(error);
+  }
+
+  return (data ?? []) as BookingWithPackage[];
 }
 
 export async function countRecentBookingsByIp(ipHash: string | null) {

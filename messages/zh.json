@@ -196,7 +196,8 @@
     "verifyChangeLabel": "修改密码",
     "backLabel": "返回",
     "passwordsDontMatch": "两次输入的新密码不一致。",
-    "datePlaceholder": "选择日期"
+    "datePlaceholder": "选择日期",
+    "orderItems": "{count} 个行程"
   },
   "pay": {
     "heroTitle": "安全支付",
@@ -206,6 +207,8 @@
     "reference": "参考编号",
     "traveller": "旅客",
     "amount": "金额",
+    "order": "您的订单",
+    "total": "总计",
     "status": "状态",
     "paid": "已支付",
     "expired": "已过期",
@@ -269,7 +272,9 @@
     "errSelectDates": "请选择你的出行日期。",
     "errEndBeforeStart": "结束日期不能早于开始日期。",
     "errDatePast": "请选择未来的日期。",
-    "datePlaceholder": "选择日期"
+    "datePlaceholder": "选择日期",
+    "addToCart": "加入购物车",
+    "addedToCart": "已将“{title}”加入购物车。"
   },
   "aboutPage": {
     "heroTitle": "关于我们",
@@ -493,5 +498,27 @@
     "Pickup": "接送",
     "Perday": "按天",
     "Two or more": "两次及以上"
+  },
+  "cart": {
+    "title": "购物车",
+    "heroSummary": "查看您选择的行程并一起付款。",
+    "empty": "您的购物车是空的",
+    "emptyNote": "将行程加入购物车即可一次预订多个。",
+    "loading": "正在加载购物车…",
+    "continueShopping": "浏览行程",
+    "summary": "订单摘要",
+    "items": "项目",
+    "subtotal": "小计",
+    "checkout": "结算并付款",
+    "processing": "正在开始…",
+    "checkoutNote": "您将被带到我们的安全付款页面。",
+    "remove": "移除",
+    "travellersCount": "{count} 位旅客",
+    "cartWithCount": "购物车 ({count})",
+    "waitMoment": "请稍候片刻再试。",
+    "rateLimited": "尝试次数过多。请在约 {minutes} 分钟后重试。",
+    "notAvailable": "其中一个套餐已不再可用。请查看您的购物车。",
+    "mixedCurrency": "同一订单中的所有套餐必须使用相同货币。",
+    "checkoutError": "我们无法开始结算。请重试。"
   }
 }

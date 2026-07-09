@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { submitBooking } from "@/app/actions";
 import { initialBookingState } from "@/app/action-state";
 import Spinner from "./Spinner";
 import DatePicker from "./DatePicker";
 import { useSubmitFeedback } from "./useSubmitFeedback";
+import { useCart } from "@/components/cart/CartProvider";
+import { useToast } from "@/components/Toast";
 import {
   combineTravelDates,
   isPastDate,
@@ -17,6 +19,8 @@ import {
 type BookingRequestFormProps = {
   packageId: string;
   packageTitle: string;
+  slug: string;
+  image?: string;
   amount: number;
   currency: string;
 };
@@ -24,10 +28,15 @@ type BookingRequestFormProps = {
 export default function BookingRequestForm({
   packageId,
   packageTitle,
+  slug,
+  image,
   amount,
   currency,
 }: BookingRequestFormProps) {
   const t = useTranslations("bookingPage");
+  const cart = useCart();
+  const toast = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState(
     submitBooking,
     initialBookingState,
@@ -65,8 +74,34 @@ export default function BookingRequestForm({
     }
   };
 
+  // "Add to cart" stores this package + the entered trip details in the browser
+  // cart (server re-prices at checkout). Reuses the same date validation.
+  const handleAddToCart = () => {
+    const error = validateDates();
+    if (error) {
+      setDateError(error);
+      return;
+    }
+    const data = formRef.current ? new FormData(formRef.current) : null;
+    const travellers = Math.max(1, Math.round(Number(data?.get("travellers")) || 2));
+    const notes = String(data?.get("notes") ?? "").trim();
+    cart.addItem({
+      packageId,
+      slug,
+      title: packageTitle,
+      image,
+      currency,
+      amount,
+      travelDates: combineTravelDates(start, end),
+      travellers,
+      notes: notes || undefined,
+    });
+    toast.success(t("addedToCart", { title: packageTitle }));
+  };
+
   return (
     <form
+      ref={formRef}
       className="booking-form"
       action={formAction}
       onSubmit={handleSubmit}
@@ -182,6 +217,14 @@ export default function BookingRequestForm({
               />
             </svg>
           ) : null}
+        </button>
+        <button
+          className="btn btn-line"
+          type="button"
+          onClick={handleAddToCart}
+          disabled={pending}
+        >
+          {t("addToCart")}
         </button>
         <p
           className={`form-note${feedback === "error" ? " is-error" : ""}`}

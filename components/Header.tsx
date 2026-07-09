@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import SubmitButton from "@/components/SubmitButton";
+import CartLink from "@/components/cart/CartLink";
 import { logoutAction } from "@/app/[locale]/account/actions";
 
 type HeaderAccount = { name: string } | null;
@@ -129,6 +130,7 @@ export default function Header({ account }: { account: HeaderAccount }) {
             {tCommon("contactUs")}
           </Link>
           <div className="mobile-nav-auth">
+            <CartLink className="mobile-cart" />
             {account ? (
               <>
                 <Link className="auth-secondary" href="/account">
@@ -156,6 +158,7 @@ export default function Header({ account }: { account: HeaderAccount }) {
 
         <div className="header-actions">
           <LocaleSwitcher />
+          <CartLink className="header-cart" />
           <div className="header-auth">
             {account ? (
               <>

@@ -96,6 +96,8 @@ export default async function BookingPage({ params }: BookingPageProps) {
       <BookingRequestForm
         packageId={tourPackage.id}
         packageTitle={tourPackage.title}
+        slug={tourPackage.slug}
+        image={tourPackage.image}
         amount={tourPackage.priceAmount}
         currency={tourPackage.currency ?? "USD"}
       />

@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { PaymentWithBooking } from "@/lib/data/payments";
+import { orderReference, type PaymentWithBookings } from "@/lib/data/payments";
 import { sendInvoiceEmails } from "@/lib/email/send";
 import { sendPaymentSms } from "@/lib/sms/send";
 import { retrieveOrder } from "@/lib/payments/mpgs";
@@ -22,9 +22,10 @@ export type ReconcileResult = {
  *    even if the webhook and the return page race each other.
  */
 export async function reconcilePayment(
-  payment: PaymentWithBooking,
+  payment: PaymentWithBookings,
 ): Promise<ReconcileResult> {
-  if (!payment.bookings) {
+  const bookings = payment.bookings ?? [];
+  if (bookings.length === 0) {
     return { captured: false, alreadyFinalized: false };
   }
 
@@ -61,35 +62,46 @@ export async function reconcilePayment(
   const didTransition = Boolean(transitioned);
 
   if (captured && didTransition) {
+    // Mark EVERY booking in the order paid (a payment can cover several).
     await supabase
       .from("bookings")
       .update({ status: "paid" })
-      .eq("id", payment.booking_id);
+      .eq("payment_id", payment.id);
+
+    // The order's contact is the same across bookings; use the first one.
+    const primary = bookings[0];
+    const reference = orderReference(payment);
+    const transactionId = order.transaction?.[0]?.transaction?.id ?? null;
+
     // Fail-soft: the payment is already captured, so a receipt-email failure must
     // not throw — otherwise the webhook/return page 500s and, on retry, the
     // already-captured fast-path skips the email, losing the receipt permanently.
     try {
       await sendInvoiceEmails({
-        travellerName: payment.bookings.traveller_name,
-        email: payment.bookings.email,
-        reference: payment.bookings.reference,
-        packageTitle: payment.bookings.tour_packages?.title ?? "Beyond Borders journey",
+        travellerName: primary.traveller_name,
+        email: primary.email,
+        reference,
         amount: payment.amount,
         currency: payment.currency,
-        transactionId: order.transaction?.[0]?.transaction?.id ?? null,
+        transactionId,
+        items: bookings.map((b) => ({
+          title: b.tour_packages?.title ?? "Beyond Borders journey",
+          amount: Number(b.quoted_amount ?? 0),
+          currency: b.currency,
+        })),
       });
     } catch (error) {
       console.error("[invoice email failed]", error);
     }
 
-    // Payment SMS — to the business (env number) and the customer (their number),
-    // each fail-soft. Inside the guarded transition block, so it fires once.
+    // One order-level payment SMS — to the business (env number) and the customer
+    // (their number), each fail-soft. Inside the guarded transition block.
     await sendPaymentSms({
-      reference: payment.bookings.reference,
+      reference,
       amount: payment.amount,
       currency: payment.currency,
-      customerName: payment.bookings.traveller_name,
-      customerPhone: payment.bookings.phone,
+      customerName: primary.traveller_name,
+      customerPhone: primary.phone,
     });
   }
 
