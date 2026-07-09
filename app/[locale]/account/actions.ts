@@ -8,6 +8,7 @@ import {
   canUseSupabaseService,
   createSupabaseServiceClient,
 } from "@/lib/supabase/service";
+import { requireCustomer } from "@/lib/customer/auth";
 import { registerSchema } from "@/lib/validation/account";
 import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
@@ -199,4 +200,29 @@ export async function logoutAction() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   localeRedirect("/", await getLocale());
+}
+
+/**
+ * A customer permanently deletes their own account (right to erasure). Booking
+ * records are KEPT for the business but detached from the account, then the auth
+ * user is removed (cascading to the customers row). The local session cookies are
+ * cleared and the customer is returned to the homepage.
+ */
+export async function deleteAccountAction() {
+  const locale = await getLocale();
+  const session = await requireCustomer();
+  const userId = session.user.id;
+
+  if (canUseSupabaseService()) {
+    const service = createSupabaseServiceClient();
+    // Keep bookings as records but unlink them from the account being deleted.
+    await service.from("bookings").update({ user_id: null }).eq("user_id", userId);
+    await service.auth.admin.deleteUser(userId);
+  }
+
+  // Clear the (now-orphaned) session locally, then send them home.
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.signOut({ scope: "local" });
+
+  localeRedirect("/", locale);
 }

@@ -5803,6 +5803,17 @@ html.lenis body {
   box-shadow: var(--shadow-soft);
 }
 
+/* Self-service account deletion — a restrained "danger zone". */
+.account-danger-zone {
+  border-color: #f0cfcf;
+  background: #fdf7f6;
+}
+
+.account-danger-zone .form-hint {
+  margin: 6px 0 16px;
+  max-width: 60ch;
+}
+
 .account-panel-head {
   display: flex;
   align-items: center;

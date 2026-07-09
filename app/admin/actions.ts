@@ -15,7 +15,10 @@ import {
 import { sendAccountVerifiedEmail } from "@/lib/email/send";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import {
+  canUseSupabaseService,
+  createSupabaseServiceClient,
+} from "@/lib/supabase/service";
 import {
   changePasswordSchema,
   destinationAdminSchema,
@@ -614,6 +617,45 @@ export async function setCustomerActiveAction(formData: FormData) {
     .update({ active })
     .eq("id", customerId);
 
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/users");
+}
+
+/**
+ * Permanently delete a customer account (SUPER admin only). Booking/payment
+ * records are PRESERVED for the business — their `user_id` is detached first
+ * (the FK has no ON DELETE action, so the auth-user delete would otherwise fail),
+ * then the auth user is removed, cascading to the `customers` row, profile and
+ * any password-reset codes.
+ */
+export async function deleteCustomerAction(formData: FormData) {
+  await requireSuperAdmin();
+  const customerId = formString(formData, "customerId");
+
+  if (!customerId) {
+    throw new Error("Missing customer id.");
+  }
+  if (!canUseSupabaseService()) {
+    throw new Error(
+      "Account deletion is unavailable (service role not configured).",
+    );
+  }
+
+  const service = createSupabaseServiceClient();
+
+  // Keep bookings as records but unlink them from the account being deleted.
+  const { error: detachError } = await service
+    .from("bookings")
+    .update({ user_id: null })
+    .eq("user_id", customerId);
+  if (detachError) {
+    throw new Error(detachError.message);
+  }
+
+  const { error } = await service.auth.admin.deleteUser(customerId);
   if (error) {
     throw new Error(error.message);
   }

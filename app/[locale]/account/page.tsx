@@ -9,8 +9,9 @@ import { getCustomerUser } from "@/lib/customer/auth";
 import { isExpired } from "@/lib/security/request";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ChangePasswordWizard from "@/components/account/ChangePasswordWizard";
+import DeleteAccountButton from "@/components/account/DeleteAccountButton";
 import SubmitButton from "@/components/SubmitButton";
-import { logoutAction } from "./actions";
+import { deleteAccountAction, logoutAction } from "./actions";
 
 export const metadata: Metadata = {
   title: "My account",
@@ -222,6 +223,21 @@ export default async function AccountPage() {
 
               {/* Security */}
               <ChangePasswordWizard email={session.user.email} />
+
+              {/* Danger zone — self-service account deletion */}
+              <section className="account-panel account-danger-zone">
+                <div className="account-panel-head">
+                  <h3 className="account-panel-title">{t("deleteAccount")}</h3>
+                </div>
+                <p className="form-hint">{t("deleteAccountNote")}</p>
+                <form action={deleteAccountAction}>
+                  <DeleteAccountButton
+                    label={t("deleteAccount")}
+                    pendingLabel={t("deleteAccountPending")}
+                    confirmText={t("deleteAccountConfirm")}
+                  />
+                </form>
+              </section>
             </div>
           </div>
         </section>

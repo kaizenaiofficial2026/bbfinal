@@ -1,8 +1,13 @@
-import { requireAdmin } from "@/lib/admin/auth";
+import { isSuperAdminEmail, requireAdmin } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { setCustomerActiveAction, verifyCustomerAction } from "../actions";
+import {
+  deleteCustomerAction,
+  setCustomerActiveAction,
+  verifyCustomerAction,
+} from "../actions";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { DeleteButton } from "@/app/admin/_components/DeleteButton";
 import { formatDate } from "@/lib/admin/format";
 
 type CustomerRow = {
@@ -35,6 +40,18 @@ function ActiveToggle({ customer }: { customer: CustomerRow }) {
   );
 }
 
+function DeleteCustomerForm({ customer }: { customer: CustomerRow }) {
+  return (
+    <form action={deleteCustomerAction}>
+      <input type="hidden" name="customerId" value={customer.id} />
+      <DeleteButton
+        label="Delete account"
+        confirmText={`Permanently delete ${customer.full_name}'s account? Their login and profile are removed and their bookings are unlinked (kept as records). This cannot be undone.`}
+      />
+    </form>
+  );
+}
+
 function Detail({ label, value }: { label: string; value: string | null }) {
   return (
     <p>
@@ -45,7 +62,8 @@ function Detail({ label, value }: { label: string; value: string | null }) {
 }
 
 export default async function AdminCustomersPage() {
-  await requireAdmin();
+  const admin = await requireAdmin();
+  const isSuperAdmin = isSuperAdminEmail(admin.email);
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("customers")
@@ -117,6 +135,9 @@ export default async function AdminCustomersPage() {
                   </SubmitButton>
                 </form>
                 <ActiveToggle customer={customer} />
+                {isSuperAdmin ? (
+                  <DeleteCustomerForm customer={customer} />
+                ) : null}
               </div>
             </article>
           ))
@@ -147,6 +168,9 @@ export default async function AdminCustomersPage() {
               </div>
               <div className="admin-actions-row">
                 <ActiveToggle customer={customer} />
+                {isSuperAdmin ? (
+                  <DeleteCustomerForm customer={customer} />
+                ) : null}
               </div>
             </article>
           ))
