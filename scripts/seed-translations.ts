@@ -63,9 +63,26 @@ const packageTranslations: Record<string, Record<string, Record<string, unknown>
 
 async function run() {
   for (const [slug, translations] of Object.entries(packageTranslations)) {
+    // MERGE into the existing per-locale translations rather than replacing them,
+    // so re-running this never wipes fields maintained elsewhere (e.g. the
+    // per-locale `destinations_summary` and the itinerary translations).
+    const { data: existing } = await supabase
+      .from("tour_packages")
+      .select("translations")
+      .eq("slug", slug)
+      .single();
+    const current = (existing?.translations ?? {}) as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const merged: Record<string, Record<string, unknown>> = { ...current };
+    for (const [loc, fields] of Object.entries(translations)) {
+      merged[loc] = { ...(current[loc] ?? {}), ...fields };
+    }
+
     const { error } = await supabase
       .from("tour_packages")
-      .update({ translations })
+      .update({ translations: merged })
       .eq("slug", slug);
     if (error) throw new Error(`${slug}: ${error.message}`);
     console.log(`✓ ${slug}`);
