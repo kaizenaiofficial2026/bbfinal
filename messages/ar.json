@@ -648,6 +648,7 @@
     "subtotal": "المجموع الفرعي",
     "checkout": "إتمام الدفع",
     "processing": "جارٍ البدء…",
+    "redirecting": "جارٍ نقلك إلى صفحة الدفع الآمن…",
     "checkoutNote": "سيتم نقلك إلى صفحة الدفع الآمنة.",
     "remove": "إزالة",
     "travellersCount": "{count} مسافرين",

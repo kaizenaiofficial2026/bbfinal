@@ -648,6 +648,7 @@
     "subtotal": "小计",
     "checkout": "结算并付款",
     "processing": "正在开始…",
+    "redirecting": "正在带您前往安全支付页面…",
     "checkoutNote": "您将被带到我们的安全付款页面。",
     "remove": "移除",
     "travellersCount": "{count} 位旅客",

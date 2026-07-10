@@ -23,6 +23,12 @@ export default function CartView() {
   );
   const [startedAt] = useState(() => Date.now());
 
+  // A successful checkout returns a pay token. We clear the cart and push to the
+  // pay page — but clearing empties `items`, which would otherwise flash the
+  // "cart is empty" view (and its Browse link) mid-redirect. `checkingOut` keeps
+  // a redirect state on screen until navigation completes.
+  const checkingOut = state.ok && Boolean(state.token);
+
   // On success the action returns a pay token — clear the cart and go pay.
   useEffect(() => {
     if (state.ok && state.token) {
@@ -34,6 +40,17 @@ export default function CartView() {
   // Avoid a hydration flash: render nothing meaningful until the cart hydrates.
   if (!ready) {
     return <p className="form-hint">{t("loading")}</p>;
+  }
+
+  // Checkout succeeded: show a redirecting state (not the emptied cart) so the
+  // user can't accidentally navigate away before the pay page loads.
+  if (checkingOut) {
+    return (
+      <div className="cart-empty">
+        <Spinner />
+        <h2>{t("redirecting")}</h2>
+      </div>
+    );
   }
 
   if (items.length === 0) {

@@ -648,6 +648,7 @@
     "subtotal": "Subtotal",
     "checkout": "Checkout & pay",
     "processing": "Starting…",
+    "redirecting": "Taking you to secure payment…",
     "checkoutNote": "You'll be taken to our secure payment page.",
     "remove": "Remove",
     "travellersCount": "{count} travellers",
