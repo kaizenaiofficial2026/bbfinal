@@ -18,6 +18,7 @@ import { tourPackages as editorialPackages } from "@/scripts/seed-data";
 type BookingPageProps = {
   params: Promise<{
     slug: string;
+    locale: string;
   }>;
 };
 
@@ -48,7 +49,7 @@ export async function generateMetadata({
 }
 
 export default async function BookingPage({ params }: BookingPageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const tourPackage = await getPackageBySlug(slug);
 
   if (!tourPackage) notFound();
@@ -109,16 +110,19 @@ export default async function BookingPage({ params }: BookingPageProps) {
     .slice(0, 3);
 
   // The bulleted day-by-day itinerary is rich editorial content sourced from the
-  // static content module by slug; admin-managed packages fall back to wrapping
-  // the backend's single itinerary description per day.
+  // static content module by slug. It is ENGLISH-ONLY, so use it only for the
+  // English locale; every other locale renders the localized (translated) itinerary
+  // from the backend so non-English visitors don't see English day-by-day text.
   const editorialPackage = editorialPackages.find((item) => item.slug === slug);
+  const localizedItinerary = tourPackage.itinerary.map((item) => ({
+    day: item.day,
+    title: item.title,
+    items: [item.description],
+  }));
   const itinerary =
-    editorialPackage?.itinerary ??
-    tourPackage.itinerary.map((item) => ({
-      day: item.day,
-      title: item.title,
-      items: [item.description],
-    }));
+    locale === "en" && editorialPackage?.itinerary
+      ? editorialPackage.itinerary
+      : localizedItinerary;
 
   return (
     <SiteShell>

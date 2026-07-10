@@ -32,7 +32,8 @@
       "galle": "Galle",
       "yala": "Yala",
       "polonnaruwa": "Polonnaruwa"
-    }
+    },
+    "location": "Colombo 03, Sri Lanka"
   },
   "home": {
     "destinations": {
@@ -275,7 +276,8 @@
     "errDatePast": "Please choose dates in the future.",
     "datePlaceholder": "Select a date",
     "addToCart": "Add to cart",
-    "addedToCart": "Added “{title}” to your cart."
+    "addedToCart": "Added “{title}” to your cart.",
+    "submitHint": "Submit this request and our planners will confirm availability, amount and secure payment instructions."
   },
   "aboutPage": {
     "heroTitle": "About Us",
@@ -355,7 +357,9 @@
     "travelNotes": "Travel notes",
     "messagePlaceholder": "Tell us your dates, travel style and must-see places.",
     "sending": "Sending…",
-    "sendEnquiry": "Send Enquiry"
+    "sendEnquiry": "Send Enquiry",
+    "shareHint": "Share your dates and travel notes. Our planners will reply by email.",
+    "officeAddress": "3rd Floor, No. 430, R A De Mel Mawatha, Colombo 03, Sri Lanka"
   },
   "customQuote": {
     "next": "Next",
@@ -449,7 +453,9 @@
     "paxDecrease": "Decrease",
     "paxIncrease": "Increase",
     "optionalHint": "Add the services you need — at least one.",
-    "errPickOne": "Please fill in at least one service (hotel, air ticket or transport)."
+    "errPickOne": "Please fill in at least one service (hotel, air ticket or transport).",
+    "airAllAirports": "All airports",
+    "submitHint": "Send this request and a Beyond Borders planner will reply by email with availability and a tailored quote."
   },
   "serverActions": {
     "checkForm": "Please check the form.",

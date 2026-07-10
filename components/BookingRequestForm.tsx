@@ -230,7 +230,7 @@ export default function BookingRequestForm({
           className={`form-note${feedback === "error" ? " is-error" : ""}`}
           aria-live="polite"
         >
-          {state.note}
+          {state.note || t("submitHint")}
         </p>
       </div>
     </form>

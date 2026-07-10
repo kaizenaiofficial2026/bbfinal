@@ -564,7 +564,7 @@ export default function CustomInquiryForm() {
             }`}
             aria-live="polite"
           >
-            {state.note}
+            {state.note || t("submitHint")}
           </p>
         </form>
       </InquiryErrorsContext.Provider>

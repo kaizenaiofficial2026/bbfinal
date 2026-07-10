@@ -33,12 +33,17 @@ export type BookingState = {
   values?: BookingValues;
 };
 
+// Initial notes are intentionally EMPTY. The forms render a localized helper hint
+// from their i18n namespace when the note is empty (see ContactForm's
+// `state.note || t("shareHint")` and BookingRequestForm's
+// `state.note || t("submitHint")`). A hardcoded English string here would leak
+// English into every non-English locale.
 export const initialEnquiryState: EnquiryState = {
-  note: "Share your dates and travel notes. Our planners will reply by email.",
+  note: "",
   ok: false,
 };
 
 export const initialBookingState: BookingState = {
-  note: "Submit this request and our planners will confirm availability, amount and secure payment instructions.",
+  note: "",
   ok: false,
 };

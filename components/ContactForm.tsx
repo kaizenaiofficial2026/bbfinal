@@ -197,7 +197,7 @@ export default function ContactForm() {
           id="formNote"
           aria-live="polite"
         >
-          {state.note}
+          {state.note || t("shareHint")}
         </p>
       </div>
     </form>

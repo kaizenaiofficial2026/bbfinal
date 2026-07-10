@@ -58,16 +58,50 @@ const COUNTRY_INDEX = COUNTRIES.map((c) => ({
   nameLower: c.name.toLowerCase(),
 }));
 
-function airportPlace(a: IndexedAirport): Place {
+// English country name -> ISO code, so the country descriptor in a result can be
+// rendered in the visitor's language via Intl.DisplayNames. Airport/city proper
+// names stay as-is (Latin script is the global norm for flight search UIs).
+const COUNTRY_CODE_BY_NAME = new Map<string, string>(
+  COUNTRIES.map((c) => [c.name.toLowerCase(), c.code]),
+);
+
+// Per-locale country localizer. Falls back to the English name when the locale
+// or country can't be resolved.
+function makeCountryLocalizer(locale: string): (name: string) => string {
+  let regionNames: Intl.DisplayNames | null = null;
+  try {
+    regionNames = new Intl.DisplayNames([locale], { type: "region" });
+  } catch {
+    regionNames = null;
+  }
+  return (name: string): string => {
+    if (!name || !regionNames) return name;
+    const code = COUNTRY_CODE_BY_NAME.get(name.toLowerCase());
+    if (!code) return name;
+    try {
+      const loc = regionNames.of(code);
+      return loc && loc !== code ? loc : name;
+    } catch {
+      return name;
+    }
+  };
+}
+
+type SearchOptions = {
+  localizeCountry: (name: string) => string;
+  allAirportsLabel: string;
+};
+
+function airportPlace(a: IndexedAirport, opts: SearchOptions): Place {
   return {
     value: `${a.city} (${a.iata})`,
     label: `${a.city} (${a.iata})`,
-    sublabel: [a.name, a.country].filter(Boolean).join(" · "),
+    sublabel: [a.name, opts.localizeCountry(a.country)].filter(Boolean).join(" · "),
     kind: "airport",
   };
 }
 
-function search(q: string): Place[] {
+function search(q: string, opts: SearchOptions): Place[] {
   const ql = q.toLowerCase();
   const out: Place[] = [];
   const seen = new Set<string>();
@@ -79,12 +113,12 @@ function search(q: string): Place[] {
 
   // 1. Exact IATA code (e.g. "CMB").
   if (ql.length === 3) {
-    for (const a of AIRPORTS) if (a.iata === ql.toUpperCase()) push(airportPlace(a));
+    for (const a of AIRPORTS) if (a.iata === ql.toUpperCase()) push(airportPlace(a, opts));
   }
   // 2. Airports whose city starts with the query.
   for (const a of AIRPORTS) {
     if (out.length >= LIMIT) break;
-    if (a.cityLower.startsWith(ql)) push(airportPlace(a));
+    if (a.cityLower.startsWith(ql)) push(airportPlace(a, opts));
   }
   // 3. Matching countries (pick from here when no specific airport is wanted).
   for (const c of COUNTRY_INDEX) {
@@ -92,8 +126,8 @@ function search(q: string): Place[] {
     if (c.nameLower.startsWith(ql) || c.code.toLowerCase() === ql) {
       push({
         value: c.name,
-        label: c.name,
-        sublabel: "All airports",
+        label: opts.localizeCountry(c.name),
+        sublabel: opts.allAirportsLabel,
         kind: "country",
       });
     }
@@ -101,7 +135,7 @@ function search(q: string): Place[] {
   // 4. Fall back to any airport whose name/country/iata contains the query.
   for (const a of AIRPORTS) {
     if (out.length >= LIMIT) break;
-    if (a.hay.includes(ql)) push(airportPlace(a));
+    if (a.hay.includes(ql)) push(airportPlace(a, opts));
   }
 
   return out.slice(0, LIMIT);
@@ -116,16 +150,26 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") ?? "").trim().slice(0, MAX_Q).toLowerCase();
+  const locale = (searchParams.get("locale") ?? "en").slice(0, 8);
+  const allAirportsLabel =
+    (searchParams.get("allAirports") ?? "").slice(0, 64) || "All airports";
 
   if (q.length < MIN_Q) {
     return NextResponse.json({ places: [] }, { status: 200 });
   }
 
+  const opts: SearchOptions = {
+    localizeCountry: makeCountryLocalizer(locale),
+    allAirportsLabel,
+  };
+
   return NextResponse.json(
-    { places: search(q) },
+    { places: search(q, opts) },
     {
       status: 200,
       headers: {
+        // Vary by the localization query params so locales don't share a cache
+        // entry (the URL already carries them, so the CDN keys on them).
         "Cache-Control":
           "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
       },

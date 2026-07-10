@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Combobox, { type ComboboxOption } from "./Combobox";
 import BaseSelect from "./Select";
 import DatePicker from "./DatePicker";
 import TravellersField from "./TravellersField";
 import { todayIso } from "@/lib/validation/dates";
 import { AIRLINES } from "@/lib/data/airlines";
+import { COUNTRIES } from "@/lib/data/countries";
 import { YES_NO } from "@/lib/data/custom-inquiry-options";
 import {
   MAX_SEGMENTS,
@@ -68,7 +69,33 @@ export default function AirTicketBuilder({
   clearError,
 }: AirTicketBuilderProps) {
   const t = useTranslations("customQuote");
+  const locale = useLocale();
   const today = useMemo(() => todayIso(), []);
+
+  // Localize the country subtitle shown under each airline. Airline brand names
+  // and IATA codes stay as-is (proper nouns, Latin script — the global norm in
+  // flight UIs), but the country descriptor renders in the visitor's language.
+  const localizeCountry = useMemo(() => {
+    const codeByName = new Map<string, string>();
+    for (const c of COUNTRIES) codeByName.set(c.name.toLowerCase(), c.code);
+    let regionNames: Intl.DisplayNames | null = null;
+    try {
+      regionNames = new Intl.DisplayNames([locale], { type: "region" });
+    } catch {
+      regionNames = null;
+    }
+    return (name: string): string | undefined => {
+      if (!name) return undefined;
+      const code = codeByName.get(name.toLowerCase());
+      if (!code || !regionNames) return name;
+      try {
+        const loc = regionNames.of(code);
+        return loc && loc !== code ? loc : name;
+      } catch {
+        return name;
+      }
+    };
+  }, [locale]);
 
   const airlineOptions = useMemo<ComboboxOption[]>(
     () =>
@@ -77,10 +104,10 @@ export default function AirTicketBuilder({
         // option value/React key) and the user can tell them apart.
         value: `${a.name} (${a.iata})`,
         label: `${a.name} (${a.iata})`,
-        sublabel: a.country || undefined,
+        sublabel: localizeCountry(a.country),
         keywords: `${a.iata} ${a.country}`,
       })),
-    [],
+    [localizeCountry],
   );
 
   const initialTrip: TripType = isTripType(defaultTripType ?? "")
@@ -173,7 +200,12 @@ export default function AirTicketBuilder({
   const loadPlaces = useCallback(
     async (query: string, signal: AbortSignal): Promise<ComboboxOption[]> => {
       if (query.trim().length < 2) return [];
-      const res = await fetch(`/api/places?q=${encodeURIComponent(query)}`, { signal });
+      const res = await fetch(
+        `/api/places?q=${encodeURIComponent(query)}&locale=${encodeURIComponent(
+          locale,
+        )}&allAirports=${encodeURIComponent(t("airAllAirports"))}`,
+        { signal },
+      );
       if (!res.ok) return [];
       const data = (await res.json()) as {
         places?: { value: string; label: string; sublabel?: string }[];
@@ -184,7 +216,7 @@ export default function AirTicketBuilder({
         sublabel: p.sublabel,
       }));
     },
-    [],
+    [locale, t],
   );
 
   const placeField = (seg: Seg, i: number, field: "from" | "to") => (
@@ -311,7 +343,11 @@ export default function AirTicketBuilder({
             </button>
             {placeField(segments[0], 0, "to")}
           </div>
-          <div className="air-dates">
+          <div
+            className={`air-dates${
+              tripType === "Round trip" ? "" : " air-dates--single"
+            }`}
+          >
             {dateField(segments[0], 0, "date", t("departureDate"))}
             {tripType === "Round trip"
               ? dateField(segments[0], 0, "returnDate", t("returnDate"))

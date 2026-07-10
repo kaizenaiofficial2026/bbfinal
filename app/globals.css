@@ -2414,6 +2414,12 @@ body.menu-open .menu-toggle span::after {
   gap: 14px;
 }
 
+/* One-way / multi-city legs have a single departure date — let it span the full
+   width instead of leaving an empty half-column beside it. */
+.air-dates--single {
+  grid-template-columns: 1fr;
+}
+
 .air-add {
   justify-self: start;
   display: inline-flex;

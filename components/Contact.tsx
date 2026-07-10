@@ -75,9 +75,7 @@ export default async function Contact() {
               </svg>
               <div>
                 <strong>{t("officeLabel")}</strong>
-                <span>
-                  3rd Floor, No. 430, R A De Mel Mawatha, Colombo 03, Sri Lanka
-                </span>
+                <span>{t("officeAddress")}</span>
               </div>
             </div>
           </div>
