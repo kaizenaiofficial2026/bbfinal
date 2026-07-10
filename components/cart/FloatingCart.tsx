@@ -18,18 +18,33 @@ export default function FloatingCart() {
 
   const showButton = ready && authenticated && count > 0;
 
-  // Lock body scroll and wire an Escape-to-close handler only while the modal is
+  // Lock page scroll and wire an Escape-to-close handler only while the modal is
   // open. (DOM side effects in an effect are fine — no setState here.)
+  //
+  // `overflow: hidden` alone doesn't hold on iOS Safari (touch scroll leaks to the
+  // page behind the modal), so we pin <body> with position:fixed at the current
+  // scroll offset and restore it on close — the only reliable cross-browser lock.
   useEffect(() => {
     if (!open) return;
-    document.body.classList.add("cart-modal-open");
+    const { body, documentElement: html } = document;
+    const scrollY = window.scrollY;
+
+    html.classList.add("cart-modal-open");
+    body.classList.add("cart-modal-open");
+    body.style.top = `-${scrollY}px`;
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
     document.addEventListener("keydown", onKey);
+
     return () => {
-      document.body.classList.remove("cart-modal-open");
+      html.classList.remove("cart-modal-open");
+      body.classList.remove("cart-modal-open");
+      body.style.top = "";
       document.removeEventListener("keydown", onKey);
+      // Restore the scroll position the fixed-body lock captured.
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
