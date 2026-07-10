@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Input } from "./ui/input";
 
 type PasswordInputProps = {
   id: string;
@@ -30,7 +31,7 @@ export default function PasswordInput({
 
   return (
     <div className="auth-password">
-      <input
+      <Input
         id={id}
         name={name}
         type={visible ? "text" : "password"}
