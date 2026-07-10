@@ -8703,8 +8703,20 @@ body.menu-open .cart-fab {
 }
 
 /* ── Cart modal (near-fullscreen) ── */
-body.cart-modal-open {
+/* Scroll lock. `overflow:hidden` isn't reliable on iOS Safari, so <body> is pinned
+   with position:fixed (the offset is set inline from JS to hold the scroll spot).
+   Locking <html> too covers browsers that scroll the root element. */
+html.cart-modal-open {
   overflow: hidden;
+  overscroll-behavior: none;
+}
+body.cart-modal-open {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 .cart-modal {
   position: fixed;
@@ -8783,6 +8795,9 @@ body.cart-modal-open {
      panel height instead of pushing the panel past its max-height. */
   min-height: 0;
   overflow-y: auto;
+  /* Keep scrolling contained to the modal — don't chain to the page behind it. */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: clamp(20px, 3vw, 32px);
 }
 /* Inside the modal the summary shouldn't stick to the viewport top. */
@@ -8816,13 +8831,57 @@ body.cart-modal-open {
     height: 54px;
   }
   .cart-modal {
-    padding: 0;
+    /* A little breathing room from the screen edges (respecting notch/safe areas)
+       instead of edge-to-edge. */
+    padding: calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
+      calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
   }
   .cart-modal-panel {
     width: 100%;
     height: 100%;
-    border-radius: 0;
-    border: 0;
+    border-radius: var(--radius-sm);
+  }
+  .cart-modal-head {
+    padding: 14px 18px;
+  }
+  .cart-modal-head h2 {
+    font-size: 19px;
+  }
+  /* Tighten the stacked item/summary gap so a short cart doesn't look sparse. */
+  .cart-modal-body .cart-layout,
+  .cart-layout {
+    gap: 16px;
+  }
+}
+
+/* ── Cart item: reflow on narrow screens so the title gets full width and the
+   price + trash drop to their own row instead of squeezing a side column. ── */
+@media (max-width: 560px) {
+  .cart-item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px 14px;
+    padding: 14px;
+  }
+  .cart-item-media {
+    width: 64px;
+    height: 64px;
+  }
+  .cart-item-body {
+    /* Take the row beside the thumbnail, but allow wrapping the side row below. */
+    flex: 1 1 150px;
+  }
+  .cart-item-title {
+    font-size: 16px;
+  }
+  .cart-item-side {
+    flex: 1 1 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
   }
 }
 
