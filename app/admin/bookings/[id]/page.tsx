@@ -26,6 +26,11 @@ export default async function BookingPage({ params }: BookingPageProps) {
     ? await getPaymentById(booking.payment_id)
     : null;
   const orderBookings = payment?.bookings ?? [];
+  const isMultiOrder = orderBookings.length > 1;
+  // For a multi-package order, headline the shared order reference (matching the
+  // bookings list); a single booking keeps its own reference.
+  const headingRef =
+    isMultiOrder && payment?.reference ? payment.reference : booking.reference;
 
   return (
     <div className="admin-stack">
@@ -34,8 +39,10 @@ export default async function BookingPage({ params }: BookingPageProps) {
       </Link>
       <div className="admin-head">
         <div>
-          <span className="section-kicker">Booking</span>
-          <h1>{booking.reference}</h1>
+          <span className="section-kicker">
+            {isMultiOrder ? "Order" : "Booking"}
+          </span>
+          <h1>{headingRef}</h1>
         </div>
         <StatusBadge status={derivedBookingStatus(booking.status)} />
       </div>
@@ -82,7 +89,7 @@ export default async function BookingPage({ params }: BookingPageProps) {
         )}
       </section>
 
-      {orderBookings.length > 1 ? (
+      {isMultiOrder ? (
         <section className="admin-card admin-stack">
           <h2>Order items ({orderBookings.length})</h2>
           <p className="form-hint">

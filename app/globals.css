@@ -8653,38 +8653,171 @@ body.menu-open .cookie-consent {
 /* ── Shopping cart ── */
 
 /* Header cart icon + count badge */
-.cart-link {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink);
-  transition: color 160ms var(--ease);
-}
-.cart-link:hover {
-  color: var(--gold-deep);
-}
-.cart-link svg {
-  width: 22px;
-  height: 22px;
-}
-.cart-badge {
-  position: absolute;
-  top: -6px;
-  inset-inline-end: -8px;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
+/* ── Floating cart button (signed-in, only when the cart has items) ── */
+.cart-fab {
+  position: fixed;
+  bottom: 24px;
+  inset-inline-end: 24px;
+  z-index: 120;
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  border: 0;
   border-radius: 999px;
   background: var(--gold-deep);
   color: #fff;
-  font-size: 11px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(28, 26, 21, 0.28);
+  transition:
+    transform 180ms var(--ease),
+    background 180ms var(--ease);
+}
+.cart-fab:hover {
+  transform: translateY(-2px);
+  background: var(--gold);
+}
+/* Keep the FAB out of the way of the open mobile nav drawer. */
+body.menu-open .cart-fab {
+  display: none;
+}
+.cart-fab svg {
+  width: 26px;
+  height: 26px;
+}
+.cart-fab-badge {
+  position: absolute;
+  top: -4px;
+  inset-inline-end: -4px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--gold-deep);
+  border: 2px solid var(--gold-deep);
+  font-size: 12px;
   font-weight: 700;
-  line-height: 17px;
+  line-height: 18px;
   text-align: center;
 }
-.mobile-cart {
-  align-self: flex-start;
+
+/* ── Cart modal (near-fullscreen) ── */
+body.cart-modal-open {
+  overflow: hidden;
+}
+.cart-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, 3vh) max(16px, 3vw);
+}
+.cart-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(28, 26, 21, 0.55);
+  backdrop-filter: blur(6px);
+  animation: cart-modal-fade 200ms var(--ease);
+}
+.cart-modal-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(1100px, 100%);
+  height: min(92vh, 100%);
+  background: var(--ivory);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 30px 80px rgba(28, 26, 21, 0.35);
+  overflow: hidden;
+  animation: cart-modal-pop 220ms var(--ease);
+}
+.cart-modal-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+.cart-modal-head h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.cart-modal-close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease),
+    color 160ms var(--ease);
+}
+.cart-modal-close:hover {
+  border-color: var(--gold);
+  color: var(--gold-deep);
+}
+.cart-modal-close svg {
+  width: 20px;
+  height: 20px;
+}
+.cart-modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 24px;
+}
+/* Inside the modal the summary shouldn't stick to the viewport top. */
+.cart-modal-body .cart-summary {
+  position: static;
+  top: auto;
+}
+@keyframes cart-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cart-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (max-width: 640px) {
+  .cart-fab {
+    bottom: 18px;
+    inset-inline-end: 18px;
+    width: 54px;
+    height: 54px;
+  }
+  .cart-modal {
+    padding: 0;
+  }
+  .cart-modal-panel {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    border: 0;
+  }
 }
 
 /* Cart page */

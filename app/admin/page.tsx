@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { isSuperAdminEmail, requireAdmin } from "@/lib/admin/auth";
-import { listBookings } from "@/lib/data/bookings";
+import { groupAdminOrders, listBookings } from "@/lib/data/bookings";
 import { listEnquiries } from "@/lib/data/enquiries";
 import { listAdminDestinations } from "@/lib/data/destinations";
 import { listAdminPackages } from "@/lib/data/packages";
@@ -21,6 +21,9 @@ export default async function AdminPage() {
   ]);
 
   const newEnquiries = enquiries.filter((item) => item.status === "new").length;
+  // Group bookings into orders so a multi-package cart purchase counts (and shows)
+  // as one order rather than several separate rows.
+  const orders = groupAdminOrders(bookings);
 
   return (
     <div className="admin-stack">
@@ -48,7 +51,7 @@ export default async function AdminPage() {
           </>
         ) : null}
         <Link href="/admin/bookings">
-          Bookings <strong>{bookings.length}</strong>
+          Bookings <strong>{orders.length}</strong>
         </Link>
       </div>
 
@@ -59,7 +62,7 @@ export default async function AdminPage() {
             View all →
           </Link>
         </div>
-        {bookings.length === 0 ? (
+        {orders.length === 0 ? (
           <p className="form-hint">No bookings yet.</p>
         ) : (
           <div className="admin-table">
@@ -68,11 +71,18 @@ export default async function AdminPage() {
               <span>Traveller</span>
               <span>Status</span>
             </div>
-            {bookings.slice(0, 5).map((booking) => (
-              <Link href={`/admin/bookings/${booking.id}`} key={booking.id}>
-                <span>{booking.reference}</span>
-                <span className="admin-muted">{booking.traveller_name}</span>
-                <StatusBadge status={booking.status} />
+            {orders.slice(0, 5).map((order) => (
+              <Link href={`/admin/bookings/${order.bookingId}`} key={order.key}>
+                <span>
+                  {order.reference}
+                  {order.itemCount > 1 ? (
+                    <small className="admin-muted-block">
+                      {order.itemCount} packages
+                    </small>
+                  ) : null}
+                </span>
+                <span className="admin-muted">{order.travellerName}</span>
+                <StatusBadge status={order.status} />
               </Link>
             ))}
           </div>

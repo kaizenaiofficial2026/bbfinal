@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { getLocale } from "next-intl/server";
 import { localeRedirect } from "@/lib/i18n/redirect";
 import {
@@ -25,7 +26,11 @@ function loginRedirect(nextPath?: string) {
  * in user to read their own row). Staff/admins have no customers row, so they
  * resolve to null here and continue through the admin flow instead.
  */
-export async function getCustomerUser(): Promise<CustomerSession | null> {
+// Request-cached: SiteShell, the locale layout (cart gate) and page guards can all
+// call this in one render without repeating the Supabase round-trip.
+export const getCustomerUser = cache(_getCustomerUser);
+
+async function _getCustomerUser(): Promise<CustomerSession | null> {
   if (!canUseSupabaseServer()) {
     return null;
   }

@@ -651,6 +651,7 @@
     "rateLimited": "尝试次数过多。请在约 {minutes} 分钟后重试。",
     "notAvailable": "其中一个套餐已不再可用。请查看您的购物车。",
     "mixedCurrency": "同一订单中的所有套餐必须使用相同货币。",
-    "checkoutError": "我们无法开始结算。请重试。"
+    "checkoutError": "我们无法开始结算。请重试。",
+    "close": "关闭"
   }
 }

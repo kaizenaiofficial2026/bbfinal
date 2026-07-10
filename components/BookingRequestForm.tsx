@@ -218,14 +218,16 @@ export default function BookingRequestForm({
             </svg>
           ) : null}
         </button>
-        <button
-          className="btn btn-line"
-          type="button"
-          onClick={handleAddToCart}
-          disabled={pending}
-        >
-          {t("addToCart")}
-        </button>
+        {cart.authenticated ? (
+          <button
+            className="btn btn-line"
+            type="button"
+            onClick={handleAddToCart}
+            disabled={pending}
+          >
+            {t("addToCart")}
+          </button>
+        ) : null}
         <p
           className={`form-note${feedback === "error" ? " is-error" : ""}`}
           aria-live="polite"

@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { listBookings } from "@/lib/data/bookings";
+import { groupAdminOrders, listBookings } from "@/lib/data/bookings";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { derivedBookingStatus, formatDate } from "@/lib/admin/format";
 
 export default async function AdminBookingsPage() {
   await requireAdmin();
-  const bookings = await listBookings();
+  // A cart purchase covers several bookings under one payment — group them so a
+  // multi-package order shows as a single row instead of N separate ones.
+  const orders = groupAdminOrders(await listBookings());
 
   return (
     <div className="admin-stack">
       <span className="section-kicker">Bookings</span>
       <h1>Booking requests</h1>
-      {bookings.length === 0 ? (
+      {orders.length === 0 ? (
         <div className="admin-card">
           <p className="form-hint">No booking requests yet.</p>
         </div>
@@ -23,16 +25,21 @@ export default async function AdminBookingsPage() {
             <span>Traveller</span>
             <span>Status</span>
           </div>
-          {bookings.map((booking) => (
-            <Link href={`/admin/bookings/${booking.id}`} key={booking.id}>
+          {orders.map((order) => (
+            <Link href={`/admin/bookings/${order.bookingId}`} key={order.key}>
               <span>
-                {booking.reference}
+                {order.reference}
+                {order.itemCount > 1 ? (
+                  <small className="admin-muted-block">
+                    {order.itemCount} packages · {order.titles.join(", ")}
+                  </small>
+                ) : null}
                 <small className="admin-muted-block">
-                  {formatDate(booking.created_at)}
+                  {formatDate(order.createdAt)}
                 </small>
               </span>
-              <span>{booking.traveller_name}</span>
-              <StatusBadge status={derivedBookingStatus(booking.status)} />
+              <span>{order.travellerName}</span>
+              <StatusBadge status={derivedBookingStatus(order.status)} />
             </Link>
           ))}
         </div>

@@ -651,6 +651,7 @@
     "rateLimited": "Too many attempts. Please try again in about {minutes} minute(s).",
     "notAvailable": "One of the packages is no longer available. Please review your cart.",
     "mixedCurrency": "All packages in one order must use the same currency.",
-    "checkoutError": "We couldn't start checkout. Please try again."
+    "checkoutError": "We couldn't start checkout. Please try again.",
+    "close": "Close"
   }
 }

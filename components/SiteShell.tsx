@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Preloader from "@/components/Preloader";
 import SiteEffects from "@/components/SiteEffects";
+import FloatingCart from "@/components/cart/FloatingCart";
 import { getCustomerUser } from "@/lib/customer/auth";
 
 type SiteShellProps = {
@@ -27,6 +28,7 @@ export default async function SiteShell({ children }: SiteShellProps) {
       <Header account={account} />
       {children}
       <Footer />
+      <FloatingCart />
       <SiteEffects />
     </>
   );

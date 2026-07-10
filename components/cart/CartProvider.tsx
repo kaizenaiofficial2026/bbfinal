@@ -32,6 +32,9 @@ type CartApi = {
   removeItem: (lineId: string) => void;
   clear: () => void;
   ready: boolean;
+  // Whether a customer is signed in. The cart is a signed-in-only feature, so the
+  // floating cart button and the "Add to cart" action are hidden when this is false.
+  authenticated: boolean;
 };
 
 const STORAGE_KEY = "bb-cart";
@@ -134,13 +137,20 @@ const CartContext = createContext<CartApi>({
   removeItem: noop,
   clear: noop,
   ready: false,
+  authenticated: false,
 });
 
 export function useCart() {
   return useContext(CartContext);
 }
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({
+  children,
+  authenticated = false,
+}: {
+  children: React.ReactNode;
+  authenticated?: boolean;
+}) {
   const current = useSyncExternalStore(
     cartStore.subscribe,
     cartStore.getSnapshot,
@@ -173,8 +183,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeItem,
       clear,
       ready,
+      authenticated,
     };
-  }, [current, ready, addItem, removeItem, clear]);
+  }, [current, ready, authenticated, addItem, removeItem, clear]);
 
   return <CartContext.Provider value={api}>{children}</CartContext.Provider>;
 }
