@@ -9,6 +9,9 @@ import {
   deleteSupportTicketAction,
   updateSupportTicketAction,
 } from "./actions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type Ticket = {
   id: string;
@@ -215,25 +218,27 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
           onSubmit={onSubmit}
         >
           <h2>{isEdit ? `Edit ticket ${editing?.number}` : "Create ticket"}</h2>
-          <label>
+          <Label variant="bare">
             Title
-            <input
+            <Input
+              variant="bare"
               name="title"
               maxLength={140}
               placeholder="Short summary"
               defaultValue={editing?.title ?? ""}
               required
             />
-          </label>
-          <label>
+          </Label>
+          <Label variant="bare">
             Description
-            <textarea
+            <Textarea
+              variant="bare"
               name="description"
               placeholder="Describe the issue…"
               defaultValue={editing?.description ?? ""}
               required
             />
-          </label>
+          </Label>
           <div className="support-field">
             <span className="support-field-label">Image (optional)</span>
             <label className="support-dropzone">

@@ -1,4 +1,5 @@
 import { statusLabel, statusTone } from "@/lib/admin/format";
+import { Badge } from "@/components/ui/badge";
 
 /** Pill badge for any status value (booking/enquiry/payment/content/customer). */
 export function StatusBadge({
@@ -8,8 +9,8 @@ export function StatusBadge({
 }) {
   const value = status ?? "";
   return (
-    <span className={`admin-badge admin-badge--${statusTone(value)}`}>
+    <Badge className={`admin-badge admin-badge--${statusTone(value)}`}>
       {statusLabel(value)}
-    </span>
+    </Badge>
   );
 }

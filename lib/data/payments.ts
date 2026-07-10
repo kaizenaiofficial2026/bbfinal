@@ -15,6 +15,9 @@ export type OrderBooking = {
   traveller_name: string;
   email: string;
   phone: string | null;
+  travel_dates: string;
+  travellers: number;
+  notes: string | null;
   status: string;
   quoted_amount: number | null;
   currency: string;
@@ -38,7 +41,7 @@ export type PaymentWithBooking = PaymentWithBookings;
 // which returns an ARRAY — a payment can cover many bookings. The explicit FK name
 // disambiguates from the legacy payments.booking_id forward relationship.
 const ORDER_SELECT =
-  "*, bookings:bookings!bookings_payment_id_fkey(id, reference, traveller_name, email, phone, status, quoted_amount, currency, tour_packages(title))";
+  "*, bookings:bookings!bookings_payment_id_fkey(id, reference, traveller_name, email, phone, travel_dates, travellers, notes, status, quoted_amount, currency, tour_packages(title))";
 
 /** The order reference (BB-ORD-####) for a payment. */
 export function orderReference(payment: PaymentWithBookings): string {

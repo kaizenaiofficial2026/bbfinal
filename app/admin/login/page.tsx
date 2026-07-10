@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { signInAction } from "../actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -50,19 +52,20 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
             {error}
           </p>
         ) : null}
-        <label>
+        <Label variant="bare">
           Email
-          <input name="email" type="email" autoComplete="email" required />
-        </label>
-        <label>
+          <Input variant="bare" name="email" type="email" autoComplete="email" required />
+        </Label>
+        <Label variant="bare">
           Password
-          <input
+          <Input
+            variant="bare"
             name="password"
             type="password"
             autoComplete="current-password"
             required
           />
-        </label>
+        </Label>
         <SubmitButton pendingLabel="Signing in…">Sign in</SubmitButton>
         <p className="admin-muted">
           <Link className="admin-back" href="/admin/forgot-password">

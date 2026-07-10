@@ -4,6 +4,8 @@ import { useRef } from "react";
 import { setAdminPasswordAction } from "@/app/admin/actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 import { useToast } from "@/components/Toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 /**
  * Super-admin control to set a second-level admin's password directly. Reports
@@ -31,26 +33,28 @@ export function SetAdminPasswordForm({ adminId }: { adminId: string }) {
       className="admin-inline-form admin-password-set"
     >
       <input type="hidden" name="adminId" value={adminId} />
-      <label>
+      <Label variant="bare">
         New password
-        <input
+        <Input
+          variant="bare"
           type="password"
           name="password"
           autoComplete="new-password"
           minLength={8}
           required
         />
-      </label>
-      <label>
+      </Label>
+      <Label variant="bare">
         Confirm
-        <input
+        <Input
+          variant="bare"
           type="password"
           name="confirm"
           autoComplete="new-password"
           minLength={8}
           required
         />
-      </label>
+      </Label>
       <SubmitButton pendingLabel="Saving…">Set password</SubmitButton>
     </form>
   );

@@ -10,6 +10,8 @@ import {
   startAdminPasswordChangeAction,
 } from "../actions";
 import { initialAdminPasswordStepState } from "./password-change-state";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function AdminPasswordWizard() {
   const router = useRouter();
@@ -96,9 +98,10 @@ export default function AdminPasswordWizard() {
             Enter your current password and choose a new one. The verification
             code will be sent to {ADMIN_SECURITY_INBOX}.
           </p>
-          <label>
+          <Label variant="bare">
             Current password
-            <input
+            <Input
+              variant="bare"
               name="oldPassword"
               type="password"
               autoComplete="current-password"
@@ -106,11 +109,12 @@ export default function AdminPasswordWizard() {
               value={oldPassword}
               onChange={(event) => setOldPassword(event.target.value)}
             />
-          </label>
+          </Label>
           <div className="admin-grid-2">
-            <label>
+            <Label variant="bare">
               New password
-              <input
+              <Input
+                variant="bare"
                 name="password"
                 type="password"
                 autoComplete="new-password"
@@ -119,10 +123,11 @@ export default function AdminPasswordWizard() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
               />
-            </label>
-            <label>
+            </Label>
+            <Label variant="bare">
               Confirm new password
-              <input
+              <Input
+                variant="bare"
                 name="confirm"
                 type="password"
                 autoComplete="new-password"
@@ -131,7 +136,7 @@ export default function AdminPasswordWizard() {
                 value={confirm}
                 onChange={(event) => setConfirm(event.target.value)}
               />
-            </label>
+            </Label>
           </div>
           {error1 ? (
             <p className="admin-alert" role="alert">
@@ -151,9 +156,10 @@ export default function AdminPasswordWizard() {
             <input type="hidden" name="oldPassword" value={oldPassword} />
             <input type="hidden" name="password" value={password} />
             <input type="hidden" name="confirm" value={confirm} />
-            <label>
+            <Label variant="bare">
               Verification code
-              <input
+              <Input
+                variant="bare"
                 name="code"
                 inputMode="numeric"
                 autoComplete="one-time-code"
@@ -161,7 +167,7 @@ export default function AdminPasswordWizard() {
                 maxLength={6}
                 required
               />
-            </label>
+            </Label>
             {error2 ? (
               <p className="admin-alert" role="alert">
                 {error2}

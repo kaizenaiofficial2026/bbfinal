@@ -2,6 +2,8 @@ import Link from "next/link";
 import { resetAdminPasswordAction } from "../actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type AdminResetPasswordPageProps = {
   searchParams: Promise<{ error?: string; sent?: string }>;
@@ -31,9 +33,10 @@ export default async function AdminResetPasswordPage({
             {error}
           </p>
         ) : null}
-        <label>
+        <Label variant="bare">
           Reset code
-          <input
+          <Input
+            variant="bare"
             name="code"
             inputMode="numeric"
             autoComplete="one-time-code"
@@ -41,27 +44,29 @@ export default async function AdminResetPasswordPage({
             maxLength={6}
             required
           />
-        </label>
-        <label>
+        </Label>
+        <Label variant="bare">
           New password
-          <input
+          <Input
+            variant="bare"
             name="password"
             type="password"
             autoComplete="new-password"
             minLength={8}
             required
           />
-        </label>
-        <label>
+        </Label>
+        <Label variant="bare">
           Confirm password
-          <input
+          <Input
+            variant="bare"
             name="confirm"
             type="password"
             autoComplete="new-password"
             minLength={8}
             required
           />
-        </label>
+        </Label>
         <SubmitButton pendingLabel="Updating…">Update password</SubmitButton>
         <p className="admin-muted">
           <Link className="admin-back" href="/admin/forgot-password">

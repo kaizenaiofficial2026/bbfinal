@@ -6,6 +6,9 @@ import { saveDestinationAction } from "../actions";
 import { DirtySubmitButton } from "@/app/admin/_components/DirtySubmitButton";
 import { AdminSelect } from "@/app/admin/_components/AdminSelect";
 import { MediaUploadField } from "@/app/admin/_components/MediaUploadField";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type DestinationFormProps = {
   destination?: Destination | null;
@@ -24,57 +27,61 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
       <fieldset className="admin-fieldset">
         <legend>Content</legend>
         <div className="admin-grid-2">
-          <label>
+          <Label variant="bare">
             Slug
-            <input
+            <Input
+              variant="bare"
               name="slug"
               defaultValue={destination?.slug}
               pattern="[a-z0-9\-]+"
               required
             />
             <small className="form-hint">Lowercase, hyphen-separated.</small>
-          </label>
-          <label>
+          </Label>
+          <Label variant="bare">
             Sort order
-            <input
+            <Input
+              variant="bare"
               name="sortOrder"
               type="number"
               defaultValue={destination?.sortOrder ?? 0}
             />
-          </label>
+          </Label>
         </div>
-        <label>
-          Title <input name="title" defaultValue={destination?.title} required />
-        </label>
-        <label>
+        <Label variant="bare">
+          Title <Input variant="bare" name="title" defaultValue={destination?.title} required />
+        </Label>
+        <Label variant="bare">
           Tagline
-          <input name="tagline" defaultValue={destination?.tagline} required />
-        </label>
-        <label>
+          <Input variant="bare" name="tagline" defaultValue={destination?.tagline} required />
+        </Label>
+        <Label variant="bare">
           Key attraction
-          <input
+          <Input
+            variant="bare"
             name="keyAttraction"
             defaultValue={destination?.keyAttraction}
             required
           />
-        </label>
-        <label>
+        </Label>
+        <Label variant="bare">
           Summary
-          <textarea name="summary" defaultValue={destination?.summary} required />
-        </label>
-        <label>
+          <Textarea variant="bare" name="summary" defaultValue={destination?.summary} required />
+        </Label>
+        <Label variant="bare">
           Best for
-          <input name="bestFor" defaultValue={destination?.bestFor} required />
-        </label>
-        <label>
+          <Input variant="bare" name="bestFor" defaultValue={destination?.bestFor} required />
+        </Label>
+        <Label variant="bare">
           Highlights
-          <textarea
+          <Textarea
+            variant="bare"
             name="highlights"
             defaultValue={destination?.highlights.join("\n")}
             required
           />
           <small className="form-hint">One highlight per line.</small>
-        </label>
+        </Label>
       </fieldset>
 
       <fieldset className="admin-fieldset">
@@ -98,7 +105,7 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
 
       <fieldset className="admin-fieldset">
         <legend>Publishing</legend>
-        <label>
+        <Label variant="bare">
           Status
           <AdminSelect
             name="status"
@@ -109,7 +116,7 @@ export default function DestinationForm({ destination }: DestinationFormProps) {
               { value: "published", label: "Published" },
             ]}
           />
-        </label>
+        </Label>
       </fieldset>
 
       <DirtySubmitButton pendingLabel="Saving…" disabled={uploading > 0}>

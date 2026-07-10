@@ -6,6 +6,9 @@ import { savePackageAction } from "../actions";
 import { DirtySubmitButton } from "@/app/admin/_components/DirtySubmitButton";
 import { AdminSelect } from "@/app/admin/_components/AdminSelect";
 import { MediaUploadField } from "@/app/admin/_components/MediaUploadField";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type PackageFormProps = {
   tourPackage?: TourPackage | null;
@@ -28,107 +31,114 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
       <fieldset className="admin-fieldset">
         <legend>Content</legend>
         <div className="admin-grid-2">
-          <label>
+          <Label variant="bare">
             Slug
-            <input
+            <Input
+              variant="bare"
               name="slug"
               defaultValue={tourPackage?.slug}
               pattern="[a-z0-9\-]+"
               required
             />
             <small className="form-hint">Lowercase, hyphen-separated.</small>
-          </label>
-          <label>
+          </Label>
+          <Label variant="bare">
             Duration
-            <input name="duration" defaultValue={tourPackage?.duration} required />
-          </label>
+            <Input variant="bare" name="duration" defaultValue={tourPackage?.duration} required />
+          </Label>
         </div>
-        <label>
-          Title <input name="title" defaultValue={tourPackage?.title} required />
-        </label>
+        <Label variant="bare">
+          Title <Input variant="bare" name="title" defaultValue={tourPackage?.title} required />
+        </Label>
         <div className="admin-grid-2">
-          <label>
-            Tier <input name="tier" defaultValue={tourPackage?.tier} required />
-          </label>
-          <label>
+          <Label variant="bare">
+            Tier <Input variant="bare" name="tier" defaultValue={tourPackage?.tier} required />
+          </Label>
+          <Label variant="bare">
             Hotels
-            <input name="hotels" defaultValue={tourPackage?.hotels} required />
-          </label>
+            <Input variant="bare" name="hotels" defaultValue={tourPackage?.hotels} required />
+          </Label>
         </div>
-        <label>
+        <Label variant="bare">
           Destinations
-          <input
+          <Input
+            variant="bare"
             name="destinations"
             defaultValue={tourPackage?.destinations}
             required
           />
-        </label>
-        <label>
+        </Label>
+        <Label variant="bare">
           Summary
-          <textarea name="summary" defaultValue={tourPackage?.summary} required />
-        </label>
-        <label>
+          <Textarea variant="bare" name="summary" defaultValue={tourPackage?.summary} required />
+        </Label>
+        <Label variant="bare">
           Inclusions
-          <textarea
+          <Textarea
+            variant="bare"
             name="inclusions"
             defaultValue={tourPackage?.inclusions.join("\n")}
             required
           />
           <small className="form-hint">One inclusion per line.</small>
-        </label>
+        </Label>
       </fieldset>
 
       <fieldset className="admin-fieldset">
         <legend>Itinerary</legend>
-        <label>
+        <Label variant="bare">
           Day-by-day
-          <textarea name="itinerary" defaultValue={itinerary} required rows={8} />
+          <Textarea variant="bare" name="itinerary" defaultValue={itinerary} required rows={8} />
           <small className="form-hint">
             One day per line as <code>Day | Title | Description</code> — e.g.{" "}
             <code>Day 1 | Arrival in Colombo | Airport transfer & welcome dinner</code>
           </small>
-        </label>
+        </Label>
       </fieldset>
 
       <fieldset className="admin-fieldset">
         <legend>Pricing</legend>
         <div className="admin-grid-2">
-          <label>
+          <Label variant="bare">
             Price amount
-            <input
+            <Input
+              variant="bare"
               name="priceAmount"
               type="number"
               step="0.01"
               defaultValue={tourPackage?.priceAmount ?? ""}
             />
-          </label>
-          <label>
+          </Label>
+          <Label variant="bare">
             Deposit amount
-            <input
+            <Input
+              variant="bare"
               name="depositAmount"
               type="number"
               step="0.01"
               defaultValue={tourPackage?.depositAmount ?? ""}
             />
-          </label>
+          </Label>
         </div>
         <div className="admin-grid-2">
-          <label>
+          <Label variant="bare">
             Currency
-            <input
+            <Input
+              variant="bare"
               name="currency"
               maxLength={3}
               defaultValue={tourPackage?.currency ?? "USD"}
             />
-          </label>
-          <label>
+          </Label>
+          <Label variant="bare">
             Sort order
-            <input
+            <Input
+              variant="bare"
               name="sortOrder"
               type="number"
               defaultValue={tourPackage?.sortOrder ?? 0}
             />
-          </label>
+          </Label>
         </div>
       </fieldset>
 
@@ -154,7 +164,7 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
 
       <fieldset className="admin-fieldset">
         <legend>Publishing</legend>
-        <label>
+        <Label variant="bare">
           Status
           <AdminSelect
             name="status"
@@ -165,7 +175,7 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
               { value: "published", label: "Published" },
             ]}
           />
-        </label>
+        </Label>
       </fieldset>
 
       <DirtySubmitButton pendingLabel="Saving…" disabled={uploading > 0}>

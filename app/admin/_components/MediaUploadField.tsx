@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import Spinner from "@/components/Spinner";
 import { uploadMediaDirect } from "@/lib/admin/upload-media";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const MB = 1024 * 1024;
 const MAX_MB = 8;
@@ -100,25 +102,27 @@ export function MediaUploadField({
           unoptimized
         />
       ) : null}
-      <label>
+      <Label variant="bare">
         {label} URL
-        <input
+        <Input
+          variant="bare"
           ref={urlRef}
           name={urlName}
           defaultValue={defaultUrl}
           onChange={(event) => setPreview(event.target.value)}
         />
-      </label>
-      <label>
+      </Label>
+      <Label variant="bare">
         Upload {label.toLowerCase()}
-        <input
+        <Input
+          variant="bare"
           key={fileKey}
           type="file"
           accept="image/*"
           onChange={onPick}
           disabled={status === "uploading"}
         />
-      </label>
+      </Label>
       {status === "uploading" ? (
         <p className="form-hint admin-media-uploading">
           <Spinner /> Uploading…

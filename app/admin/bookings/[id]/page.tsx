@@ -31,6 +31,15 @@ export default async function BookingPage({ params }: BookingPageProps) {
   // bookings list); a single booking keeps its own reference.
   const headingRef =
     isMultiOrder && payment?.reference ? payment.reference : booking.reference;
+  // Package, dates, travellers, notes and quoted amount are per-package, so on a
+  // multi-package order the top card must stay order-level (shared fields + the
+  // order total) and the per-package detail lives in "Order items" — otherwise
+  // the header says "Order" while the body describes just one of its packages.
+  const orderTotal = orderBookings.reduce(
+    (sum, item) => sum + (item.quoted_amount ?? 0),
+    0,
+  );
+  const orderCurrency = orderBookings[0]?.currency ?? booking.currency;
 
   return (
     <div className="admin-stack">
@@ -51,14 +60,29 @@ export default async function BookingPage({ params }: BookingPageProps) {
         <p><strong>Traveller</strong><span>{booking.traveller_name}</span></p>
         <p><strong>Email</strong><span>{booking.email}</span></p>
         <p><strong>Phone</strong><span>{booking.phone || "Not provided"}</span></p>
-        <p><strong>Package</strong><span>{booking.tour_packages?.title || "Package"}</span></p>
-        <p><strong>Dates</strong><span>{booking.travel_dates}</span></p>
-        <p><strong>Travellers</strong><span>{booking.travellers}</span></p>
-        <p><strong>Notes</strong><span>{booking.notes || "None"}</span></p>
-        <p>
-          <strong>Quoted amount</strong>
-          <span>{formatCurrency(booking.quoted_amount, booking.currency)}</span>
-        </p>
+        {isMultiOrder ? (
+          <>
+            <p>
+              <strong>Packages</strong>
+              <span>Multiple — {orderBookings.length} packages</span>
+            </p>
+            <p>
+              <strong>Order total</strong>
+              <span>{formatCurrency(orderTotal, orderCurrency)}</span>
+            </p>
+          </>
+        ) : (
+          <>
+            <p><strong>Package</strong><span>{booking.tour_packages?.title || "Package"}</span></p>
+            <p><strong>Dates</strong><span>{booking.travel_dates}</span></p>
+            <p><strong>Travellers</strong><span>{booking.travellers}</span></p>
+            <p><strong>Notes</strong><span>{booking.notes || "None"}</span></p>
+            <p>
+              <strong>Quoted amount</strong>
+              <span>{formatCurrency(booking.quoted_amount, booking.currency)}</span>
+            </p>
+          </>
+        )}
         <p><strong>Received</strong><span>{formatDateTime(booking.created_at)}</span></p>
       </section>
 
@@ -93,24 +117,28 @@ export default async function BookingPage({ params }: BookingPageProps) {
         <section className="admin-card admin-stack">
           <h2>Order items ({orderBookings.length})</h2>
           <p className="form-hint">
-            This booking is part of a multi-package order paid together.
+            These packages were booked together in one order and paid as a
+            single amount. Each keeps its own dates, travellers and notes.
           </p>
-          <div className="admin-table">
-            <div className="admin-table-head">
-              <span>Reference</span>
-              <span>Package</span>
-              <span>Amount</span>
-            </div>
-            {orderBookings.map((item) => (
-              <Link href={`/admin/bookings/${item.id}`} key={item.id}>
-                <span>{item.reference}</span>
-                <span className="admin-muted">
-                  {item.tour_packages?.title ?? "Package"}
-                </span>
+          {orderBookings.map((item) => (
+            <article className="admin-applicant" key={item.id}>
+              <div className="admin-applicant-head">
+                <div>
+                  <strong>{item.tour_packages?.title ?? "Package"}</strong>
+                  <span className="admin-muted-block">
+                    {item.reference}
+                    {item.id === booking.id ? " · viewing" : ""}
+                  </span>
+                </div>
                 <span>{formatCurrency(item.quoted_amount, item.currency)}</span>
-              </Link>
-            ))}
-          </div>
+              </div>
+              <div className="admin-detail">
+                <p><strong>Dates</strong><span>{item.travel_dates}</span></p>
+                <p><strong>Travellers</strong><span>{item.travellers}</span></p>
+                <p><strong>Notes</strong><span>{item.notes || "None"}</span></p>
+              </div>
+            </article>
+          ))}
         </section>
       ) : null}
     </div>

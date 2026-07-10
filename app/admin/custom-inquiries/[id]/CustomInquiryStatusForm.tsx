@@ -5,6 +5,7 @@ import { updateCustomInquiryStatusAction } from "@/app/admin/actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 import { AdminSelect } from "@/app/admin/_components/AdminSelect";
 import { useToast } from "@/components/Toast";
+import { Label } from "@/components/ui/label";
 
 /**
  * Client status form for a custom inquiry. Mirrors EnquiryStatusForm: calls the
@@ -34,7 +35,7 @@ export function CustomInquiryStatusForm({
   return (
     <form className="admin-card admin-inline-form" action={action}>
       <input type="hidden" name="id" value={id} />
-      <label>
+      <Label variant="bare">
         Status
         {/* key={status} so the uncontrolled select re-syncs to the new value
             after router.refresh() instead of keeping the pre-update selection. */}
@@ -49,7 +50,7 @@ export function CustomInquiryStatusForm({
             { value: "closed", label: "Closed" },
           ]}
         />
-      </label>
+      </Label>
       <SubmitButton pendingLabel="Updating…">Update status</SubmitButton>
     </form>
   );
