@@ -27,18 +27,20 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   // The cart is a signed-in-only feature; resolve the session once (request-cached,
-  // so this doesn't add a round-trip over what SiteShell already does) and gate the
-  // cart UI on it. Fail-soft: a transient auth error just renders signed-out.
-  let authenticated = false;
+  // so this doesn't add a round-trip over what SiteShell already does). The user id
+  // scopes the cart per-user so it can't leak across users on a shared browser, and
+  // its presence gates the cart UI. Fail-soft: a transient auth error renders
+  // signed-out (no cart). null id → guest.
+  let userId: string | null = null;
   try {
-    authenticated = Boolean(await getCustomerUser());
+    userId = (await getCustomerUser())?.user.id ?? null;
   } catch {
-    authenticated = false;
+    userId = null;
   }
 
   return (
     <NextIntlClientProvider>
-      <CartProvider authenticated={authenticated}>
+      <CartProvider userId={userId}>
         <ToastProvider>{children}</ToastProvider>
       </CartProvider>
     </NextIntlClientProvider>

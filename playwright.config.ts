@@ -44,7 +44,7 @@ export default defineConfig({
       name: "authed-customer",
       use: { ...chrome, storageState: "tests/.auth/customer.json" },
       dependencies: ["setup"],
-      testMatch: /(account|booking|payment)\.authed\.spec\.ts$/,
+      testMatch: /(account|booking|payment|cart)\.authed\.spec\.ts$/,
     },
   ],
 });

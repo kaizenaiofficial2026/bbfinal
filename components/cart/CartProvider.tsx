@@ -37,7 +37,12 @@ type CartApi = {
   authenticated: boolean;
 };
 
-const STORAGE_KEY = "bb-cart";
+// Cart storage is scoped PER USER (`bb-cart:<userId>`). The cart is a signed-in-
+// only feature, so a guest has no persistent cart, and on a shared browser one
+// user can never see another user's items — logging in as a different user (or
+// out) reads a different key. `bb-cart` (unscoped) is the legacy key and is a
+// cross-user leak vector, so it's removed the first time we scope to a user.
+const STORAGE_PREFIX = "bb-cart";
 const EMPTY: CartItem[] = [];
 
 // ── Module-level external store (localStorage-backed) ────────────────────────
@@ -46,12 +51,14 @@ const EMPTY: CartItem[] = [];
 // snapshot is empty, the client snapshot reads localStorage after mount.
 
 let items: CartItem[] = EMPTY;
-let hydrated = false;
+// The localStorage key for the currently-signed-in user, or null for a guest.
+// `undefined` means "not yet synced to any user this session".
+let activeKey: string | null | undefined = undefined;
 const listeners = new Set<() => void>();
 
-function readStorage(): CartItem[] {
+function readStorage(key: string): CartItem[] {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(key);
     if (!raw) return EMPTY;
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as CartItem[]) : EMPTY;
@@ -60,15 +67,29 @@ function readStorage(): CartItem[] {
   }
 }
 
-function ensureHydrated() {
-  if (hydrated || typeof window === "undefined") return;
-  hydrated = true;
-  items = readStorage();
+// Point the store at the signed-in user's cart (or empty it for a guest). Called
+// during render before the snapshot is read, so the correct user's items are in
+// place on first paint. Idempotent — a no-op when the user hasn't changed — and
+// does NOT emit (the render that triggered the user change re-reads the snapshot
+// itself); only add/remove/clear emit.
+function syncUser(userId: string | null) {
+  if (typeof window === "undefined") return;
+  const nextKey = userId ? `${STORAGE_PREFIX}:${userId}` : null;
+  if (nextKey === activeKey) return;
+  activeKey = nextKey;
+  items = nextKey ? readStorage(nextKey) : EMPTY;
+  try {
+    // Retire the legacy unscoped cart so it can't leak to the next user.
+    window.localStorage.removeItem(STORAGE_PREFIX);
+  } catch {
+    // ignore
+  }
 }
 
 function persist() {
+  if (!activeKey) return; // guests don't persist a cart
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    window.localStorage.setItem(activeKey, JSON.stringify(items));
   } catch {
     // private mode / quota — the cart just won't persist.
   }
@@ -85,14 +106,13 @@ function setItems(next: CartItem[]) {
 }
 
 const cartStore = {
+  syncUser,
   subscribe(callback: () => void) {
-    ensureHydrated();
     listeners.add(callback);
     return () => listeners.delete(callback);
   },
   // getSnapshot must return a STABLE reference between mutations (Object.is).
   getSnapshot(): CartItem[] {
-    ensureHydrated();
     return items;
   },
   getServerSnapshot(): CartItem[] {
@@ -146,11 +166,20 @@ export function useCart() {
 
 export function CartProvider({
   children,
-  authenticated = false,
+  userId = null,
 }: {
   children: React.ReactNode;
-  authenticated?: boolean;
+  /** Signed-in customer's id, or null/undefined for a guest. Scopes the cart. */
+  userId?: string | null;
 }) {
+  const authenticated = Boolean(userId);
+
+  // Point the store at this user's cart BEFORE reading the snapshot, so the right
+  // items are present on first paint and a different user never sees them. Safe to
+  // call during render: it's idempotent and only mutates when the user changed
+  // (mirrors the original lazy-hydration approach, no setState-in-effect).
+  cartStore.syncUser(userId ?? null);
+
   const current = useSyncExternalStore(
     cartStore.subscribe,
     cartStore.getSnapshot,
