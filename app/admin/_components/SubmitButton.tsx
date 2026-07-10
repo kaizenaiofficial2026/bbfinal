@@ -2,6 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import Spinner from "@/components/Spinner";
+import { Button } from "@/components/ui/button";
 
 type SubmitButtonProps = {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ export function SubmitButton({
 }: SubmitButtonProps) {
   const { pending } = useFormStatus();
   return (
-    <button
+    <Button
       className={className}
       type="submit"
       disabled={pending}
@@ -29,6 +30,6 @@ export function SubmitButton({
     >
       {pending ? <Spinner /> : null}
       {pending ? pendingLabel : children}
-    </button>
+    </Button>
   );
 }

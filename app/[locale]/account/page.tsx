@@ -303,6 +303,7 @@ export default async function AccountPage() {
                     label={t("deleteAccount")}
                     pendingLabel={t("deleteAccountPending")}
                     confirmText={t("deleteAccountConfirm")}
+                    cancelLabel={t("deleteAccountCancel")}
                   />
                 </form>
               </section>

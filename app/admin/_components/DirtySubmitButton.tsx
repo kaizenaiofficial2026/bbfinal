@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Spinner from "@/components/Spinner";
+import { Button } from "@/components/ui/button";
 
 type DirtySubmitButtonProps = {
   children: React.ReactNode;
@@ -60,7 +61,7 @@ export function DirtySubmitButton({
   }, []);
 
   return (
-    <button
+    <Button
       ref={buttonRef}
       className={className}
       type="submit"
@@ -69,6 +70,6 @@ export function DirtySubmitButton({
     >
       {pending ? <Spinner /> : null}
       {pending ? pendingLabel : children}
-    </button>
+    </Button>
   );
 }

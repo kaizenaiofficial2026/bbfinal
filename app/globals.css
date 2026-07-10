@@ -1,5 +1,77 @@
 /* Beyond Borders — global styles (ported from the original single-file design) */
 
+/* Tailwind v4 — imported WITHOUT Preflight on purpose. The hand-rolled reset and
+   base rules further down this file are the source of truth for the site's look
+   (body 16px/1.7, display-font headings, --body copy color, gold focus ring), so
+   we skip Tailwind's Preflight to avoid overriding them. We still pull in the theme
+   (design tokens) and utilities layers, which is all shadcn components need, plus
+   tw-animate-css (component enter/exit animations) and shadcn/tailwind.css (the
+   data-open/closed variants and helper utilities its Radix components rely on). */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Light-only app — no .dark ever mounts. Declared so any dark: utility that ships
+   inside a shadcn component still compiles (it simply never activates). */
+@custom-variant dark (&:is(.dark *));
+
+/* Bridge layer. Two jobs:
+   1. Expose the brand palette/fonts as Tailwind utilities (bg-gold, text-ink, …).
+   2. Map shadcn's semantic tokens (background/foreground/primary/border/…) onto the
+      existing brand tokens so every shadcn component renders in the current look.
+   `inline` keeps the var() references live so per-locale font overrides keep working.
+   NOTE: shadcn's defaults would collide with our --muted (a text color) and --radius;
+   we deliberately DON'T redefine those in :root — the mapping happens only here. */
+@theme inline {
+  /* Brand palette as utilities */
+  --color-paper: var(--paper);
+  --color-ivory: var(--ivory);
+  --color-sand: var(--sand);
+  --color-sand-deep: var(--sand-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-body: var(--body);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-deep: var(--gold-deep);
+  --color-line: var(--line);
+
+  /* Fonts: shadcn UI text uses font-sans → the existing Inter label font. */
+  --font-sans: var(--font-label);
+  --font-serif: var(--font-body);
+  --font-display: var(--font-display);
+
+  --ease-brand: var(--ease);
+
+  /* shadcn semantic tokens → brand tokens (keeps components on-palette) */
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-card: var(--paper);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--paper);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--gold);
+  --color-primary-foreground: var(--paper);
+  --color-secondary: var(--sand);
+  --color-secondary-foreground: var(--ink-soft);
+  --color-muted: var(--ivory);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--sand);
+  --color-accent-foreground: var(--ink);
+  --color-destructive: var(--danger);
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--gold);
+
+  /* Radius scale derived from the brand radii (rounded-sm/md/lg/xl) */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
 :root {
   --paper: #ffffff;
   --ivory: #f7f3ea;
@@ -15,6 +87,7 @@
   --line: rgba(28, 26, 21, 0.12);
   --line-soft: rgba(28, 26, 21, 0.07);
   --line-gold: rgba(179, 146, 79, 0.34);
+  --danger: #b42318;
   --shadow: 0 30px 80px -40px rgba(28, 26, 21, 0.32);
   --shadow-soft: 0 18px 50px -28px rgba(28, 26, 21, 0.26);
   --radius: 8px;
@@ -9112,4 +9185,50 @@ body.cart-modal-open {
 /* Cart summary sits on a tinted panel — keep the divider subtle there. */
 .cart-summary .payment-methods {
   border-top-color: var(--line);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

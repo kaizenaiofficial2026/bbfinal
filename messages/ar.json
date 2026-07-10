@@ -143,6 +143,7 @@
     "deleteAccountPending": "جارٍ الحذف…",
     "deleteAccountNote": "احذف حسابك وتسجيل دخولك نهائيًا. يتم الاحتفاظ بسجلات حجوزاتك لدينا لكنها لم تعد مرتبطة بك. لا يمكن التراجع عن هذا.",
     "deleteAccountConfirm": "حذف حسابك نهائيًا؟ لا يمكن التراجع عن هذا.",
+    "deleteAccountCancel": "إلغاء",
     "noBookings": "ليس لديك أي حجوزات بعد.",
     "journey": "رحلة",
     "continuePayment": "متابعة الدفع",

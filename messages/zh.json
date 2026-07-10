@@ -143,6 +143,7 @@
     "deleteAccountPending": "正在删除…",
     "deleteAccountNote": "永久删除您的账户和登录。您的预订记录将保留在我们的记录中，但不再与您关联。此操作无法撤销。",
     "deleteAccountConfirm": "永久删除您的账户？此操作无法撤销。",
+    "deleteAccountCancel": "取消",
     "noBookings": "你还没有任何预订。",
     "journey": "旅程",
     "continuePayment": "继续付款",

@@ -143,6 +143,7 @@
     "deleteAccountPending": "Deleting…",
     "deleteAccountNote": "Permanently delete your account and sign-in. Your booking records are kept for our records but no longer linked to you. This can’t be undone.",
     "deleteAccountConfirm": "Permanently delete your account? This can’t be undone.",
+    "deleteAccountCancel": "Cancel",
     "noBookings": "You have no bookings yet.",
     "journey": "Journey",
     "continuePayment": "Continue payment",
