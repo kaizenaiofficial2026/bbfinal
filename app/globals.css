@@ -8713,7 +8713,7 @@ body.cart-modal-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: max(16px, 3vh) max(16px, 3vw);
+  padding: max(12px, 2.5vh) max(12px, 2vw);
 }
 .cart-modal-backdrop {
   position: absolute;
@@ -8730,8 +8730,11 @@ body.cart-modal-open {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  width: min(1100px, 100%);
-  height: min(92vh, 100%);
+  width: min(1480px, 100%);
+  /* Grow to fill most of the viewport height so the panel doesn't look empty, but
+     never past it — the body scrolls when the cart is longer than the panel. */
+  height: min(94vh, 100%);
+  max-height: min(94vh, 100%);
   background: var(--ivory);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -8776,8 +8779,11 @@ body.cart-modal-open {
 }
 .cart-modal-body {
   flex: 1 1 auto;
+  /* min-height:0 lets this flex child shrink so it scrolls inside the capped
+     panel height instead of pushing the panel past its max-height. */
+  min-height: 0;
   overflow-y: auto;
-  padding: 24px;
+  padding: clamp(20px, 3vw, 32px);
 }
 /* Inside the modal the summary shouldn't stick to the viewport top. */
 .cart-modal-body .cart-summary {
@@ -8820,12 +8826,17 @@ body.cart-modal-open {
   }
 }
 
-/* Cart page */
+/* Cart page + modal body */
 .cart-layout {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 28px;
+  grid-template-columns: 1fr minmax(320px, 380px);
+  gap: 32px;
   align-items: start;
+}
+/* In the modal, let the summary span the full height so the wider panel doesn't
+   look empty on the right, and give the two columns room to breathe. */
+.cart-modal-body .cart-layout {
+  gap: 40px;
 }
 .cart-items {
   list-style: none;
@@ -8885,16 +8896,29 @@ body.cart-modal-open {
   gap: 8px;
 }
 .cart-item-remove {
-  border: 0;
-  background: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
   color: var(--muted);
-  font-size: 13px;
   cursor: pointer;
-  padding: 2px 0;
-  transition: color 160ms var(--ease);
+  padding: 0;
+  transition:
+    color 160ms var(--ease),
+    border-color 160ms var(--ease),
+    background 160ms var(--ease);
+}
+.cart-item-remove svg {
+  width: 18px;
+  height: 18px;
 }
 .cart-item-remove:hover {
   color: #b42318;
+  border-color: #b42318;
+  background: rgba(180, 35, 24, 0.06);
 }
 
 .cart-summary {
