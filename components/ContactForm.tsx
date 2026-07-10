@@ -80,12 +80,14 @@ export default function ContactForm() {
     [countryCode],
   );
 
+  // Labels are localized; values stay in canonical English so the inquiry the
+  // team receives is consistent regardless of the customer's language.
   const packageOptions: SelectOption[] = [
     { label: t("packageSelect"), value: "" },
-    { label: "Sunbath on Sands Standard", value: "Sunbath on Sands Standard" },
-    { label: "Glamour of Sri Lanka", value: "Glamour of Sri Lanka" },
-    { label: "A Classic of the City", value: "A Classic of the City" },
-    { label: "The Heart of City", value: "The Heart of City" },
+    { label: t("packageSunbath"), value: "Sunbath on Sands Standard" },
+    { label: t("packageGlamour"), value: "Glamour of Sri Lanka" },
+    { label: t("packageClassic"), value: "A Classic of the City" },
+    { label: t("packageHeart"), value: "The Heart of City" },
     { label: t("customPackage"), value: "Custom Package" },
   ];
 

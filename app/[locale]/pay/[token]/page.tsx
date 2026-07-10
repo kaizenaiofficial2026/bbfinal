@@ -39,6 +39,7 @@ export default async function PayPage({ params }: PayPageProps) {
           label={reference}
           image="/assets/images/heroes/pricing-header.jpg"
           summary={t("heroSummary")}
+          showBreadcrumbs={false}
         />
         <section className="section section-paper">
           <div className="container pay-layout">

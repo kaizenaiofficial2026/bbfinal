@@ -1,12 +1,8 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { submitBooking } from "@/app/actions";
-import { initialBookingState } from "@/app/action-state";
-import Spinner from "./Spinner";
 import DatePicker from "./DatePicker";
-import { useSubmitFeedback } from "./useSubmitFeedback";
 import { useCart } from "@/components/cart/CartProvider";
 import { useToast } from "@/components/Toast";
 import {
@@ -37,19 +33,6 @@ export default function BookingRequestForm({
   const cart = useCart();
   const toast = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction, pending] = useActionState(
-    submitBooking,
-    initialBookingState,
-  );
-  // Booking redirects to the pay page on success, so only surface failures.
-  const feedback = useSubmitFeedback(
-    pending,
-    state.ok,
-    state.note,
-    initialBookingState.note,
-    { toastOnSuccess: false },
-  );
-  const [startedAt] = useState(() => Date.now());
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
@@ -65,17 +48,9 @@ export default function BookingRequestForm({
     return null;
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    const error = validateDates();
-    if (error) {
-      // Cancels the form action too — the booking is never submitted.
-      event.preventDefault();
-      setDateError(error);
-    }
-  };
-
   // "Add to cart" stores this package + the entered trip details in the browser
-  // cart (server re-prices at checkout). Reuses the same date validation.
+  // cart (the server re-prices at checkout). This page only prepares a request —
+  // payment happens later from the cart, so there is no direct pay action here.
   const handleAddToCart = () => {
     const error = validateDates();
     if (error) {
@@ -103,24 +78,9 @@ export default function BookingRequestForm({
     <form
       ref={formRef}
       className="booking-form"
-      action={formAction}
-      onSubmit={handleSubmit}
+      onSubmit={(event) => event.preventDefault()}
       noValidate
     >
-      <input type="hidden" name="tourPackageId" value={packageId} />
-      <input type="hidden" name="startedAt" value={startedAt} />
-      {/* Native date pickers feed this combined value to the server. */}
-      <input type="hidden" name="dates" value={combineTravelDates(start, end)} />
-      <div className="visually-hidden" aria-hidden="true">
-        <label htmlFor="booking-company">{t("company")}</label>
-        <input
-          id="booking-company"
-          name="company"
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-        />
-      </div>
       <div className="booking-form-section">
         <span className="booking-form-label">{t("journeyDetails")}</span>
         <div className="form-grid">
@@ -171,7 +131,6 @@ export default function BookingRequestForm({
               type="number"
               min="1"
               placeholder="2"
-              defaultValue={state.values?.travellers}
             />
           </div>
           <div className="form-field full">
@@ -180,7 +139,6 @@ export default function BookingRequestForm({
               id="booking-notes"
               name="notes"
               placeholder={t("specialRequestsPlaceholder")}
-              defaultValue={state.values?.notes}
             />
           </div>
         </div>
@@ -200,39 +158,13 @@ export default function BookingRequestForm({
       <div className="booking-submit-row">
         <button
           className="btn btn-primary"
-          type="submit"
-          disabled={pending}
-          aria-busy={pending}
+          type="button"
+          onClick={handleAddToCart}
         >
-          {pending ? <Spinner /> : null}
-          {pending ? t("starting") : t("reservePay", { amount: formattedAmount })}
-          {!pending ? (
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M5 12h14M13 6l6 6-6 6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          ) : null}
+          {t("addToCart")}
         </button>
-        {cart.authenticated ? (
-          <button
-            className="btn btn-line"
-            type="button"
-            onClick={handleAddToCart}
-            disabled={pending}
-          >
-            {t("addToCart")}
-          </button>
-        ) : null}
-        <p
-          className={`form-note${feedback === "error" ? " is-error" : ""}`}
-          aria-live="polite"
-        >
-          {state.note || t("submitHint")}
+        <p className="form-note" aria-live="polite">
+          {t("submitHint")}
         </p>
       </div>
     </form>

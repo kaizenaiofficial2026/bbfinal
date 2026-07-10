@@ -8709,6 +8709,30 @@ body.menu-open .cookie-consent {
   font-weight: 600;
 }
 
+/* Inline link-styled trigger (e.g. the Terms & Conditions modal opener) so a
+   <button> reads like the old <a> link. */
+.terms-link {
+  color: var(--gold-deep);
+  text-decoration: underline;
+  font-weight: 600;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.terms-link:hover {
+  color: var(--gold);
+}
+
+/* Terms & Conditions popup: paper card, brand radius, scrollable legal body. */
+.terms-dialog {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius);
+  width: 100%;
+}
+
 /* Legal pages (Terms & Conditions) — readable prose with arrow bullets. */
 .legal-prose {
   color: var(--ink-soft);

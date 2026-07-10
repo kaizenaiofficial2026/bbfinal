@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Spinner from "@/components/Spinner";
+import { TermsDialog } from "@/components/TermsDialog";
 
 declare global {
   interface Window {
@@ -51,11 +52,7 @@ export default function PayButton({
         />
         <span>
           {t.rich("agreeTerms", {
-            terms: (chunks) => (
-              <a href="/terms" target="_blank" rel="noopener noreferrer">
-                {chunks}
-              </a>
-            ),
+            terms: (chunks) => <TermsDialog>{chunks}</TermsDialog>,
           })}
         </span>
       </label>
