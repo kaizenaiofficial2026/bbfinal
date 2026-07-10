@@ -8725,12 +8725,58 @@ body.menu-open .cookie-consent {
   color: var(--gold);
 }
 
-/* Terms & Conditions popup: paper card, brand radius, scrollable legal body. */
+/* Terms & Conditions popup: paper card with a fixed header and an internally
+   scrolling body. Unlayered so these win over the shadcn DialogContent utility
+   classes (which default to grid/p-4/max-w-sm). overscroll-behavior:contain
+   stops the scroll from chaining to the page behind the modal. */
 .terms-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: min(640px, calc(100vw - 2rem));
+  max-height: 85vh;
+  padding: 0;
+  overflow: hidden;
   background: var(--paper);
   color: var(--ink);
   border-radius: var(--radius);
-  width: 100%;
+}
+.terms-dialog-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 0 0 auto;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.terms-dialog-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.terms-dialog-close {
+  flex: 0 0 auto;
+  background: none;
+  border: 0;
+  padding: 2px 6px;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.terms-dialog-close:hover {
+  color: var(--ink);
+}
+.terms-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 24px 24px;
 }
 
 /* Legal pages (Terms & Conditions) — readable prose with arrow bullets. */

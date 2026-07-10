@@ -2,8 +2,8 @@
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -12,7 +12,8 @@ import { TermsContent } from "./TermsContent";
 /**
  * Terms & Conditions shown in a popup modal instead of navigating to the `/terms`
  * page in a new tab. `children` is the inline trigger text (e.g. "terms and
- * conditions"), styled as a link via `.terms-link`.
+ * conditions"), styled as a link via `.terms-link`. The card has a fixed header
+ * and an internally scrolling body (see `.terms-dialog*` in globals.css).
  */
 export function TermsDialog({ children }: { children: React.ReactNode }) {
   return (
@@ -22,11 +23,16 @@ export function TermsDialog({ children }: { children: React.ReactNode }) {
           {children}
         </button>
       </DialogTrigger>
-      <DialogContent className="terms-dialog sm:max-w-2xl gap-0 p-0 max-h-[85vh] grid-rows-[auto_1fr]">
-        <DialogHeader className="p-6 pb-3">
-          <DialogTitle className="text-lg">Terms &amp; Conditions</DialogTitle>
-        </DialogHeader>
-        <div className="min-h-0 overflow-y-auto px-6 pb-6">
+      <DialogContent showCloseButton={false} className="terms-dialog">
+        <div className="terms-dialog-head">
+          <DialogTitle className="terms-dialog-title">
+            Terms &amp; Conditions
+          </DialogTitle>
+          <DialogClose className="terms-dialog-close" aria-label="Close">
+            ×
+          </DialogClose>
+        </div>
+        <div className="terms-dialog-body">
           <TermsContent />
         </div>
       </DialogContent>
