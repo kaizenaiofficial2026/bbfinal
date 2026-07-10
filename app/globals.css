@@ -6650,6 +6650,22 @@ html.lenis body {
   min-height: 130px;
 }
 
+/* shadcn Select trigger skinned to match the native .admin-form select it
+   replaces. Unlayered, so it wins over the component's utility classes; the
+   trigger keeps its own flex layout (value + chevron), we only restyle the box. */
+.admin-select-trigger {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 13px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 400;
+}
+
 .admin-detail p {
   display: grid;
   gap: 5px;

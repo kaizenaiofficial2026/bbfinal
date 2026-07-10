@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { TourPackage } from "@/lib/data/types";
 import { savePackageAction } from "../actions";
 import { DirtySubmitButton } from "@/app/admin/_components/DirtySubmitButton";
+import { AdminSelect } from "@/app/admin/_components/AdminSelect";
 import { MediaUploadField } from "@/app/admin/_components/MediaUploadField";
 
 type PackageFormProps = {
@@ -155,10 +156,15 @@ export default function PackageForm({ tourPackage }: PackageFormProps) {
         <legend>Publishing</legend>
         <label>
           Status
-          <select name="status" defaultValue={tourPackage?.status ?? "draft"}>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-          </select>
+          <AdminSelect
+            name="status"
+            defaultValue={tourPackage?.status ?? "draft"}
+            ariaLabel="Status"
+            options={[
+              { value: "draft", label: "Draft" },
+              { value: "published", label: "Published" },
+            ]}
+          />
         </label>
       </fieldset>
 

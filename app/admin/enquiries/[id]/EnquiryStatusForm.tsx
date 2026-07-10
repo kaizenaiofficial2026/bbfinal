@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { updateEnquiryStatusAction } from "@/app/admin/actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { AdminSelect } from "@/app/admin/_components/AdminSelect";
 import { useToast } from "@/components/Toast";
 
 /**
@@ -37,11 +38,17 @@ export function EnquiryStatusForm({
         Status
         {/* key={status} so the uncontrolled select re-syncs to the new value
             after router.refresh() instead of keeping the pre-update selection. */}
-        <select key={status} name="status" defaultValue={status}>
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="closed">Closed</option>
-        </select>
+        <AdminSelect
+          key={status}
+          name="status"
+          defaultValue={status}
+          ariaLabel="Status"
+          options={[
+            { value: "new", label: "New" },
+            { value: "contacted", label: "Contacted" },
+            { value: "closed", label: "Closed" },
+          ]}
+        />
       </label>
       <SubmitButton pendingLabel="Updating…">Update status</SubmitButton>
     </form>
