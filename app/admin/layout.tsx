@@ -20,6 +20,8 @@ export default async function AdminLayout({
   // admins never see Packages / Destinations / Enquiries / Custom enquiries.
   const ctx = await getAdminContext();
   const isSuperAdmin = ctx?.isSuperAdmin ?? true;
+  const adminEmail = ctx?.user.email ?? null;
+  const roleLabel = isSuperAdmin ? "Super admin" : "Second-level admin";
 
   return (
     <ToastProvider>
@@ -58,7 +60,15 @@ export default async function AdminLayout({
             </form>
           </div>
         </aside>
-        <section className="admin-main">{children}</section>
+        <section className="admin-main">
+          {adminEmail ? (
+            <div className="admin-identity" aria-label="Signed in admin">
+              <span className="admin-identity-email">{adminEmail}</span>
+              <span className="admin-identity-role">{roleLabel}</span>
+            </div>
+          ) : null}
+          {children}
+        </section>
       </main>
     </ToastProvider>
   );
