@@ -49,16 +49,22 @@ export async function getAdminUser() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, active")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role === "admin") {
-    return user;
+  if (profile) {
+    // A deactivated admin is denied everywhere — this blocks their login and
+    // kicks any live session on the next request (requireAdmin → null → login).
+    if (profile.role === "admin" && profile.active !== false) {
+      return user;
+    }
+    return null;
   }
 
-  // Allowlisted staff bootstrap themselves: create the profiles row that RLS
-  // `is_admin()` relies on, then authorize for this and all future requests.
+  // No profile row yet: allowlisted staff bootstrap themselves (active defaults
+  // to true). A deactivated admin already has a row, so is denied above and can
+  // never re-activate through this path.
   if (env.adminAllowedEmails.includes(email)) {
     const fullName =
       typeof user.user_metadata?.full_name === "string"
@@ -123,4 +129,63 @@ export async function requireSuperAdmin() {
     redirect("/admin");
   }
   return user;
+}
+
+export type AdminAccount = {
+  id: string;
+  email: string | null;
+  fullName: string | null;
+  active: boolean;
+  /** Super admins can't be deactivated. */
+  isSuper: boolean;
+};
+
+/**
+ * List the staff accounts (role='admin' in `profiles`) with their email and tier,
+ * for the super-admin "Admins" management screen. Uses the service client to read
+ * profiles and resolve emails from auth.users (there are only a handful of admins).
+ */
+export async function listAdmins(): Promise<AdminAccount[]> {
+  if (!canUseSupabaseService()) {
+    return [];
+  }
+
+  const service = createSupabaseServiceClient();
+  const { data: profiles } = await service
+    .from("profiles")
+    .select("id, full_name, active, created_at")
+    .eq("role", "admin")
+    .order("created_at", { ascending: true });
+
+  if (!profiles) {
+    return [];
+  }
+
+  return Promise.all(
+    profiles.map(async (profile) => {
+      const { data } = await service.auth.admin.getUserById(profile.id);
+      const email = data.user?.email ?? null;
+      return {
+        id: profile.id,
+        email,
+        fullName: profile.full_name,
+        active: profile.active,
+        isSuper: isSuperAdminEmail(email),
+      };
+    }),
+  );
+}
+
+/**
+ * Whether the acting super admin may (de)activate a target admin. A super admin
+ * may only toggle a SECOND-LEVEL admin, never a super admin and never themselves —
+ * this makes it impossible to lock all super admins out of the panel.
+ */
+export function canToggleAdminActive(params: {
+  actingUserId: string;
+  target: Pick<AdminAccount, "id" | "isSuper">;
+}): boolean {
+  if (params.target.id === params.actingUserId) return false;
+  if (params.target.isSuper) return false;
+  return true;
 }

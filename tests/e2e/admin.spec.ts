@@ -11,6 +11,7 @@ test.describe("admin: auth gating + pre-auth pages", () => {
   for (const path of [
     "/admin/packages",
     "/admin/users",
+    "/admin/admins",
     "/admin/settings",
     "/admin/bookings",
   ]) {

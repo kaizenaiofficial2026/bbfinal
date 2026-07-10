@@ -2,7 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getAdminUser, requireAdmin, requireSuperAdmin } from "@/lib/admin/auth";
+import {
+  canToggleAdminActive,
+  getAdminUser,
+  listAdmins,
+  requireAdmin,
+  requireSuperAdmin,
+} from "@/lib/admin/auth";
 import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
 import {
   attemptAdminLogin,
@@ -622,6 +628,44 @@ export async function setCustomerActiveAction(formData: FormData) {
   }
 
   revalidatePath("/admin/users");
+}
+
+/**
+ * Activate or deactivate a SECOND-LEVEL admin (SUPER admin only). A deactivated
+ * admin is denied by getAdminUser() — blocked at login and kicked from any live
+ * session. A super admin can never toggle themselves or another super admin, so
+ * the panel can't lock all super admins out (canToggleAdminActive enforces this).
+ */
+export async function setAdminActiveAction(formData: FormData) {
+  const actor = await requireSuperAdmin();
+  const adminId = formString(formData, "adminId");
+  const active = formString(formData, "active") === "true";
+
+  if (!adminId) {
+    throw new Error("Missing admin id.");
+  }
+
+  const target = (await listAdmins()).find((a) => a.id === adminId);
+  if (!target) {
+    throw new Error("Admin not found.");
+  }
+  if (!canToggleAdminActive({ actingUserId: actor.id, target })) {
+    throw new Error(
+      "Only a second-level admin can be activated or deactivated.",
+    );
+  }
+
+  const service = createSupabaseServiceClient();
+  const { error } = await service
+    .from("profiles")
+    .update({ active })
+    .eq("id", adminId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/admins");
 }
 
 /**
