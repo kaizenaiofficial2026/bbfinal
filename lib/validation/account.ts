@@ -67,3 +67,18 @@ export const resetPasswordSchema = z
   });
 
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+// Set a password directly (no old password / code) — used by a super admin
+// setting a second-level admin's password.
+export const setPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters.")
+      .max(200),
+    confirm: z.string(),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "Passwords do not match.",
+    path: ["confirm"],
+  });

@@ -2,6 +2,7 @@ import { listAdmins, requireSuperAdmin } from "@/lib/admin/auth";
 import { setAdminActiveAction } from "../actions";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import { SetAdminPasswordForm } from "./SetAdminPasswordForm";
 
 type AdminRow = {
   id: string;
@@ -66,11 +67,15 @@ export default async function AdminStaffPage() {
                   ) : (
                     <p className="form-hint">
                       {admin.isSuper
-                        ? "Super admin — cannot be deactivated."
+                        ? "Super admin — cannot be managed here."
                         : "This is your account."}
                     </p>
                   )}
                 </div>
+
+                {canToggle ? (
+                  <SetAdminPasswordForm adminId={admin.id} />
+                ) : null}
               </article>
             );
           })

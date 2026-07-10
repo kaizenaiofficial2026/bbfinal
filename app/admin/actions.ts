@@ -38,7 +38,10 @@ import { revalidatePackages } from "@/lib/data/packages";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { getRequestIpHash, scopedRateKey } from "@/lib/security/request";
 import { toRetryMinutes } from "@/lib/security/retry-after";
-import { resetPasswordSchema } from "@/lib/validation/account";
+import {
+  resetPasswordSchema,
+  setPasswordSchema,
+} from "@/lib/validation/account";
 import {
   createAndSendResetCode,
   verifyAndReset,
@@ -666,6 +669,56 @@ export async function setAdminActiveAction(formData: FormData) {
   }
 
   revalidatePath("/admin/admins");
+}
+
+/**
+ * Set (reset) a SECOND-LEVEL admin's password directly (SUPER admin only). Unlike
+ * the self-service change flow, no old password/OTP is needed — the trusted super
+ * admin sets it via the service admin API. Same guard as the active toggle: never
+ * a super admin, never yourself. Returns {ok, note} so the UI can show feedback
+ * instead of throwing on a typo (e.g. mismatched confirmation).
+ */
+export async function setAdminPasswordAction(
+  formData: FormData,
+): Promise<{ ok: boolean; note: string }> {
+  const actor = await requireSuperAdmin();
+  const adminId = formString(formData, "adminId");
+
+  if (!adminId) {
+    return { ok: false, note: "Missing admin id." };
+  }
+
+  const parsed = setPasswordSchema.safeParse({
+    password: formString(formData, "password"),
+    confirm: formString(formData, "confirm"),
+  });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      note: parsed.error.issues[0]?.message ?? "Please check the password.",
+    };
+  }
+
+  const target = (await listAdmins()).find((a) => a.id === adminId);
+  if (!target) {
+    return { ok: false, note: "Admin not found." };
+  }
+  if (!canToggleAdminActive({ actingUserId: actor.id, target })) {
+    return {
+      ok: false,
+      note: "You can only set a second-level admin's password.",
+    };
+  }
+
+  const service = createSupabaseServiceClient();
+  const { error } = await service.auth.admin.updateUserById(adminId, {
+    password: parsed.data.password,
+  });
+  if (error) {
+    return { ok: false, note: error.message };
+  }
+
+  return { ok: true, note: "Password updated." };
 }
 
 /**
