@@ -12,7 +12,6 @@ export const enquirySchema = z.object({
     .min(10, "Please add a few travel notes.")
     .max(2000),
   source: z.string().trim().max(80).default("contact-form"),
-  company: z.string().max(0).optional().or(z.literal("")),
   startedAt: z.coerce.number().optional(),
 });
 

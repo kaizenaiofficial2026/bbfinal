@@ -9,6 +9,7 @@ import { requireVerifiedCustomer } from "@/lib/customer/auth";
 import { canUseSupabaseService } from "@/lib/supabase/service";
 import { sendEnquiryEmails } from "@/lib/email/send";
 import { getRequestIpHash } from "@/lib/security/request";
+import { trippedHoneypot } from "@/lib/security/honeypot";
 import { passedTimeTrap } from "@/lib/security/time-trap";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 import { bookingSchema } from "@/lib/validation/booking";
@@ -36,6 +37,12 @@ export async function submitEnquiry(
     message: formString(formData, "message"),
   };
 
+  // Spam trap — checked against the raw form, never as part of the schema, so it
+  // can't surface an internal validation message to a real visitor.
+  if (trippedHoneypot(formData)) {
+    return { ok: false, note: t("checkForm"), values };
+  }
+
   const parsed = enquirySchema.safeParse({
     name: values.name,
     email: values.email,
@@ -44,7 +51,6 @@ export async function submitEnquiry(
     packageLabel: values.package,
     message: values.message,
     source: "contact-form",
-    company: formString(formData, "company"),
     startedAt: formString(formData, "startedAt"),
   });
 
@@ -147,12 +153,17 @@ export async function submitBooking(
     notes: formString(formData, "notes"),
   };
 
+  // Spam trap — checked against the raw form, never as part of the schema, so it
+  // can't surface an internal validation message to a real visitor.
+  if (trippedHoneypot(formData)) {
+    return { ok: false, note: t("checkBookingForm"), values };
+  }
+
   const parsed = bookingSchema.safeParse({
     tourPackageId: formString(formData, "tourPackageId"),
     travelDates: values.dates,
     travellers: values.travellers,
     notes: values.notes,
-    company: formString(formData, "company"),
     startedAt: formString(formData, "startedAt"),
   });
 

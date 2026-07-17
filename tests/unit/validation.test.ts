@@ -12,7 +12,6 @@ describe("public form validation", () => {
       message: "We would like a private Sri Lanka journey in August.",
       packageLabel: "Custom journey",
       source: "contact-form",
-      company: "",
       startedAt: Date.now() - 5000,
     });
 
@@ -25,22 +24,28 @@ describe("public form validation", () => {
       email: "asha@example.com",
       message: "We would like a private Sri Lanka journey in August.",
       source: "contact-form",
-      company: "",
       startedAt: Date.now() - 5000,
     });
 
     expect(result.success).toBe(false);
   });
 
-  it("rejects honeypot-filled enquiries", () => {
+  // The honeypot is enforced in the server action against the raw FormData, not
+  // in the schema — see tests/unit/honeypot.test.ts. Keeping it out of the
+  // schema is what stops a trap hit from reaching the visitor as a field error.
+  it("ignores unknown fields such as the honeypot", () => {
     const result = enquirySchema.safeParse({
-      name: "Bot",
-      email: "bot@example.com",
-      message: "This should not pass validation.",
-      company: "Filled by bot",
+      name: "Asha Perera",
+      email: "asha@example.com",
+      phone: "+94 77 123 4567",
+      country: "Sri Lanka",
+      message: "We would like a private Sri Lanka journey in August.",
+      packageLabel: "Custom journey",
+      source: "contact-form",
+      referralCode: "Filled by bot",
     });
 
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it("accepts a valid booking request", () => {
@@ -51,7 +56,6 @@ describe("public form validation", () => {
       email: "asha@example.com",
       travelDates: "August 2026",
       travellers: "2",
-      company: "",
     });
 
     expect(result.success).toBe(true);

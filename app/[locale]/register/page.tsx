@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
 import AuthErrorToast from "@/components/AuthErrorToast";
+import HoneypotField from "@/components/HoneypotField";
 import PasswordInput from "@/components/PasswordInput";
 import RegisterContactFields from "@/components/RegisterContactFields";
 import DateField from "@/components/DateField";
@@ -39,21 +40,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
       <AuthErrorToast error={error} />
       <form className="auth-form" action={registerAction}>
         {next ? <input type="hidden" name="next" value={next} /> : null}
-        {/* Honeypot — hidden from humans; bots fill it and are rejected. */}
-        <input
-          type="text"
-          name="company"
-          tabIndex={-1}
-          autoComplete="off"
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: "-9999px",
-            width: "1px",
-            height: "1px",
-            opacity: 0,
-          }}
-        />
+        <HoneypotField id="reg-hp" />
 
         <div className="auth-grid-2">
           <div className="auth-field">

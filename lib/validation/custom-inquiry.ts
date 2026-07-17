@@ -7,8 +7,10 @@ import {
 } from "./air-segments";
 import { todayIso } from "./dates";
 
-// Common guest details + spam guards. The customer always provides these so we
-// can reply, regardless of which services they pick.
+// Common guest details. The customer always provides these so we can reply,
+// regardless of which services they pick. The spam honeypot is deliberately NOT
+// here — it is checked against the raw FormData in the action, so a trap hit can
+// never surface as a field-validation message to the visitor.
 const guest = {
   firstName: z.string().trim().min(1, "First name is required.").max(120),
   lastName: z.string().trim().min(1, "Last name is required.").max(120),
@@ -20,7 +22,6 @@ const guest = {
     .max(60),
   email: z.email("Please enter a valid email address.").max(180),
   mobile: z.string().trim().min(4, "Please enter a mobile number.").max(40),
-  company: z.string().max(0).optional().or(z.literal("")), // honeypot
   startedAt: z.coerce.number().optional(),
 };
 

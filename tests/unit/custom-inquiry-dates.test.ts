@@ -8,7 +8,6 @@ const guest = {
   passportNumber: "N1234567",
   email: "asha@example.com",
   mobile: "+94 77 123 4567",
-  company: "",
 };
 
 // A fully-filled combined inquiry (every section is mandatory).

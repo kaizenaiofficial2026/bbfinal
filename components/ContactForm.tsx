@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import Select, { type SelectOption } from "./Select";
 import Combobox, { type ComboboxOption } from "./Combobox";
 import Spinner from "./Spinner";
+import HoneypotField from "./HoneypotField";
 import { useSubmitFeedback } from "./useSubmitFeedback";
 import { submitEnquiry } from "@/app/actions";
 import { initialEnquiryState } from "@/app/action-state";
@@ -94,10 +95,7 @@ export default function ContactForm() {
   return (
     <form className="contact-form" id="contactForm" data-reveal action={formAction}>
       <input type="hidden" name="startedAt" value={startedAt} />
-      <div className="visually-hidden" aria-hidden="true">
-        <label htmlFor="company">{t("company")}</label>
-        <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
-      </div>
+      <HoneypotField id="contact-hp" />
       <div className="form-grid">
         <div className="form-field">
           <label htmlFor="name">{t("name")}</label>

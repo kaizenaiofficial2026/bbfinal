@@ -7,6 +7,7 @@ import { createOrder } from "@/lib/data/orders";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { canUseSupabaseService } from "@/lib/supabase/service";
 import { getRequestIpHash } from "@/lib/security/request";
+import { trippedHoneypot } from "@/lib/security/honeypot";
 import { passedTimeTrap } from "@/lib/security/time-trap";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 
@@ -32,7 +33,7 @@ export async function checkoutCartAction(
   const t = await getTranslations("cart");
 
   // Honeypot + time-trap (same anti-spam as the booking form).
-  if (String(formData.get("company") ?? "")) {
+  if (trippedHoneypot(formData)) {
     return { ok: false, note: t("checkoutError") };
   }
   if (!passedTimeTrap(Number(formData.get("startedAt") ?? 0))) {

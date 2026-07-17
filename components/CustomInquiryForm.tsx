@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useTranslations } from "next-intl";
+import HoneypotField from "./HoneypotField";
 import { submitCustomInquiry } from "@/app/[locale]/custom-quote/actions";
 import { initialInquiryState } from "@/app/[locale]/custom-quote/inquiry-state";
 import {
@@ -386,16 +387,7 @@ export default function CustomInquiryForm() {
           noValidate
         >
           <input type="hidden" name="startedAt" value={startedAt} />
-          <div className="visually-hidden" aria-hidden="true">
-            <label htmlFor="ci-company">{t("company")}</label>
-            <input
-              id="ci-company"
-              name="company"
-              type="text"
-              tabIndex={-1}
-              autoComplete="off"
-            />
-          </div>
+          <HoneypotField id="ci-hp" />
 
           <div className="inquiry-wizard-head">
             <div className="inquiry-steps">

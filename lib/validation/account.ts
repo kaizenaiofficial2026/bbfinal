@@ -5,11 +5,30 @@ const isoDate = z
   .trim()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Please enter a valid date.");
 
+// Every cap carries its own message: an uncustomised .max() surfaces Zod's raw
+// wording ("Too big: expected string to have <=60 characters"), and these
+// messages are shown to the visitor verbatim.
 export const registerSchema = z.object({
-  firstName: z.string().trim().min(1, "Please enter your first name.").max(60),
-  lastName: z.string().trim().min(1, "Please enter your last name.").max(60),
-  country: z.string().trim().min(1, "Please enter your country.").max(80),
-  city: z.string().trim().min(1, "Please enter your city.").max(80),
+  firstName: z
+    .string()
+    .trim()
+    .min(1, "Please enter your first name.")
+    .max(60, "First name is too long."),
+  lastName: z
+    .string()
+    .trim()
+    .min(1, "Please enter your last name.")
+    .max(60, "Last name is too long."),
+  country: z
+    .string()
+    .trim()
+    .min(1, "Please enter your country.")
+    .max(80, "Country name is too long."),
+  city: z
+    .string()
+    .trim()
+    .min(1, "Please enter your city.")
+    .max(80, "City name is too long."),
   dateOfBirth: isoDate.refine((d) => {
     const t = Date.parse(d);
     return !Number.isNaN(t) && t < Date.now();
@@ -18,25 +37,25 @@ export const registerSchema = z.object({
     .string()
     .trim()
     .min(4, "Please enter your passport number.")
-    .max(20)
+    .max(20, "Passport number is too long.")
     .regex(/^[A-Za-z0-9]+$/, "Passport number must be letters and numbers only."),
   passportExpiry: isoDate.refine((d) => {
     const t = Date.parse(d);
     return !Number.isNaN(t) && t > Date.now();
   }, "Passport expiry must be a future date."),
-  email: z.email("Please enter a valid email address.").max(180),
+  email: z
+    .email("Please enter a valid email address.")
+    .max(180, "Email address is too long."),
   phone: z
     .string()
     .trim()
     .min(6, "Please enter your mobile number.")
-    .max(40),
+    .max(40, "Mobile number is too long."),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters.")
-    .max(200),
+    .max(200, "Password must be 200 characters or fewer."),
   confirmPassword: z.string(),
-  // Honeypot: bots fill this hidden field; humans never see it. Must be empty.
-  company: z.string().max(0).optional().or(z.literal("")),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords do not match.",
   path: ["confirmPassword"],

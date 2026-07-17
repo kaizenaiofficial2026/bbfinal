@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { screen } from "@testing-library/react";
 import { renderIntl as render } from "./intl-render";
+import { HONEYPOT_FIELD } from "@/lib/security/honeypot";
 
 vi.mock("@/app/actions", () => ({
   submitEnquiry: vi.fn(async () => ({ ok: true, note: "ok" })),
@@ -31,7 +32,7 @@ describe("ContactForm", () => {
   it("includes a concealed honeypot and a timing field for spam defense", () => {
     const { container } = render(<ContactForm />);
 
-    const honeypot = container.querySelector('input[name="company"]');
+    const honeypot = container.querySelector(`input[name="${HONEYPOT_FIELD}"]`);
     expect(honeypot).not.toBeNull();
     expect(honeypot?.closest('[aria-hidden="true"]')).not.toBeNull();
 

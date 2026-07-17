@@ -6,6 +6,7 @@ import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { sendCustomInquiryEmails } from "@/lib/email/send";
 import { sendInquirySms } from "@/lib/sms/send";
 import { getRequestIpHash, scopedRateKey } from "@/lib/security/request";
+import { trippedHoneypot } from "@/lib/security/honeypot";
 import { nextInquiryReference } from "@/lib/data/reference-numbers";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 import { canUseSupabaseService } from "@/lib/supabase/service";
@@ -145,9 +146,14 @@ export async function submitCustomInquiry(
     FIELDS.map((key) => [key, fs(formData, key)]),
   ) as Record<string, string>;
 
+  // Spam trap — checked against the raw form, never as part of the schema, so it
+  // can't surface an internal validation message to a real visitor.
+  if (trippedHoneypot(formData)) {
+    return { ok: false, note: t("checkForm"), values, fieldErrors: {} };
+  }
+
   const parsed = customInquirySchema.safeParse({
     ...values,
-    company: fs(formData, "company"),
     startedAt: fs(formData, "startedAt"),
   });
 

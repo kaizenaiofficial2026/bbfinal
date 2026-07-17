@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderIntl as render } from "./intl-render";
+import { HONEYPOT_FIELD } from "@/lib/security/honeypot";
 
 vi.mock("@/app/[locale]/custom-quote/actions", () => ({
   submitCustomInquiry: vi.fn(async () => ({ ok: true, note: "ok" })),
@@ -63,7 +64,7 @@ describe("CustomInquiryForm (wizard)", () => {
   it("includes a concealed honeypot and a timing field for spam defense", () => {
     const { container } = render(<CustomInquiryForm />);
 
-    const honeypot = container.querySelector('input[name="company"]');
+    const honeypot = container.querySelector(`input[name="${HONEYPOT_FIELD}"]`);
     expect(honeypot).not.toBeNull();
     expect(honeypot?.closest('[aria-hidden="true"]')).not.toBeNull();
     expect(container.querySelector('input[name="startedAt"]')).not.toBeNull();

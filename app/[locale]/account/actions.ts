@@ -13,6 +13,7 @@ import { registerSchema } from "@/lib/validation/account";
 import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { getRequestIpHash, scopedRateKey } from "@/lib/security/request";
+import { trippedHoneypot } from "@/lib/security/honeypot";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 
 function formString(formData: FormData, key: string) {
@@ -34,6 +35,16 @@ export async function registerAction(formData: FormData) {
   const t = await getTranslations("serverActions");
   const locale = await getLocale();
   const next = safeNext(formString(formData, "next"));
+
+  // Spam trap — checked against the raw form, never as part of the schema, so it
+  // can't surface an internal validation message to a real visitor.
+  if (trippedHoneypot(formData)) {
+    localeRedirect(
+      withNext(`/register?error=${encodeURIComponent(t("checkForm"))}`, next),
+      locale,
+    );
+  }
+
   const parsed = registerSchema.safeParse({
     firstName: formString(formData, "firstName"),
     lastName: formString(formData, "lastName"),
@@ -46,7 +57,6 @@ export async function registerAction(formData: FormData) {
     phone: formString(formData, "phone"),
     password: formString(formData, "password"),
     confirmPassword: formString(formData, "confirmPassword"),
-    company: formString(formData, "company"),
   });
 
   if (!parsed.success) {

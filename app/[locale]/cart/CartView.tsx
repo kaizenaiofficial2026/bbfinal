@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/navigation";
 import Spinner from "@/components/Spinner";
+import HoneypotField from "@/components/HoneypotField";
 import PaymentMethods from "@/components/PaymentMethods";
 import { useCart } from "@/components/cart/CartProvider";
 import { imageSrc } from "@/lib/images";
@@ -130,16 +131,7 @@ export default function CartView() {
         <form action={formAction}>
           <input type="hidden" name="items" value={JSON.stringify(items)} />
           <input type="hidden" name="startedAt" value={startedAt} />
-          <div className="visually-hidden" aria-hidden="true">
-            <label htmlFor="cart-company">Company</label>
-            <input
-              id="cart-company"
-              name="company"
-              type="text"
-              tabIndex={-1}
-              autoComplete="off"
-            />
-          </div>
+          <HoneypotField id="cart-hp" />
           <button
             className="btn btn-primary cart-checkout"
             type="submit"

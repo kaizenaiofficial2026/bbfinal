@@ -11,7 +11,6 @@ export const bookingSchema = z.object({
     .max(160),
   travellers: z.coerce.number().int().min(1).max(50),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
-  company: z.string().max(0).optional().or(z.literal("")),
   startedAt: z.coerce.number().optional(),
 });
 

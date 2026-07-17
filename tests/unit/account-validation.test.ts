@@ -18,7 +18,6 @@ const validRegister = {
   phone: "+94 77 123 4567",
   password: "supersecret",
   confirmPassword: "supersecret",
-  company: "",
 };
 
 describe("registerSchema (customer registration)", () => {
@@ -76,10 +75,38 @@ describe("registerSchema (customer registration)", () => {
     ).toBe(false);
   });
 
-  it("rejects a filled honeypot (bot)", () => {
+  // Regression: the honeypot used to live in this schema as company:max(0), so a
+  // browser autofilling it produced "Too big: expected string to have <=0
+  // characters" on screen and blocked a real signup. The trap now lives in the
+  // action; the schema must ignore any extra field.
+  it("ignores the honeypot field, which the action now checks", () => {
     expect(
-      registerSchema.safeParse({ ...validRegister, company: "spam" }).success,
-    ).toBe(false);
+      registerSchema.safeParse({ ...validRegister, referralCode: "spam" })
+        .success,
+    ).toBe(true);
+    expect(
+      registerSchema.safeParse({ ...validRegister, company: "Beyond Borders" })
+        .success,
+    ).toBe(true);
+  });
+
+  // Every message here is rendered to the visitor verbatim, so none of them may
+  // be Zod's raw internal wording.
+  it("phrases over-length errors for a human", () => {
+    const result = registerSchema.safeParse({
+      ...validRegister,
+      firstName: "a".repeat(200),
+      city: "b".repeat(200),
+      phone: "1".repeat(200),
+    });
+
+    expect(result.success).toBe(false);
+    const messages = result.error!.issues.map((i) => i.message);
+    expect(messages.length).toBeGreaterThan(0);
+    for (const message of messages) {
+      expect(message).not.toMatch(/too big|too small|expected string/i);
+      expect(message).toMatch(/\.$/);
+    }
   });
 });
 

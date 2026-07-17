@@ -17,9 +17,15 @@ describe("PayButton", () => {
     expect(button).toBeDisabled();
   });
 
-  it("links the terms and conditions text", () => {
+  // The terms open in a modal now rather than navigating to /terms, so the
+  // visitor never loses a half-completed payment to a page change.
+  it("opens the terms and conditions in a dialog", () => {
     render(<PayButton token="tok" scriptUrl="x" />);
-    const link = screen.getByRole("link", { name: /terms and conditions/i });
-    expect(link).toHaveAttribute("href", "/terms");
+
+    const trigger = screen.getByRole("button", { name: /terms and conditions/i });
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(trigger);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 });
