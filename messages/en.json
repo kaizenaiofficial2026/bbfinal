@@ -253,6 +253,7 @@
     "paymentSummary": "Payment summary",
     "amountConfirmed": "Amount confirmed after planner review",
     "packageTotal": "Package total",
+    "perTraveller": "Per traveller",
     "paymentStatus": "Payment status",
     "notCharged": "Not charged",
     "prepareNote": "This page prepares a booking request only. No real payment is processed here.",

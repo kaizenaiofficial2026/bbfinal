@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import BookingRequestForm from "@/components/BookingRequestForm";
+import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
 import { imageSrc } from "@/lib/images";
@@ -105,9 +106,11 @@ export default async function BookingPage({ params }: BookingPageProps) {
     );
   }
 
-  const relatedPackages = (await getPublishedPackages())
-    .filter((item) => item.slug !== tourPackage.slug)
-    .slice(0, 3);
+  // Every OTHER published package — deliberately unsliced so packages added
+  // later show up here automatically; the sidebar list scrolls when it's long.
+  const relatedPackages = (await getPublishedPackages()).filter(
+    (item) => item.slug !== tourPackage.slug,
+  );
 
   // The bulleted day-by-day itinerary is rich editorial content sourced from the
   // static content module by slug. It is ENGLISH-ONLY, so use it only for the
@@ -204,34 +207,27 @@ export default async function BookingPage({ params }: BookingPageProps) {
             </article>
 
             <aside className="booking-sidebar" data-reveal>
-              <div className="booking-summary-card">
-                <span className="booking-form-label">{t("paymentSummary")}</span>
-                <h2>{t("amountConfirmed")}</h2>
-                <div className="booking-total-row">
-                  <span>{t("packageTotal")}</span>
-                  <strong>
-                    {tourPackage.priceAmount != null
-                      ? `${tourPackage.currency} ${Number(
-                          tourPackage.priceAmount,
-                        ).toLocaleString()}`
-                      : "TBD"}
-                  </strong>
-                </div>
-                <div className="booking-total-row">
-                  <span>{t("paymentStatus")}</span>
-                  <strong>{t("notCharged")}</strong>
-                </div>
-                <p>{t("prepareNote")}</p>
-              </div>
+              <BookingSummaryCard
+                amount={
+                  tourPackage.priceAmount != null
+                    ? Number(tourPackage.priceAmount)
+                    : null
+                }
+                currency={tourPackage.currency ?? "USD"}
+              />
 
               <div className="related-destinations">
                 <h2>{t("otherPackages")}</h2>
-                {relatedPackages.map((item) => (
-                  <Link href={`/booking/${item.slug}`} key={item.slug}>
-                    {item.title}
-                    <span>{item.duration}</span>
-                  </Link>
-                ))}
+                {/* data-lenis-prevent: without it the site's smooth-scroll
+                    swallows wheel events, making this inner list unscrollable. */}
+                <div className="related-scroll" data-lenis-prevent>
+                  {relatedPackages.map((item) => (
+                    <Link href={`/booking/${item.slug}`} key={item.slug}>
+                      {item.title}
+                      <span>{item.duration}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             </aside>
           </div>

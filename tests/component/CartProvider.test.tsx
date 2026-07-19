@@ -6,10 +6,11 @@ import { CartProvider, useCart } from "@/components/cart/CartProvider";
 // next user on a shared browser (FEATURE_AUDIT.md #1).
 
 function Harness() {
-  const { items, count, addItem } = useCart();
+  const { items, count, subtotal, addItem } = useCart();
   return (
     <div>
       <span data-testid="count">{count}</span>
+      <span data-testid="subtotal">{subtotal}</span>
       <ul>
         {items.map((i) => (
           <li key={i.lineId}>{i.title}</li>
@@ -46,9 +47,11 @@ describe("CartProvider — per-user scoping", () => {
       </CartProvider>,
     );
 
-    // User A adds an item.
+    // User A adds an item. Subtotal = per-traveller amount × travellers
+    // (travellers doubles as the line quantity): 100 × 2.
     fireEvent.click(screen.getByText("add"));
     expect(screen.getByTestId("count").textContent).toBe("1");
+    expect(screen.getByTestId("subtotal").textContent).toBe("200");
     expect(screen.getByText("Bali Escape")).toBeInTheDocument();
 
     // Switching to user B on the same browser must NOT show A's cart.

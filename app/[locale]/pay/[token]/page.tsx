@@ -63,7 +63,12 @@ export default async function PayPage({ params }: PayPageProps) {
               {/* Line items: one per booking in the order. */}
               {bookings.map((b) => (
                 <div className="booking-total-row booking-line-item" key={b.id}>
-                  <span>{b.tour_packages?.title ?? t("defaultBooking")}</span>
+                  <span>
+                    {b.tour_packages?.title ?? t("defaultBooking")}
+                    {/* quoted_amount is the line total (per-traveller price ×
+                        count) — show the count so the math is legible. */}
+                    {b.travellers > 1 ? ` × ${b.travellers}` : ""}
+                  </span>
                   <strong>
                     {b.currency} {(b.quoted_amount ?? 0).toFixed(2)}
                   </strong>

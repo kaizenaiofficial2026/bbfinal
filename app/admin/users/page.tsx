@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireAdminContext } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
@@ -24,6 +25,21 @@ type CustomerRow = {
   active: boolean;
   created_at: string;
 };
+
+// The four filter pills. "deactivated" cuts across the other two (a customer in
+// any verification state can have their login disabled), so it's its own view.
+const FILTERS = [
+  { key: "all", label: "All" },
+  { key: "pending", label: "New applications" },
+  { key: "verified", label: "Verified" },
+  { key: "deactivated", label: "Deactivated" },
+] as const;
+
+type FilterKey = (typeof FILTERS)[number]["key"];
+
+function parseFilter(value: string | undefined): FilterKey {
+  return (FILTERS.find((f) => f.key === value)?.key ?? "all") as FilterKey;
+}
 
 function ActiveToggle({ customer }: { customer: CustomerRow }) {
   return (
@@ -61,8 +77,106 @@ function Detail({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-export default async function AdminCustomersPage() {
-  const { isSuperAdmin } = await requireAdminContext();
+/** Full application card with the verify action — used for unverified customers. */
+function ApplicantCard({
+  customer,
+  isSuperAdmin,
+}: {
+  customer: CustomerRow;
+  isSuperAdmin: boolean;
+}) {
+  return (
+    <article className="admin-applicant" key={customer.id}>
+      <div className="admin-applicant-head">
+        <div>
+          <strong>{customer.full_name}</strong>
+          <span className="admin-muted-block">
+            Registered {formatDate(customer.created_at)}
+          </span>
+        </div>
+        <StatusBadge status={customer.active ? "active" : "inactive"} />
+      </div>
+
+      <div className="admin-detail admin-applicant-grid">
+        <Detail label="Email" value={customer.email} />
+        <Detail label="Mobile" value={customer.phone} />
+        <Detail
+          label="Country & city"
+          value={[customer.city, customer.country].filter(Boolean).join(", ")}
+        />
+        <Detail
+          label="Date of birth"
+          value={
+            customer.date_of_birth ? formatDate(customer.date_of_birth) : null
+          }
+        />
+        <Detail label="Passport no." value={customer.passport_number} />
+        <Detail
+          label="Passport expiry"
+          value={
+            customer.passport_expiry ? formatDate(customer.passport_expiry) : null
+          }
+        />
+      </div>
+
+      <div className="admin-actions-row">
+        <form action={verifyCustomerAction}>
+          <input type="hidden" name="customerId" value={customer.id} />
+          <SubmitButton pendingLabel="Verifying…">
+            Verify (allow purchases)
+          </SubmitButton>
+        </form>
+        <ActiveToggle customer={customer} />
+        {isSuperAdmin ? <DeleteCustomerForm customer={customer} /> : null}
+      </div>
+    </article>
+  );
+}
+
+/** Compact card for customers past the application stage. */
+function CustomerCard({
+  customer,
+  isSuperAdmin,
+}: {
+  customer: CustomerRow;
+  isSuperAdmin: boolean;
+}) {
+  return (
+    <article className="admin-applicant" key={customer.id}>
+      <div className="admin-applicant-head">
+        <div>
+          <strong>{customer.full_name}</strong>
+          <span className="admin-muted-block">
+            {customer.email}
+            {customer.phone ? ` · ${customer.phone}` : ""}
+          </span>
+        </div>
+        <div className="admin-applicant-badges">
+          <StatusBadge status={customer.verified ? "verified" : "pending"} />
+          <StatusBadge status={customer.active ? "active" : "inactive"} />
+        </div>
+      </div>
+      <div className="admin-actions-row">
+        <ActiveToggle customer={customer} />
+        {isSuperAdmin ? <DeleteCustomerForm customer={customer} /> : null}
+      </div>
+    </article>
+  );
+}
+
+type CustomersPageProps = {
+  searchParams: Promise<{ filter?: string }>;
+};
+
+export default async function AdminCustomersPage({
+  searchParams,
+}: CustomersPageProps) {
+  const [{ isSuperAdmin }, { filter: rawFilter }] = await Promise.all([
+    requireAdminContext(),
+    searchParams,
+  ]);
+  const filter = parseFilter(rawFilter);
+
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("customers")
@@ -75,106 +189,92 @@ export default async function AdminCustomersPage() {
   const rows = (data ?? []) as CustomerRow[];
   const pending = rows.filter((c) => !c.verified);
   const verified = rows.filter((c) => c.verified);
+  const deactivated = rows.filter((c) => !c.active);
+
+  const counts: Record<FilterKey, number> = {
+    all: rows.length,
+    pending: pending.length,
+    verified: verified.length,
+    deactivated: deactivated.length,
+  };
 
   return (
     <div className="admin-stack">
       <span className="section-kicker">Customers</span>
       <h1>Customer accounts</h1>
 
-      <section className="admin-card admin-stack">
-        <h2>New applications ({pending.length})</h2>
-        {pending.length === 0 ? (
-          <p className="form-hint">No customers awaiting verification.</p>
-        ) : (
-          pending.map((customer) => (
-            <article className="admin-applicant" key={customer.id}>
-              <div className="admin-applicant-head">
-                <div>
-                  <strong>{customer.full_name}</strong>
-                  <span className="admin-muted-block">
-                    Registered {formatDate(customer.created_at)}
-                  </span>
-                </div>
-                <StatusBadge status={customer.active ? "active" : "inactive"} />
-              </div>
+      <nav className="admin-filter-pills" aria-label="Filter customers">
+        {FILTERS.map((f) => (
+          <Link
+            key={f.key}
+            href={f.key === "all" ? "/admin/users" : `/admin/users?filter=${f.key}`}
+            className={
+              filter === f.key
+                ? "admin-filter-pill is-active"
+                : "admin-filter-pill"
+            }
+            aria-current={filter === f.key ? "page" : undefined}
+          >
+            {f.label}
+            <span className="admin-count">{counts[f.key]}</span>
+          </Link>
+        ))}
+      </nav>
 
-              <div className="admin-detail admin-applicant-grid">
-                <Detail label="Email" value={customer.email} />
-                <Detail label="Mobile" value={customer.phone} />
-                <Detail
-                  label="Country & city"
-                  value={[customer.city, customer.country]
-                    .filter(Boolean)
-                    .join(", ")}
-                />
-                <Detail
-                  label="Date of birth"
-                  value={
-                    customer.date_of_birth
-                      ? formatDate(customer.date_of_birth)
-                      : null
-                  }
-                />
-                <Detail label="Passport no." value={customer.passport_number} />
-                <Detail
-                  label="Passport expiry"
-                  value={
-                    customer.passport_expiry
-                      ? formatDate(customer.passport_expiry)
-                      : null
-                  }
-                />
-              </div>
+      {filter === "all" || filter === "pending" ? (
+        <section className="admin-card admin-stack">
+          <h2>New applications ({pending.length})</h2>
+          {pending.length === 0 ? (
+            <p className="form-hint">No customers awaiting verification.</p>
+          ) : (
+            pending.map((customer) => (
+              <ApplicantCard
+                customer={customer}
+                isSuperAdmin={isSuperAdmin}
+                key={customer.id}
+              />
+            ))
+          )}
+        </section>
+      ) : null}
 
-              <div className="admin-actions-row">
-                <form action={verifyCustomerAction}>
-                  <input type="hidden" name="customerId" value={customer.id} />
-                  <SubmitButton pendingLabel="Verifying…">
-                    Verify (allow purchases)
-                  </SubmitButton>
-                </form>
-                <ActiveToggle customer={customer} />
-                {isSuperAdmin ? (
-                  <DeleteCustomerForm customer={customer} />
-                ) : null}
-              </div>
-            </article>
-          ))
-        )}
-      </section>
+      {filter === "all" || filter === "verified" ? (
+        <section className="admin-card admin-stack">
+          <h2>Verified customers ({verified.length})</h2>
+          {verified.length === 0 ? (
+            <p className="form-hint">No verified customers yet.</p>
+          ) : (
+            verified.map((customer) => (
+              <CustomerCard
+                customer={customer}
+                isSuperAdmin={isSuperAdmin}
+                key={customer.id}
+              />
+            ))
+          )}
+        </section>
+      ) : null}
 
-      <section className="admin-card admin-stack">
-        <h2>Verified customers ({verified.length})</h2>
-        {verified.length === 0 ? (
-          <p className="form-hint">No verified customers yet.</p>
-        ) : (
-          verified.map((customer) => (
-            <article className="admin-applicant" key={customer.id}>
-              <div className="admin-applicant-head">
-                <div>
-                  <strong>{customer.full_name}</strong>
-                  <span className="admin-muted-block">
-                    {customer.email}
-                    {customer.phone ? ` · ${customer.phone}` : ""}
-                  </span>
-                </div>
-                <div className="admin-applicant-badges">
-                  <StatusBadge status="verified" />
-                  <StatusBadge
-                    status={customer.active ? "active" : "inactive"}
-                  />
-                </div>
-              </div>
-              <div className="admin-actions-row">
-                <ActiveToggle customer={customer} />
-                {isSuperAdmin ? (
-                  <DeleteCustomerForm customer={customer} />
-                ) : null}
-              </div>
-            </article>
-          ))
-        )}
-      </section>
+      {filter === "deactivated" ? (
+        <section className="admin-card admin-stack">
+          <h2>Deactivated customers ({deactivated.length})</h2>
+          <p className="form-hint">
+            Logins that are currently disabled, whatever their verification
+            state. Reactivate to let the customer sign in again.
+          </p>
+          {deactivated.length === 0 ? (
+            <p className="form-hint">No deactivated customers.</p>
+          ) : (
+            deactivated.map((customer) => (
+              <CustomerCard
+                customer={customer}
+                isSuperAdmin={isSuperAdmin}
+                key={customer.id}
+              />
+            ))
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }

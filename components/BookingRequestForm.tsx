@@ -6,6 +6,11 @@ import DatePicker from "./DatePicker";
 import { useCart } from "@/components/cart/CartProvider";
 import { useToast } from "@/components/Toast";
 import {
+  bookingQuoteStore,
+  clampTravellerCount,
+  useBookingTravellers,
+} from "@/components/booking/booking-quote-store";
+import {
   combineTravelDates,
   isPastDate,
   isValidRange,
@@ -37,7 +42,15 @@ export default function BookingRequestForm({
   const [end, setEnd] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
 
-  const formattedAmount = `${currency} ${amount.toFixed(2)}`;
+  // Travellers doubles as the package quantity. The count lives in the shared
+  // quote store so the payment-summary card in the page sidebar (a separate
+  // island) shows the same live total. Sync before reading: resets to the
+  // default when this form mounts for a different package.
+  bookingQuoteStore.syncPackage(packageId);
+  const travellers = useBookingTravellers();
+
+  const total = amount * travellers;
+  const formattedAmount = `${currency} ${total.toFixed(2)}`;
 
   const validateDates = () => {
     if (!start || !end) return t("errSelectDates");
@@ -58,7 +71,6 @@ export default function BookingRequestForm({
       return;
     }
     const data = formRef.current ? new FormData(formRef.current) : null;
-    const travellers = Math.max(1, Math.round(Number(data?.get("travellers")) || 2));
     const notes = String(data?.get("notes") ?? "").trim();
     cart.addItem({
       packageId,
@@ -130,7 +142,13 @@ export default function BookingRequestForm({
               name="travellers"
               type="number"
               min="1"
-              placeholder="2"
+              max="50"
+              value={travellers}
+              onChange={(event) =>
+                bookingQuoteStore.setTravellers(
+                  clampTravellerCount(Number(event.target.value)),
+                )
+              }
             />
           </div>
           <div className="form-field full">

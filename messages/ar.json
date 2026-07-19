@@ -253,6 +253,7 @@
     "paymentSummary": "ملخص الدفع",
     "amountConfirmed": "يتم تأكيد المبلغ بعد مراجعة المخطط",
     "packageTotal": "إجمالي الباقة",
+    "perTraveller": "لكل مسافر",
     "paymentStatus": "حالة الدفع",
     "notCharged": "لم يتم الخصم",
     "prepareNote": "تُعد هذه الصفحة طلب حجز فقط. لا تتم معالجة أي دفع فعلي هنا.",

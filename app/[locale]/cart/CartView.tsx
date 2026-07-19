@@ -94,7 +94,14 @@ export default function CartView() {
               ) : null}
             </div>
             <div className="cart-item-side">
-              <strong>{money(item.amount, item.currency)}</strong>
+              <strong>
+                {money(item.amount * Math.max(1, item.travellers || 1), item.currency)}
+              </strong>
+              {item.travellers > 1 ? (
+                <span className="cart-item-unit">
+                  {item.travellers} × {money(item.amount, item.currency)}
+                </span>
+              ) : null}
               <button
                 type="button"
                 className="cart-item-remove"

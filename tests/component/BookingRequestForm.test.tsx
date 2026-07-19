@@ -59,12 +59,28 @@ describe("BookingRequestForm", () => {
     success.mockClear();
   });
 
-  it("shows the package title and the amount due", () => {
+  it("shows the total for the default 2 travellers (price is per traveller)", () => {
     const { container } = render(<BookingRequestForm {...PROPS} />);
 
     expect(container.querySelector('input[name="package"]')).toHaveValue(
       "Glamour of Sri Lanka",
     );
+    expect(container.querySelector('input[name="travellers"]')).toHaveValue(2);
+    expect(screen.getByText("USD 2000.00")).toBeInTheDocument();
+  });
+
+  it("recalculates the total live as the traveller count changes", () => {
+    const { container } = render(<BookingRequestForm {...PROPS} />);
+    const travellers = container.querySelector('input[name="travellers"]')!;
+
+    fireEvent.change(travellers, { target: { value: "4" } });
+    expect(screen.getByText("USD 4000.00")).toBeInTheDocument();
+
+    // Out-of-range input clamps instead of pricing nonsense.
+    fireEvent.change(travellers, { target: { value: "500" } });
+    expect(screen.getByText("USD 50000.00")).toBeInTheDocument();
+
+    fireEvent.change(travellers, { target: { value: "1" } });
     expect(screen.getByText("USD 1000.00")).toBeInTheDocument();
   });
 
@@ -99,9 +115,12 @@ describe("BookingRequestForm", () => {
     expect(addItem).not.toHaveBeenCalled();
   });
 
-  it("adds the package to the cart once valid dates are chosen", () => {
-    render(<BookingRequestForm {...PROPS} />);
+  it("adds the package to the cart with the chosen traveller count", () => {
+    const { container } = render(<BookingRequestForm {...PROPS} />);
 
+    fireEvent.change(container.querySelector('input[name="travellers"]')!, {
+      target: { value: "3" },
+    });
     pickDate("booking-start", 20);
     pickDate("booking-end", 25);
     fireEvent.click(screen.getByRole("button", { name: /add to cart/i }));
@@ -112,7 +131,10 @@ describe("BookingRequestForm", () => {
         packageId: "pkg-1",
         slug: "glamour-of-sri-lanka",
         title: "Glamour of Sri Lanka",
+        // `amount` stays the per-traveller unit price; travellers carries the
+        // quantity. The server re-prices amount × travellers at checkout.
         amount: 1000,
+        travellers: 3,
         currency: "USD",
       }),
     );

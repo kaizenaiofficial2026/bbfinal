@@ -3885,6 +3885,37 @@ body.menu-open .menu-toggle span::after {
   color: var(--gold-deep);
 }
 
+/* Booking sidebar "Other packages": the full catalogue lives here (new packages
+   appear automatically), so the list scrolls once it outgrows the card. */
+.related-destinations .related-scroll {
+  max-height: 342px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(179, 146, 79, 0.55) transparent;
+  /* Keep the gold scrollbar off the text without shifting the card edge. */
+  padding-right: 8px;
+  margin-right: -8px;
+}
+.related-destinations .related-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.related-destinations .related-scroll::-webkit-scrollbar-thumb {
+  background: rgba(179, 146, 79, 0.55);
+  border-radius: 999px;
+}
+.related-destinations .related-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Cart line: per-traveller breakdown under the line total (e.g. "3 × USD 90"). */
+.cart-item-unit {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
 .related-destinations span {
   display: block;
   margin-top: 3px;
@@ -9436,6 +9467,55 @@ body.cart-modal-open {
 .admin-roster-summary strong {
   color: var(--ink);
   font-weight: 700;
+}
+
+/* Filter pills (e.g. Customers: All / New applications / Verified / Deactivated).
+   Links, not buttons — the filter lives in the URL so views are shareable and
+   survive refresh. */
+.admin-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    color 180ms var(--ease),
+    border-color 180ms var(--ease),
+    background 180ms var(--ease);
+}
+
+.admin-filter-pill:hover {
+  color: var(--ink);
+  border-color: var(--gold);
+}
+
+.admin-filter-pill.is-active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--paper);
+}
+
+.admin-filter-pill.is-active .admin-count {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--paper);
+}
+
+/* Date-order toggle on list pages: rides the pill row's right edge and shows the
+   CURRENT order; clicking reverses it. */
+.admin-sort-toggle {
+  margin-left: auto;
+  background: var(--ivory);
 }
 
 /* Count pill beside a card heading. */

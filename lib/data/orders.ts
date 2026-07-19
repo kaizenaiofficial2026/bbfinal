@@ -53,6 +53,17 @@ type PackageRow = {
   status: string;
 };
 
+/**
+ * Travellers doubles as the line QUANTITY: a package is priced per traveller, so
+ * a line's amount is price × travellers. Clamped server-side to the same 1–50
+ * bounds the forms enforce, so a crafted request can't zero out (or explode) an
+ * order total with a bogus count.
+ */
+export function clampTravellers(value: number): number {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(50, Math.max(1, Math.round(value)));
+}
+
 export async function createOrder(input: {
   customer: OrderCustomer;
   items: OrderItemInput[];
@@ -80,13 +91,25 @@ export async function createOrder(input: {
     (pkgData as PackageRow[]).map((p) => [p.id, p]),
   );
 
-  const resolved: { pkg: PackageRow; item: OrderItemInput }[] = [];
+  const resolved: {
+    pkg: PackageRow;
+    item: OrderItemInput;
+    travellers: number;
+    lineAmount: number;
+  }[] = [];
   for (const item of items) {
     const pkg = byId.get(item.tourPackageId);
     if (!pkg || pkg.status !== "published" || pkg.price_amount == null) {
       return { ok: false, reason: "not-available" };
     }
-    resolved.push({ pkg, item });
+    // Price per traveller × traveller count = the line's amount.
+    const travellers = clampTravellers(item.travellers);
+    resolved.push({
+      pkg,
+      item,
+      travellers,
+      lineAmount: Number(pkg.price_amount) * travellers,
+    });
   }
 
   // One MPGS transaction charges a single currency — reject a mixed-currency cart.
@@ -95,7 +118,7 @@ export async function createOrder(input: {
     return { ok: false, reason: "mixed-currency" };
   }
 
-  const total = resolved.reduce((sum, r) => sum + Number(r.pkg.price_amount), 0);
+  const total = resolved.reduce((sum, r) => sum + r.lineAmount, 0);
   const reference = await nextOrderReference();
   const token = createPayToken();
 
@@ -122,7 +145,7 @@ export async function createOrder(input: {
 
     const multi = resolved.length > 1;
     await createBookings(
-      resolved.map(({ pkg, item }, index) => ({
+      resolved.map(({ pkg, item, travellers, lineAmount }, index) => ({
         // Single-item orders keep the plain BB-ORD-#### reference; multi-item
         // orders suffix each booking (the reference column is UNIQUE).
         reference: multi ? `${reference}-${index + 1}` : reference,
@@ -132,10 +155,12 @@ export async function createOrder(input: {
         email: customer.email,
         phone: customer.phone,
         travel_dates: item.travelDates,
-        travellers: item.travellers,
+        travellers,
         notes: item.notes || null,
         status: "awaiting_payment",
-        quoted_amount: pkg.price_amount,
+        // The booking's quote is its LINE total (per-traveller price × count),
+        // matching what this booking contributes to the payment amount.
+        quoted_amount: lineAmount,
         currency: pkg.currency,
         ip_hash: input.ipHash ?? null,
         payment_id: payment.id as string,

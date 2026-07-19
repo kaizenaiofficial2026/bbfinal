@@ -81,6 +81,31 @@ export function groupAdminOrders(bookings: BookingWithPackage[]): AdminOrder[] {
   return Array.from(map.values());
 }
 
+/** Orders sorted by creation time. Input order is never mutated. */
+export function sortAdminOrders(
+  orders: AdminOrder[],
+  direction: "asc" | "desc",
+): AdminOrder[] {
+  const sign = direction === "asc" ? 1 : -1;
+  return [...orders].sort(
+    (a, b) => sign * (Date.parse(a.createdAt) - Date.parse(b.createdAt)),
+  );
+}
+
+/**
+ * Orders narrowed to the admin's two real-world states: paid, or anything else
+ * (which the panel presents as "Awaiting payment" — see derivedBookingStatus).
+ */
+export function filterAdminOrders(
+  orders: AdminOrder[],
+  status: "all" | "paid" | "awaiting",
+): AdminOrder[] {
+  if (status === "all") return orders;
+  return orders.filter((o) =>
+    status === "paid" ? o.status === "paid" : o.status !== "paid",
+  );
+}
+
 // A booking to create as part of an order. Loosely typed (the service client is
 // untyped) so it can carry `payment_id`, which links the booking to the payment
 // (order) covering it — a column the generated Database type doesn't include yet.

@@ -85,7 +85,7 @@ beforeEach(() => {
 });
 
 describe("createOrder", () => {
-  it("creates one payment covering N bookings with the summed total", async () => {
+  it("creates one payment covering N bookings, each line priced × its travellers", async () => {
     h.packages = [PKG("a", 2999), PKG("b", 999)];
     const result = await createOrder({
       customer,
@@ -99,12 +99,13 @@ describe("createOrder", () => {
     if (!result.ok) return;
     expect(result.token).toBe("TOKEN123");
     expect(result.reference).toBe("BB-ORD-1000");
-    expect(result.total).toBe(3998);
+    // Travellers is the line quantity: 2999×2 + 999×1.
+    expect(result.total).toBe(6997);
     expect(result.itemCount).toBe(2);
 
-    // One payment, amount = sum, order reference set, booking_id NOT set.
+    // One payment, amount = sum of line totals, order reference set, booking_id NOT set.
     expect(h.paymentInsert).toMatchObject({
-      amount: 3998,
+      amount: 6997,
       currency: "USD",
       reference: "BB-ORD-1000",
       pay_token: "TOKEN123",
@@ -122,7 +123,8 @@ describe("createOrder", () => {
       expect(b.payment_id).toBe("pay-1");
       expect(b.status).toBe("awaiting_payment");
     }
-    expect(h.bookingsInsert![0].quoted_amount).toBe(2999);
+    // Each booking's quote is its LINE total, so the lines sum to the payment.
+    expect(h.bookingsInsert![0].quoted_amount).toBe(5998);
     expect(h.bookingsInsert![1].quoted_amount).toBe(999);
   });
 
@@ -134,9 +136,32 @@ describe("createOrder", () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.total).toBe(500);
+    expect(result.total).toBe(1000);
     expect(h.bookingsInsert).toHaveLength(1);
     expect(h.bookingsInsert![0].reference).toBe("BB-ORD-1000");
+  });
+
+  it("clamps a bogus traveller count so it can't zero out or explode the total", async () => {
+    h.packages = [PKG("a", 100)];
+
+    const zero = await createOrder({
+      customer,
+      items: [{ tourPackageId: "a", travelDates: "d", travellers: 0 }],
+    });
+    expect(zero.ok && zero.total).toBe(100); // 0 → 1 traveller
+
+    const huge = await createOrder({
+      customer,
+      items: [{ tourPackageId: "a", travelDates: "d", travellers: 5000 }],
+    });
+    expect(huge.ok && huge.total).toBe(5000); // 5000 → 50 travellers
+
+    const nan = await createOrder({
+      customer,
+      items: [{ tourPackageId: "a", travelDates: "d", travellers: Number.NaN }],
+    });
+    expect(nan.ok && nan.total).toBe(100); // NaN → 1 traveller
+    expect(h.bookingsInsert![0].travellers).toBe(1); // stored clamped, not raw
   });
 
   it("rejects a mixed-currency cart (can't combine in one MPGS charge)", async () => {

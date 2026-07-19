@@ -202,7 +202,12 @@ export function CartProvider({
   }, []);
 
   const api = useMemo<CartApi>(() => {
-    const subtotal = current.reduce((sum, i) => sum + i.amount, 0);
+    // `amount` is the per-traveller price; travellers doubles as the line
+    // quantity (the server re-prices with the same rule at checkout).
+    const subtotal = current.reduce(
+      (sum, i) => sum + i.amount * Math.max(1, i.travellers || 1),
+      0,
+    );
     return {
       items: current,
       count: current.length,
