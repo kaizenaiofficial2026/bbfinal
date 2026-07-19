@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
+  ADMIN_TIER_KEY,
+  type AdminTier,
   canToggleAdminActive,
   getAdminUser,
   listAdmins,
@@ -27,6 +29,7 @@ import {
 } from "@/lib/supabase/service";
 import {
   changePasswordSchema,
+  createAdminSchema,
   destinationAdminSchema,
   enquiryStatusUpdateSchema,
   lines,
@@ -669,6 +672,86 @@ export async function setAdminActiveAction(formData: FormData) {
   }
 
   revalidatePath("/admin/admins");
+}
+
+/**
+ * Create a new SECOND-LEVEL admin account (SUPER admin only).
+ *
+ * The new account is always second-level — the panel deliberately offers no way
+ * to mint another super admin, so the super tier stays controlled by
+ * SUPER_ADMIN_EMAILS. The tier is stamped on `app_metadata` (service-role writable
+ * only) rather than left to the env fallback, which treats every admin as super
+ * when SUPER_ADMIN_EMAILS is empty.
+ *
+ * No env change is needed for the new admin to sign in: ADMIN_ALLOWED_EMAILS is
+ * only the bootstrap path for staff WITHOUT a profile row, and this creates one.
+ */
+export async function createAdminAction(
+  formData: FormData,
+): Promise<{ ok: boolean; note: string }> {
+  await requireSuperAdmin();
+
+  const parsed = createAdminSchema.safeParse({
+    fullName: formString(formData, "fullName"),
+    email: formString(formData, "email"),
+    password: formString(formData, "password"),
+    confirm: formString(formData, "confirm"),
+  });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      note: parsed.error.issues[0]?.message ?? "Please check the form.",
+    };
+  }
+
+  if (!canUseSupabaseService()) {
+    return {
+      ok: false,
+      note: "Admin creation is unavailable (service role not configured).",
+    };
+  }
+
+  const { fullName, password } = parsed.data;
+  const email = parsed.data.email.trim().toLowerCase();
+  const service = createSupabaseServiceClient();
+
+  const { data: created, error } = await service.auth.admin.createUser({
+    email,
+    password,
+    // Staff accounts are created by a trusted super admin, so the address is
+    // treated as confirmed — there is no signup email to click through.
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+    app_metadata: { [ADMIN_TIER_KEY]: "second" satisfies AdminTier },
+  });
+
+  if (error || !created.user) {
+    // Supabase reports a duplicate address as a 422; surface it as plain English
+    // rather than the raw gateway wording.
+    const duplicate = /already|exists|registered/i.test(error?.message ?? "");
+    return {
+      ok: false,
+      note: duplicate
+        ? "An account with that email already exists."
+        : (error?.message ?? "Could not create the admin account."),
+    };
+  }
+
+  // The profile row is what actually grants admin access (getAdminUser) and what
+  // RLS's is_admin() trusts. Roll the auth user back if it can't be written, so a
+  // half-created account can never linger.
+  const { error: profileError } = await service.from("profiles").upsert(
+    { id: created.user.id, role: "admin", full_name: fullName, active: true },
+    { onConflict: "id" },
+  );
+
+  if (profileError) {
+    await service.auth.admin.deleteUser(created.user.id);
+    return { ok: false, note: profileError.message };
+  }
+
+  revalidatePath("/admin/admins");
+  return { ok: true, note: `${fullName} can now sign in as a second-level admin.` };
 }
 
 /**

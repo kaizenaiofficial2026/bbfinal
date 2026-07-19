@@ -9,6 +9,7 @@ import {
   startCustomerPasswordChangeAction,
 } from "@/app/[locale]/account/password-actions";
 import { initialPasswordStepState } from "@/app/[locale]/account/password-change-state";
+import PasswordInput from "@/components/PasswordInput";
 import SubmitButton from "@/components/SubmitButton";
 import { useToast } from "@/components/Toast";
 
@@ -102,10 +103,10 @@ export default function ChangePasswordWizard({ email }: { email: string }) {
           <div className="form-grid">
             <div className="form-field full">
               <label htmlFor="cp-old">{t("currentPassword")}</label>
-              <input
+              <PasswordInput
+                variant="bare"
                 id="cp-old"
                 name="oldPassword"
-                type="password"
                 autoComplete="current-password"
                 required
                 value={oldPassword}
@@ -114,10 +115,10 @@ export default function ChangePasswordWizard({ email }: { email: string }) {
             </div>
             <div className="form-field">
               <label htmlFor="cp-new">{t("newPassword")}</label>
-              <input
+              <PasswordInput
+                variant="bare"
                 id="cp-new"
                 name="password"
-                type="password"
                 autoComplete="new-password"
                 minLength={8}
                 required
@@ -127,10 +128,10 @@ export default function ChangePasswordWizard({ email }: { email: string }) {
             </div>
             <div className="form-field">
               <label htmlFor="cp-confirm">{t("confirmPassword")}</label>
-              <input
+              <PasswordInput
+                variant="bare"
                 id="cp-confirm"
                 name="confirm"
-                type="password"
                 autoComplete="new-password"
                 minLength={8}
                 required

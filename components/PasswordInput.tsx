@@ -3,43 +3,43 @@
 import { useState } from "react";
 import { Input } from "./ui/input";
 
-type PasswordInputProps = {
-  id: string;
+/**
+ * Every native input prop except `type` (owned by the toggle) passes straight
+ * through, so this drops into both uncontrolled forms (defaultValue) and
+ * controlled ones (value + onChange).
+ */
+type PasswordInputProps = Omit<React.ComponentProps<"input">, "type"> & {
   name: string;
-  autoComplete?: string;
-  required?: boolean;
-  minLength?: number;
-  placeholder?: string;
-  defaultValue?: string;
   showLabel?: string;
   hideLabel?: string;
+  /**
+   * `field` (default) is the public auth look; `bare` defers to the unlayered
+   * `.admin-form input` rules so the admin panel keeps its own field style.
+   */
+  variant?: "field" | "bare";
 };
 
-/** Password field with a show/hide eye toggle (matches the inspiration). */
+/**
+ * Password field with a show/hide eye toggle. Used for EVERY password input in
+ * the app — public auth, account and admin — so the reveal affordance is
+ * consistent wherever someone types a password.
+ */
 export default function PasswordInput({
-  id,
-  name,
   autoComplete = "current-password",
-  required,
-  minLength,
-  placeholder,
-  defaultValue,
   showLabel = "Show password",
   hideLabel = "Hide password",
+  variant = "field",
+  ...props
 }: PasswordInputProps) {
   const [visible, setVisible] = useState(false);
 
   return (
     <div className="auth-password">
       <Input
-        id={id}
-        name={name}
+        {...props}
+        variant={variant}
         type={visible ? "text" : "password"}
         autoComplete={autoComplete}
-        required={required}
-        minLength={minLength}
-        placeholder={placeholder}
-        defaultValue={defaultValue}
       />
       <button
         type="button"

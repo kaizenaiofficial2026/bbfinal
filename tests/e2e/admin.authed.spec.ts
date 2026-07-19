@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { createCustomer, service } from "../support/db";
+import { createCustomer, service, testEmail } from "../support/db";
 
 // Runs in the "authed-admin" project (admin storageState).
 test.describe("admin panel (authenticated)", () => {
@@ -205,5 +205,153 @@ test.describe("admin panel (authenticated)", () => {
     // Cleanup (booking first — FK — then the package).
     await service().from("bookings").delete().eq("tour_package_id", packageId);
     await service().from("tour_packages").delete().eq("id", packageId);
+  });
+});
+
+/**
+ * Creating second-level admins from the panel. The acting session is the super
+ * admin (reservations@…, listed in SUPER_ADMIN_EMAILS). Every account created
+ * here uses the qa-…@beyondborders.test pattern, so global teardown removes it.
+ */
+test.describe("creating second-level admins", () => {
+  /** Look up a created admin's auth user by email. */
+  async function findAuthUser(email: string) {
+    const { data } = await service().auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    return data?.users.find((u) => u.email === email) ?? null;
+  }
+
+  async function fillCreateForm(
+    page: import("@playwright/test").Page,
+    fields: { fullName: string; email: string; password: string; confirm?: string },
+  ) {
+    const form = page.getByRole("form", { name: /create second-level admin/i });
+    await form.locator('input[name="fullName"]').fill(fields.fullName);
+    await form.locator('input[name="email"]').fill(fields.email);
+    await form.locator('input[name="password"]').fill(fields.password);
+    await form
+      .locator('input[name="confirm"]')
+      .fill(fields.confirm ?? fields.password);
+    await form.getByRole("button", { name: /create admin/i }).click();
+  }
+
+  test("the super admin is offered the create-admin form", async ({ page }) => {
+    await page.goto("/admin/admins");
+
+    await expect(
+      page.getByRole("heading", { name: /create a second-level admin/i }),
+    ).toBeVisible();
+
+    const form = page.getByRole("form", { name: /create second-level admin/i });
+    await expect(form.locator('input[name="fullName"]')).toBeVisible();
+    await expect(form.locator('input[name="email"]')).toBeVisible();
+    await expect(form.locator('input[name="password"]')).toBeVisible();
+    await expect(form.locator('input[name="confirm"]')).toBeVisible();
+
+    // The tier is never a choice: the panel can only mint second-level admins.
+    await expect(form.locator('[name="tier"]')).toHaveCount(0);
+  });
+
+  test("creating an admin writes a second-level account to the database", async ({
+    page,
+  }) => {
+    const email = testEmail("admin");
+    await page.goto("/admin/admins");
+    await fillCreateForm(page, {
+      fullName: "QA Second Admin",
+      email,
+      password: "QaSecond!2026",
+    });
+
+    await expect(page.locator(".toast-message")).toContainText(
+      /second-level admin/i,
+    );
+
+    // The auth user exists and is pinned to second-level via app_metadata, which
+    // only the service role can write.
+    await expect
+      .poll(async () => (await findAuthUser(email))?.app_metadata?.admin_tier, {
+        timeout: 15_000,
+      })
+      .toBe("second");
+
+    const user = await findAuthUser(email);
+    expect(user).not.toBeNull();
+
+    // The profile row is what actually grants admin access and what RLS trusts.
+    const { data: profile } = await service()
+      .from("profiles")
+      .select("role, active, full_name")
+      .eq("id", user!.id)
+      .single();
+    expect(profile?.role).toBe("admin");
+    expect(profile?.active).toBe(true);
+    expect(profile?.full_name).toBe("QA Second Admin");
+
+    // And they show up in the roster labelled as second-level, not super.
+    await page.reload();
+    const row = page.locator(".admin-roster-row").filter({ hasText: email });
+    await expect(row).toContainText(/second-level/i);
+    await expect(row).not.toContainText(/super admin/i);
+    await expect(row).not.toHaveClass(/is-super/);
+  });
+
+  test("a duplicate email is refused instead of creating a second account", async ({
+    page,
+  }) => {
+    const email = testEmail("admin-dup");
+    await page.goto("/admin/admins");
+    await fillCreateForm(page, {
+      fullName: "QA Dup One",
+      email,
+      password: "QaSecond!2026",
+    });
+    await expect(page.locator(".toast-message")).toContainText(
+      /second-level admin/i,
+    );
+
+    await page.reload();
+    await fillCreateForm(page, {
+      fullName: "QA Dup Two",
+      email,
+      password: "QaSecond!2026",
+    });
+
+    // Scoped to the toast: Next's route announcer is also role="alert".
+    await expect(page.locator(".toast-error .toast-message")).toContainText(
+      /already exists/i,
+    );
+
+    // Still exactly one account, still under the original name.
+    const { data } = await service().auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    const matches = (data?.users ?? []).filter((u) => u.email === email);
+    expect(matches).toHaveLength(1);
+    const { data: profile } = await service()
+      .from("profiles")
+      .select("full_name")
+      .eq("id", matches[0]!.id)
+      .single();
+    expect(profile?.full_name).toBe("QA Dup One");
+  });
+
+  test("a mismatched confirmation creates nothing", async ({ page }) => {
+    const email = testEmail("admin-mismatch");
+    await page.goto("/admin/admins");
+    await fillCreateForm(page, {
+      fullName: "QA Mismatch",
+      email,
+      password: "QaSecond!2026",
+      confirm: "QaDifferent!2026",
+    });
+
+    await expect(page.locator(".toast-error .toast-message")).toContainText(
+      /do not match/i,
+    );
+    expect(await findAuthUser(email)).toBeNull();
   });
 });

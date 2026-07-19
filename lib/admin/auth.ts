@@ -79,12 +79,30 @@ export async function getAdminUser() {
 
 /**
  * Admin tiers. A SUPER admin has full access; a second-level admin is limited to
- * Dashboard (view), Bookings, Customers, Support panel and Settings. The tier is
- * config-driven (SUPER_ADMIN_EMAILS) rather than stored in the DB, so no schema
- * change is needed — both tiers are `role = 'admin'` in `profiles` (RLS's
- * `is_admin()` stays the coarse gate; the fine-grained limits are enforced in the
- * app layer: nav filtering + page/action guards).
+ * Dashboard (view), Bookings, Customers, Support panel and Settings. Both tiers
+ * are `role = 'admin'` in `profiles` (RLS's `is_admin()` stays the coarse gate;
+ * the fine-grained limits are enforced in the app layer: nav filtering + page and
+ * action guards).
+ *
+ * Tier for admins bootstrapped from the env allowlist is config-driven
+ * (SUPER_ADMIN_EMAILS). Admins CREATED in the panel can't use config — env vars
+ * aren't writable at runtime — so their tier is stamped on the auth user's
+ * `app_metadata`, which is writable by the service role ONLY. It deliberately is
+ * not `user_metadata`: that is writable by the account holder itself, so a
+ * second-level admin could promote themselves to super.
  */
+export const ADMIN_TIER_KEY = "admin_tier";
+
+export type AdminTier = "super" | "second";
+
+/** Read an explicit tier stamp off an auth user's app_metadata, if present. */
+export function readAdminTier(
+  appMetadata: Record<string, unknown> | null | undefined,
+): AdminTier | null {
+  const value = appMetadata?.[ADMIN_TIER_KEY];
+  return value === "super" || value === "second" ? value : null;
+}
+
 export function isSuperAdminEmail(email: string | null | undefined): boolean {
   const value = (email ?? "").trim().toLowerCase();
   if (!value) return false;
@@ -93,10 +111,32 @@ export function isSuperAdminEmail(email: string | null | undefined): boolean {
   return env.superAdminEmails.includes(value);
 }
 
+/**
+ * Resolve an admin's tier. An explicit stamp always wins; without one we fall
+ * back to the env allowlist, so admins that predate panel-created accounts keep
+ * exactly the tier they had. The stamp is what stops a created admin from being
+ * treated as super when SUPER_ADMIN_EMAILS is empty (which means "everyone is
+ * super" for the env path).
+ */
+export function resolveIsSuperAdmin(params: {
+  email: string | null | undefined;
+  appMetadata?: Record<string, unknown> | null;
+}): boolean {
+  const tier = readAdminTier(params.appMetadata);
+  if (tier) return tier === "super";
+  return isSuperAdminEmail(params.email);
+}
+
 export async function getAdminContext() {
   const user = await getAdminUser();
   if (!user) return null;
-  return { user, isSuperAdmin: isSuperAdminEmail(user.email) };
+  return {
+    user,
+    isSuperAdmin: resolveIsSuperAdmin({
+      email: user.email,
+      appMetadata: user.app_metadata,
+    }),
+  };
 }
 
 export async function requireAdmin() {
@@ -125,10 +165,22 @@ export async function requireAdmin() {
  */
 export async function requireSuperAdmin() {
   const user = await requireAdmin();
-  if (!isSuperAdminEmail(user.email)) {
+  if (!resolveIsSuperAdmin({ email: user.email, appMetadata: user.app_metadata })) {
     redirect("/admin");
   }
   return user;
+}
+
+/** requireAdmin + the caller's tier, for pages that render both tiers. */
+export async function requireAdminContext() {
+  const user = await requireAdmin();
+  return {
+    user,
+    isSuperAdmin: resolveIsSuperAdmin({
+      email: user.email,
+      appMetadata: user.app_metadata,
+    }),
+  };
 }
 
 export type AdminAccount = {
@@ -170,7 +222,10 @@ export async function listAdmins(): Promise<AdminAccount[]> {
         email,
         fullName: profile.full_name,
         active: profile.active,
-        isSuper: isSuperAdminEmail(email),
+        isSuper: resolveIsSuperAdmin({
+          email,
+          appMetadata: data.user?.app_metadata,
+        }),
       };
     }),
   );

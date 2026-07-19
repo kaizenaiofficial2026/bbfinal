@@ -52,6 +52,32 @@ export const settingsSchema = z.object({
   heroCopy: z.string().trim().max(500).optional().or(z.literal("")),
 });
 
+/**
+ * A super admin creating a second-level admin account. The new account's tier is
+ * NOT part of this form — it is always second-level, so the panel can never mint
+ * another super admin (see lib/admin/auth.ts).
+ */
+export const createAdminSchema = z
+  .object({
+    fullName: z
+      .string()
+      .trim()
+      .min(2, "Enter the admin's full name.")
+      .max(120, "Full name is too long."),
+    email: z
+      .email("Enter a valid email address.")
+      .max(180, "Email address is too long."),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters.")
+      .max(200, "Password must be 200 characters or fewer."),
+    confirm: z.string(),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "Passwords do not match.",
+    path: ["confirm"],
+  });
+
 export const changePasswordSchema = z
   .object({
     oldPassword: z.string().min(1, "Enter your current password."),

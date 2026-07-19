@@ -146,6 +146,23 @@ export default function SiteEffects() {
       const onLoad = () => lenis.resize();
       window.addEventListener("load", onLoad);
 
+      // Pause Lenis whenever a modal locks the page. Radix dialogs (terms
+      // popup, cart confirm) scroll-lock via react-remove-scroll, which stamps
+      // `data-scroll-locked` on <body>. Without this, Lenis keeps consuming
+      // wheel events over the open modal and silently scrolls the page behind
+      // it — the user closes the dialog and finds the page somewhere else.
+      const lockObserver = new MutationObserver(() => {
+        if (document.body.hasAttribute("data-scroll-locked")) {
+          lenis.stop();
+        } else {
+          lenis.start();
+        }
+      });
+      lockObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["data-scroll-locked"],
+      });
+
       const headerOffset =
         parseInt(
           getComputedStyle(document.documentElement).getPropertyValue(
@@ -171,6 +188,7 @@ export default function SiteEffects() {
       disposers.push(() => {
         cancelAnimationFrame(rafId);
         window.removeEventListener("load", onLoad);
+        lockObserver.disconnect();
         anchors.forEach((a) =>
           a.removeEventListener("click", onAnchorClick),
         );

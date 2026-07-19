@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { isSuperAdminEmail, requireAdmin } from "@/lib/admin/auth";
+import { requireAdminContext } from "@/lib/admin/auth";
 import { groupAdminOrders, listBookings } from "@/lib/data/bookings";
 import { listEnquiries } from "@/lib/data/enquiries";
 import { listAdminDestinations } from "@/lib/data/destinations";
@@ -8,8 +8,7 @@ import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { AnalyticsPanel } from "@/app/admin/_components/AnalyticsPanel";
 
 export default async function AdminPage() {
-  const user = await requireAdmin();
-  const isSuperAdmin = isSuperAdminEmail(user.email);
+  const { isSuperAdmin } = await requireAdminContext();
 
   // Second-level admins can't manage packages/destinations/enquiries, so their
   // dashboard omits those metrics and the recent-enquiries feed.

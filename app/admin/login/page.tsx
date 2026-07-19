@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { signInAction } from "../actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
+import PasswordInput from "@/components/PasswordInput";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -58,10 +59,9 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
         </Label>
         <Label variant="bare">
           Password
-          <Input
+          <PasswordInput
             variant="bare"
             name="password"
-            type="password"
             autoComplete="current-password"
             required
           />

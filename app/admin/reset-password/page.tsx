@@ -2,6 +2,7 @@ import Link from "next/link";
 import { resetAdminPasswordAction } from "../actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 import { ADMIN_SECURITY_INBOX } from "@/lib/admin/constants";
+import PasswordInput from "@/components/PasswordInput";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -47,10 +48,9 @@ export default async function AdminResetPasswordPage({
         </Label>
         <Label variant="bare">
           New password
-          <Input
+          <PasswordInput
             variant="bare"
             name="password"
-            type="password"
             autoComplete="new-password"
             minLength={8}
             required
@@ -58,10 +58,9 @@ export default async function AdminResetPasswordPage({
         </Label>
         <Label variant="bare">
           Confirm password
-          <Input
+          <PasswordInput
             variant="bare"
             name="confirm"
-            type="password"
             autoComplete="new-password"
             minLength={8}
             required

@@ -10,6 +10,7 @@ import {
   startAdminPasswordChangeAction,
 } from "../actions";
 import { initialAdminPasswordStepState } from "./password-change-state";
+import PasswordInput from "@/components/PasswordInput";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -100,10 +101,9 @@ export default function AdminPasswordWizard() {
           </p>
           <Label variant="bare">
             Current password
-            <Input
+            <PasswordInput
               variant="bare"
               name="oldPassword"
-              type="password"
               autoComplete="current-password"
               required
               value={oldPassword}
@@ -113,10 +113,9 @@ export default function AdminPasswordWizard() {
           <div className="admin-grid-2">
             <Label variant="bare">
               New password
-              <Input
+              <PasswordInput
                 variant="bare"
                 name="password"
-                type="password"
                 autoComplete="new-password"
                 minLength={8}
                 required
@@ -126,10 +125,9 @@ export default function AdminPasswordWizard() {
             </Label>
             <Label variant="bare">
               Confirm new password
-              <Input
+              <PasswordInput
                 variant="bare"
                 name="confirm"
-                type="password"
                 autoComplete="new-password"
                 minLength={8}
                 required

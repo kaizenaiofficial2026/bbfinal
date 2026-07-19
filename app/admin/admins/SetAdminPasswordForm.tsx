@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { setAdminPasswordAction } from "@/app/admin/actions";
 import { SubmitButton } from "@/app/admin/_components/SubmitButton";
 import { useToast } from "@/components/Toast";
-import { Input } from "@/components/ui/input";
+import PasswordInput from "@/components/PasswordInput";
 import { Label } from "@/components/ui/label";
 
 /**
@@ -35,9 +35,8 @@ export function SetAdminPasswordForm({ adminId }: { adminId: string }) {
       <input type="hidden" name="adminId" value={adminId} />
       <Label variant="bare">
         New password
-        <Input
+        <PasswordInput
           variant="bare"
-          type="password"
           name="password"
           autoComplete="new-password"
           minLength={8}
@@ -46,9 +45,8 @@ export function SetAdminPasswordForm({ adminId }: { adminId: string }) {
       </Label>
       <Label variant="bare">
         Confirm
-        <Input
+        <PasswordInput
           variant="bare"
-          type="password"
           name="confirm"
           autoComplete="new-password"
           minLength={8}

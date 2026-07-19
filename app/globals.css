@@ -8725,22 +8725,41 @@ body.menu-open .cookie-consent {
   color: var(--gold);
 }
 
+/* Modals must float ABOVE the fixed site chrome. The shadcn primitives ship
+   z-50, but .site-header is z-index:90 (nav dropdowns 200) — so every dialog
+   rendered under the header: on shorter viewports the card's top slid beneath
+   the navbar (clipped title, undimmed header). Below the preloader (999). */
+[data-slot="dialog-overlay"],
+[data-slot="dialog-content"],
+[data-slot="alert-dialog-overlay"],
+[data-slot="alert-dialog-content"] {
+  z-index: 500;
+}
+
 /* Terms & Conditions popup: paper card with a fixed header and an internally
    scrolling body. Unlayered so these win over the shadcn DialogContent utility
    classes (which default to grid/p-4/max-w-sm). overscroll-behavior:contain
-   stops the scroll from chaining to the page behind the modal. */
+   stops the scroll from chaining to the page behind the modal. dvh (not vh) so
+   mobile browser chrome never pushes the card off-screen. */
 .terms-dialog {
   display: flex;
   flex-direction: column;
   gap: 0;
   width: 100%;
-  max-width: min(640px, calc(100vw - 2rem));
-  max-height: 85vh;
+  max-width: min(660px, calc(100vw - 2rem));
+  max-height: min(82dvh, 860px);
   padding: 0;
   overflow: hidden;
   background: var(--paper);
   color: var(--ink);
-  border-radius: var(--radius);
+  border-radius: calc(var(--radius) * 1.75);
+  box-shadow: var(--shadow);
+}
+/* Deepen the near-invisible default backdrop (black/10) behind the terms card so
+   the page — header included — clearly recedes. :has() scopes it to this dialog;
+   browsers without :has() keep the light default, which still works. */
+[data-slot="dialog-overlay"]:has(+ .terms-dialog) {
+  background: rgba(28, 26, 21, 0.45);
 }
 .terms-dialog-head {
   display: flex;
@@ -8749,34 +8768,84 @@ body.menu-open .cookie-consent {
   justify-content: space-between;
   gap: 16px;
   flex: 0 0 auto;
-  padding: 20px 24px;
+  padding: 22px 28px;
   border-bottom: 1px solid var(--line);
 }
 .terms-dialog-title {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--ink);
 }
 .terms-dialog-close {
   flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
   background: none;
-  border: 0;
-  padding: 2px 6px;
-  font-size: 24px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0;
+  font-size: 20px;
   line-height: 1;
   color: var(--ink-soft);
   cursor: pointer;
+  transition:
+    color 180ms var(--ease),
+    border-color 180ms var(--ease),
+    background 180ms var(--ease);
 }
 .terms-dialog-close:hover {
   color: var(--ink);
+  border-color: var(--gold);
+  background: rgba(179, 146, 79, 0.08);
 }
 .terms-dialog-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 20px 24px 24px;
+  /* Extra bottom padding so the last lines clear the scroll-cue fade. */
+  padding: 24px 28px 56px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(179, 146, 79, 0.55) transparent;
+}
+.terms-dialog-body::-webkit-scrollbar {
+  width: 8px;
+}
+.terms-dialog-body::-webkit-scrollbar-thumb {
+  background: rgba(179, 146, 79, 0.55);
+  border-radius: 999px;
+}
+.terms-dialog-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+/* Bottom fade: signals there's more to scroll instead of text clipping dead at
+   the card edge (the old "crushed" look). Sits over the body, never the head. */
+.terms-dialog::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 48px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--paper));
+  pointer-events: none;
+}
+@media (max-width: 640px) {
+  .terms-dialog {
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1.5rem);
+  }
+  .terms-dialog-head {
+    padding: 18px 20px;
+  }
+  .terms-dialog-title {
+    font-size: 20px;
+  }
+  .terms-dialog-body {
+    padding: 20px 20px 52px;
+  }
 }
 
 /* Legal pages (Terms & Conditions) — readable prose with arrow bullets. */
@@ -9341,5 +9410,273 @@ body.cart-modal-open {
   }
   html {
     @apply font-sans;
+  }
+}
+/* ─────────────────────────────────────────────────────────────────────────────
+   Admin → Admins (super-admin only): create form + staff roster.
+   Unlayered so these win over the shadcn component utilities, matching the
+   convention used by the other admin overrides above.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Compact button for in-row actions — the 52px .btn is too heavy for a roster. */
+.btn-sm {
+  min-height: 38px;
+  padding: 9px 16px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.admin-roster-summary {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.admin-roster-summary strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Count pill beside a card heading. */
+.admin-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--sand);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── Create a second-level admin ─────────────────────────────────────────── */
+
+.admin-create-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+
+/* Pack each field to the top of its cell: the "At least 8 characters" hint makes
+   the password label taller than its neighbour, and without this the shorter
+   label's input stretches to match, so the two fields no longer line up. */
+.admin-create-admin-grid > label {
+  align-content: start;
+}
+
+.admin-field-hint {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+/* The action sits with the form rather than spanning the card edge-to-edge. */
+.admin-create-admin-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.admin-create-admin-foot .btn {
+  width: auto;
+  min-width: 190px;
+}
+
+@media (max-width: 720px) {
+  .admin-create-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-create-admin-foot .btn {
+    width: 100%;
+  }
+}
+
+/* ── Existing admins roster ──────────────────────────────────────────────── */
+
+.admin-roster {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-roster-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+
+.admin-roster-row:hover {
+  border-color: rgba(28, 26, 21, 0.22);
+  box-shadow: 0 1px 3px rgba(28, 26, 21, 0.06);
+}
+
+/* A super admin is the protected tier — mark it with a gold edge so the row a
+   super admin cannot act on reads differently at a glance. */
+.admin-roster-row.is-super {
+  border-left: 3px solid var(--gold);
+  background: linear-gradient(
+    90deg,
+    rgba(179, 146, 79, 0.05),
+    transparent 220px
+  );
+}
+
+.admin-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--sand);
+  color: var(--gold-deep);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.admin-roster-row.is-super .admin-avatar {
+  background: var(--gold);
+  color: #fff;
+}
+
+.admin-roster-identity {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.admin-roster-identity strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.admin-roster-email {
+  color: var(--ink-soft);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.admin-chip-you {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--sand);
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-roster-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-tier-chip {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-tier-chip.is-super {
+  border-color: rgba(179, 146, 79, 0.45);
+  background: rgba(179, 146, 79, 0.12);
+  color: var(--gold-deep);
+}
+
+.admin-roster-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-roster-locked {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-style: italic;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+/* Collapsed password reset — keeps one form per row out of the default view. */
+.admin-roster-reset {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.admin-roster-reset summary {
+  width: fit-content;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  transition: color 160ms var(--ease);
+}
+
+.admin-roster-reset summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Disclosure caret that flips when the row is expanded. */
+.admin-roster-reset summary::before {
+  content: "›";
+  display: inline-block;
+  margin-right: 7px;
+  transform: rotate(90deg);
+  transition: transform 160ms var(--ease);
+}
+
+.admin-roster-reset[open] summary::before {
+  transform: rotate(270deg);
+}
+
+.admin-roster-reset summary:hover {
+  color: var(--gold-deep);
+}
+
+.admin-roster-reset .admin-password-set {
+  margin-top: 12px;
+}
+
+@media (max-width: 860px) {
+  .admin-roster-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 12px;
+  }
+
+  /* Tags and actions drop under the identity block, aligned with it. */
+  .admin-roster-tags,
+  .admin-roster-actions {
+    grid-column: 2 / -1;
+    justify-content: flex-start;
   }
 }

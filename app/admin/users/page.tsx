@@ -1,4 +1,4 @@
-import { isSuperAdminEmail, requireAdmin } from "@/lib/admin/auth";
+import { requireAdminContext } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   deleteCustomerAction,
@@ -62,8 +62,7 @@ function Detail({ label, value }: { label: string; value: string | null }) {
 }
 
 export default async function AdminCustomersPage() {
-  const admin = await requireAdmin();
-  const isSuperAdmin = isSuperAdminEmail(admin.email);
+  const { isSuperAdmin } = await requireAdminContext();
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("customers")
