@@ -5739,10 +5739,33 @@ html.lenis body {
 .admin-sidebar {
   position: sticky;
   top: 0;
-  height: 100vh;
+  /* dvh, not vh: on mobile the browser chrome would otherwise push the footer
+     (View site / Sign out / credit) below the visible area. */
+  height: 100dvh;
+  /* The sidebar is pinned, so anything taller than the viewport used to spill
+     off-screen with no way to reach it — on a 13" laptop that hid Sign out and
+     the credit entirely. Scrolling inside the sidebar keeps them reachable at
+     any height; the compact rules below mean it rarely needs to. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
   padding: 28px;
   background: var(--ink);
   color: var(--paper);
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .admin-brand {
@@ -7258,6 +7281,75 @@ html.lenis body {
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   display: grid;
   gap: 2px;
+}
+
+/* Short viewports (13" laptops with browser chrome, ~720–860px tall) can't fit
+   the sidebar at full spacing. Tighten it so everything — nav, Sign out and the
+   credit — stays on screen without scrolling, rather than relying on the
+   sidebar's scrollbar as the primary affordance. */
+@media (max-height: 940px) {
+  .admin-sidebar {
+    padding: 18px 24px;
+  }
+
+  .admin-logo {
+    width: 128px;
+  }
+
+  .admin-sidebar .admin-brand,
+  .admin-sidebar > a:first-child {
+    margin-bottom: 18px;
+  }
+
+  .admin-nav {
+    gap: 4px;
+  }
+
+  .admin-nav a,
+  .admin-link-button {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .admin-sidebar-footer {
+    padding-top: 10px;
+  }
+
+  .admin-view-site {
+    padding: 7px 0;
+  }
+
+  .admin-credit {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+}
+
+/* Tighter still for very short windows (split screen, small laptops). Below
+   roughly 660px there is genuinely no room for ten nav items plus the footer, so
+   the sidebar scrolls — which the overflow rule above makes possible. */
+@media (max-height: 800px) {
+  .admin-logo {
+    width: 112px;
+  }
+
+  .admin-sidebar .admin-brand {
+    margin-bottom: 12px;
+  }
+
+  .admin-nav {
+    gap: 2px;
+  }
+
+  .admin-nav a,
+  .admin-link-button {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .admin-view-site {
+    padding: 5px 0;
+  }
 }
 
 /* Builder credit at the foot of the admin sidebar. Deliberately quiet — it sits
