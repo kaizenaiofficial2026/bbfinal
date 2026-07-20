@@ -8,6 +8,7 @@ import {
   Noto_Sans_Kannada,
   Noto_Sans_SC,
   Noto_Sans_Telugu,
+  Syne,
 } from "next/font/google";
 import { getLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
@@ -37,6 +38,18 @@ const inter = Inter({
   weight: ["500", "600", "700"],
   display: "swap",
   variable: "--font-inter",
+});
+
+// Used for exactly one thing: the "made with ♥ KaizenAI" credit in the admin
+// sidebar (see LOGO.md). preload:false keeps it off the public site, which never
+// renders it — this is the builder's wordmark, not part of the Beyond Borders
+// brand, so it must not be used anywhere else.
+const syne = Syne({
+  subsets: ["latin"],
+  weight: ["800"],
+  display: "swap",
+  variable: "--font-syne",
+  preload: false,
 });
 
 // Script fonts for non-Latin locales. Applied per-locale via [lang] rules in
@@ -84,6 +97,7 @@ const fontVariables = [
   bodoniModa.variable,
   lora.variable,
   inter.variable,
+  syne.variable,
   notoArabic.variable,
   notoDevanagari.variable,
   notoKannada.variable,

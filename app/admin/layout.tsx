@@ -2,6 +2,7 @@ import { signOutAction } from "./actions";
 import Image from "next/image";
 import Link from "next/link";
 import SubmitButton from "@/components/SubmitButton";
+import Logo from "@/components/Logo";
 import ScrollUnlock from "./ScrollUnlock";
 import { AdminNav } from "./_components/AdminNav";
 import AdminPresence from "./_components/AdminPresence";
@@ -58,6 +59,10 @@ export default async function AdminLayout({
             <form action={signOutAction}>
               <SubmitButton className="admin-link-button">Sign out</SubmitButton>
             </form>
+            <p className="admin-credit">
+              made with <span aria-hidden="true">❤️</span>
+              <span className="visually-hidden">love</span> by <Logo />
+            </p>
           </div>
         </aside>
         <section className="admin-main">
