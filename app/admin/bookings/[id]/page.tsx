@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getBooking } from "@/lib/data/bookings";
 import { getPaymentById } from "@/lib/data/payments";
+import { getCustomerBilling } from "@/lib/data/customers";
 import { StatusBadge } from "@/app/admin/_components/StatusBadge";
 import { ReceiptExportButtons } from "@/app/admin/_components/ReceiptExportButtons";
 import { buildReceipt, isReceiptAvailable } from "@/lib/receipts/receipt-model";
@@ -53,10 +54,17 @@ export default async function BookingPage({ params }: BookingPageProps) {
   const orderCurrency = payment?.currency ?? booking.currency;
   const isPaid = derivedBookingStatus(booking.status) === "paid";
 
+  // Billing details live on the customer record, not the booking, so the
+  // receipt's NIC/passport line needs a second lookup. Best-effort: a legacy or
+  // guest booking (no user_id) simply omits that line.
+  const customerBilling = booking.user_id
+    ? await getCustomerBilling(booking.user_id)
+    : null;
+
   // A receipt is only offered once the money is actually captured.
   const receipt =
     payment && isReceiptAvailable(booking, payment)
-      ? buildReceipt({ booking, payment })
+      ? buildReceipt({ booking, payment, customer: customerBilling })
       : null;
 
   return (
@@ -83,6 +91,12 @@ export default async function BookingPage({ params }: BookingPageProps) {
             <div className="order-fields">
               <Field label="Email" value={booking.email} />
               <Field label="Phone" value={booking.phone || "Not provided"} />
+              {customerBilling?.passportNumber ? (
+                <Field
+                  label="NIC / Passport no"
+                  value={customerBilling.passportNumber}
+                />
+              ) : null}
               {payment ? (
                 <Field
                   label="Payment via"

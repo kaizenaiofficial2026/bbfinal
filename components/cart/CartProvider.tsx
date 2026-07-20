@@ -4,9 +4,11 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useSyncExternalStore,
 } from "react";
+import { loadCartAction, saveCartAction } from "./actions";
 
 // One line in the cart: a package plus the per-trip details entered when adding
 // it. `amount`/`currency` are for DISPLAY ONLY — the server re-prices at checkout.
@@ -99,7 +101,48 @@ function emit() {
   for (const listener of listeners) listener();
 }
 
+/**
+ * Union of the local and server carts, keyed by lineId. A union (rather than
+ * "server wins") means nothing a customer added on either device silently
+ * disappears when the two meet.
+ */
+function mergeCarts(local: CartItem[], server: CartItem[]): CartItem[] {
+  if (local.length === 0) return server;
+  if (server.length === 0) return local;
+  const byLine = new Map<string, CartItem>();
+  for (const item of [...server, ...local]) byLine.set(item.lineId, item);
+  return [...byLine.values()];
+}
+
+// ── Server sync ──────────────────────────────────────────────────────────────
+// localStorage stays the fast local mirror (instant reads, works offline), but
+// the server row is what makes the cart follow the customer between browsers
+// and devices. Writes are debounced so a burst of edits is one round-trip.
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let pushToServer: ((items: CartItem[]) => void) | null = null;
+/** Set once the server cart has been merged in, so we don't push before we pull. */
+let hydratedKey: string | null = null;
+
+function scheduleSave() {
+  if (!activeKey || hydratedKey !== activeKey || !pushToServer) return;
+  if (saveTimer) clearTimeout(saveTimer);
+  const snapshot = items;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    pushToServer?.(snapshot);
+  }, 400);
+}
+
 function setItems(next: CartItem[]) {
+  items = next;
+  persist();
+  scheduleSave();
+  emit();
+}
+
+/** Apply the server's cart without echoing it straight back as a save. */
+function adoptServerItems(next: CartItem[]) {
   items = next;
   persist();
   emit();
@@ -107,6 +150,21 @@ function setItems(next: CartItem[]) {
 
 const cartStore = {
   syncUser,
+  adoptServerItems,
+  markHydrated(key: string | null) {
+    hydratedKey = key;
+  },
+  setPusher(fn: ((items: CartItem[]) => void) | null) {
+    pushToServer = fn;
+  },
+  /** Flush any pending debounce — used before navigating to checkout. */
+  flush() {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      pushToServer?.(items);
+    }
+  },
   subscribe(callback: () => void) {
     listeners.add(callback);
     return () => listeners.delete(callback);
@@ -190,6 +248,44 @@ export function CartProvider({
     mountedStore.getSnapshot,
     mountedStore.getServerSnapshot,
   );
+
+  // Pull the server cart once per signed-in user, merge it with whatever this
+  // browser already had, then keep the server in step with local edits. This is
+  // what makes a cart built on a phone show up on a laptop.
+  useEffect(() => {
+    if (!userId) {
+      cartStore.markHydrated(null);
+      cartStore.setPusher(null);
+      return;
+    }
+
+    let cancelled = false;
+    cartStore.setPusher((next) => {
+      void saveCartAction(next);
+    });
+
+    loadCartAction()
+      .then((serverItems) => {
+        if (cancelled) return;
+        const merged = mergeCarts(cartStore.getSnapshot(), serverItems);
+        cartStore.adoptServerItems(merged);
+        cartStore.markHydrated(`${STORAGE_PREFIX}:${userId}`);
+        // Push the union back so the other device converges too.
+        void saveCartAction(merged);
+      })
+      .catch(() => {
+        // Offline or the row is unreadable — carry on with the local cart and
+        // let the next edit retry the write.
+        if (!cancelled) cartStore.markHydrated(`${STORAGE_PREFIX}:${userId}`);
+      });
+
+    return () => {
+      cancelled = true;
+      cartStore.flush();
+      cartStore.setPusher(null);
+      cartStore.markHydrated(null);
+    };
+  }, [userId]);
 
   const addItem = useCallback((item: Omit<CartItem, "lineId">) => {
     cartStore.add(item);

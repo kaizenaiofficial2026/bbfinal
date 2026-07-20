@@ -175,11 +175,9 @@ export default async function AccountPage() {
                 ) : null}
                 <div>
                   <dt>{t("travelDocument")}</dt>
-                  <dd>
-                    {customer.passport_number
-                      ? t("documentOnFile")
-                      : t("documentMissing")}
-                  </dd>
+                  {/* Show the actual document number the customer registered —
+                      "On file" told them nothing they could check. */}
+                  <dd>{customer.passport_number || t("documentMissing")}</dd>
                 </div>
               </dl>
 

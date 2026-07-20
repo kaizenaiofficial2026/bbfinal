@@ -115,6 +115,42 @@ describe("BookingRequestForm", () => {
     expect(addItem).not.toHaveBeenCalled();
   });
 
+  /**
+   * Regression: the field used to clamp on every keystroke, so clearing it gave
+   * 0 → clamped to 1 → "1" reappeared instantly and the digit could never be
+   * deleted to type a different count. The raw text must survive editing and
+   * only normalise on blur.
+   */
+  it("lets the traveller count be cleared and retyped", () => {
+    const { container } = render(<BookingRequestForm {...PROPS} />);
+    const field = container.querySelector<HTMLInputElement>(
+      'input[name="travellers"]',
+    )!;
+
+    fireEvent.change(field, { target: { value: "" } });
+    expect(field.value).toBe(""); // stays empty instead of snapping back to "1"
+
+    fireEvent.change(field, { target: { value: "7" } });
+    expect(field.value).toBe("7");
+    expect(screen.getByText("USD 7000.00")).toBeInTheDocument();
+  });
+
+  it("normalises an empty or out-of-range count on blur", () => {
+    const { container } = render(<BookingRequestForm {...PROPS} />);
+    const field = container.querySelector<HTMLInputElement>(
+      'input[name="travellers"]',
+    )!;
+
+    fireEvent.change(field, { target: { value: "" } });
+    fireEvent.blur(field);
+    expect(field.value).toBe("1");
+
+    fireEvent.change(field, { target: { value: "999" } });
+    fireEvent.blur(field);
+    expect(field.value).toBe("50");
+    expect(screen.getByText("USD 50000.00")).toBeInTheDocument();
+  });
+
   it("adds the package to the cart with the chosen traveller count", () => {
     const { container } = render(<BookingRequestForm {...PROPS} />);
 

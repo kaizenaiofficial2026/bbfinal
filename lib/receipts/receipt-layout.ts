@@ -173,6 +173,11 @@ export function layoutReceipt(receipt: Receipt): ReceiptLayout {
 
   labelled("EMAIL", receipt.customer.email);
   labelled("PHONE", receipt.customer.phone);
+  // Only shown when the customer record actually holds one, so the receipt
+  // never prints an empty "NIC/Passport No" row.
+  if (receipt.customer.passportNumber) {
+    labelled("NIC / PASSPORT NO", receipt.customer.passportNumber);
+  }
   labelled("PAYMENT VIA", receipt.payment.method);
 
   y += 10;

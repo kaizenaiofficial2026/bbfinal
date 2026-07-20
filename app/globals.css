@@ -6317,7 +6317,10 @@ html.lenis body {
 .order-item,
 .order-total {
   display: grid;
-  grid-template-columns: 1fr 52px 110px;
+  /* Qty and Total size to their CONTENT, not fixed widths: a five-figure
+     amount ("LKR 67,200.00") overflowed a fixed 110px column and was clipped at
+     the card edge on small screens. The package name takes the rest and wraps. */
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 12px;
   align-items: baseline;
 }
@@ -6427,7 +6430,8 @@ html.lenis body {
   .order-items-head,
   .order-item,
   .order-total {
-    grid-template-columns: 1fr 40px 90px;
+    /* Content-sized here too — see the base rule. */
+    gap: 14px;
   }
 
   .order-card-head,

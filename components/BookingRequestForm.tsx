@@ -7,8 +7,10 @@ import { useCart } from "@/components/cart/CartProvider";
 import { useToast } from "@/components/Toast";
 import {
   bookingQuoteStore,
-  clampTravellerCount,
+  MAX_TRAVELLERS,
+  MIN_TRAVELLERS,
   useBookingTravellers,
+  useBookingTravellersInput,
 } from "@/components/booking/booking-quote-store";
 import {
   combineTravelDates,
@@ -48,6 +50,7 @@ export default function BookingRequestForm({
   // default when this form mounts for a different package.
   bookingQuoteStore.syncPackage(packageId);
   const travellers = useBookingTravellers();
+  const travellersInput = useBookingTravellersInput();
 
   const total = amount * travellers;
   const formattedAmount = `${currency} ${total.toFixed(2)}`;
@@ -137,18 +140,19 @@ export default function BookingRequestForm({
           ) : null}
           <div className="form-field">
             <label htmlFor="booking-travellers">{t("travellers")}</label>
+            {/* Bound to the RAW input, not the clamped number: clamping on every
+                keystroke made the field impossible to clear and retype. It is
+                normalised on blur instead. */}
             <input
               id="booking-travellers"
               name="travellers"
               type="number"
-              min="1"
-              max="50"
-              value={travellers}
-              onChange={(event) =>
-                bookingQuoteStore.setTravellers(
-                  clampTravellerCount(Number(event.target.value)),
-                )
-              }
+              inputMode="numeric"
+              min={MIN_TRAVELLERS}
+              max={MAX_TRAVELLERS}
+              value={travellersInput}
+              onChange={(event) => bookingQuoteStore.setInput(event.target.value)}
+              onBlur={() => bookingQuoteStore.commitInput()}
             />
           </div>
           <div className="form-field full">

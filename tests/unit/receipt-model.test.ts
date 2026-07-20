@@ -62,6 +62,8 @@ describe("buildReceipt", () => {
       name: "Lasantha Chathuranga",
       email: "lasantha@example.com",
       phone: "+94 772353788",
+      // No customer record passed in, so no document on the receipt.
+      passportNumber: null,
     });
     expect(receipt.items).toHaveLength(1);
     expect(receipt.items[0]).toMatchObject({
@@ -124,6 +126,28 @@ describe("buildReceipt", () => {
     });
     expect(messy.fileBase).toBe("BB-ORD-1001-receipt");
     expect(messy.fileBase).not.toMatch(/[/\\ ]/);
+  });
+
+  it("carries the customer's NIC/passport onto the receipt", () => {
+    const receipt = buildReceipt({
+      booking,
+      payment,
+      customer: { passportNumber: "N1234567" },
+    });
+    expect(receipt.customer.passportNumber).toBe("N1234567");
+
+    const { ops } = layoutReceipt(receipt);
+    const strings = ops.filter((o) => o.kind === "text").map((o) => o.text);
+    expect(strings).toContain("NIC / PASSPORT NO");
+    expect(strings).toContain("N1234567");
+  });
+
+  it("omits the document line entirely when there is none on file", () => {
+    // A legacy/guest booking has no customer record — the receipt must not
+    // print an empty "NIC/Passport No" row.
+    const { ops } = layoutReceipt(buildReceipt({ booking, payment }));
+    const strings = ops.filter((o) => o.kind === "text").map((o) => o.text);
+    expect(strings).not.toContain("NIC / PASSPORT NO");
   });
 
   it("shows a placeholder when the traveller gave no phone", () => {

@@ -25,7 +25,13 @@ export type Receipt = {
   /** Order reference — the receipt number. */
   reference: string;
   paidAt: string;
-  customer: { name: string; email: string; phone: string };
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+    /** NIC/passport on file, or null when the customer record has none. */
+    passportNumber: string | null;
+  };
   items: ReceiptItem[];
   total: string;
   payment: { reference: string; status: string; method: string };
@@ -86,6 +92,8 @@ function toFileBase(reference: string): string {
 export function buildReceipt(input: {
   booking: BookingLike;
   payment: PaymentLike;
+  /** Billing details from the customer record (bookings don't carry them). */
+  customer?: { passportNumber?: string | null } | null;
 }): Receipt {
   const { booking, payment } = input;
 
@@ -109,6 +117,7 @@ export function buildReceipt(input: {
       name: booking.traveller_name,
       email: booking.email,
       phone: booking.phone || "Not provided",
+      passportNumber: input.customer?.passportNumber || null,
     },
     items: orderBookings.map((item) => ({
       title: item.tour_packages?.title ?? "Package",
