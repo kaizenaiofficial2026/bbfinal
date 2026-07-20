@@ -36,6 +36,19 @@ vi.mock("@/lib/supabase/service", () => ({
         return builder;
       }
 
+      if (table === "customers") {
+        // Billing lookup for the invoice's address block.
+        const builder = {
+          select: () => builder,
+          eq: () => builder,
+          maybeSingle: async () => ({
+            data: { country: "Sri Lanka", passport_number: "N1234567" },
+            error: null,
+          }),
+        };
+        return builder;
+      }
+
       // bookings update path: awaited after .eq(...)
       const builder = {
         update: () => builder,
@@ -63,9 +76,11 @@ function makePayment(overrides: Partial<TestPayment> = {}): TestPayment {
       {
         id: "book-1",
         reference: "BB-AAAA",
+        user_id: "cust-1",
         traveller_name: "Asha",
         email: "asha@example.com",
         phone: "+94771234567",
+        travellers: 3,
         status: "awaiting_payment",
         quoted_amount: 1000,
         currency: "LKR",
@@ -107,6 +122,32 @@ describe("reconcilePayment", () => {
     expect(result.captured).toBe(true);
     expect(result.alreadyFinalized).toBe(false);
     expect(sendInvoiceEmails).toHaveBeenCalledTimes(1);
+
+    // The invoice must carry the per-line QUANTITY (travellers) and the
+    // customer's billing details, or the order table can't be rendered.
+    expect(sendInvoiceEmails).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reference: "BB-AAAA",
+        amount: 1000,
+        currency: "LKR",
+        transactionId: "txn-1",
+        items: [
+          {
+            title: "Test Journey",
+            quantity: 3,
+            amount: 1000,
+            currency: "LKR",
+          },
+        ],
+        customer: {
+          email: "asha@example.com",
+          phone: "+94771234567",
+          country: "Sri Lanka",
+          passportNumber: "N1234567",
+        },
+      }),
+    );
+
     expect(sendPaymentSms).toHaveBeenCalledTimes(1);
     expect(sendPaymentSms).toHaveBeenCalledWith({
       reference: "BB-AAAA",

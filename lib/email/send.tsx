@@ -4,6 +4,7 @@ import { render } from "@react-email/render";
 import { env } from "@/lib/env";
 import { isReservedEmailDomain } from "@/lib/validation/email-deliverability";
 import { getMailTransport } from "./client";
+import { logoAttachment } from "./logo";
 import {
   AccountVerified,
   InvoiceEmail,
@@ -55,12 +56,17 @@ async function sendEmail({
     render(react, { plainText: true }),
   ]);
 
+  // The header logo travels with the message as an inline attachment (cid:),
+  // so it renders regardless of whether the site URL is publicly reachable.
+  const logo = logoAttachment();
+
   await transport.sendMail({
     from: env.emailFrom,
     to: recipients,
     subject,
     html,
     text,
+    ...(logo ? { attachments: [logo] } : {}),
   });
 
   return { skipped: false };
@@ -225,8 +231,20 @@ export async function sendInvoiceEmails(input: {
   reference: string;
   amount: number;
   currency: string;
-  items: { title: string; amount: number; currency: string }[];
+  /** One line per package; `quantity` is the traveller count on that package. */
+  items: {
+    title: string;
+    quantity: number;
+    amount: number;
+    currency: string;
+  }[];
   transactionId?: string | null;
+  customer?: {
+    country?: string | null;
+    phone?: string | null;
+    email: string;
+    passportNumber?: string | null;
+  };
 }) {
   const invoice = <InvoiceEmail {...input} />;
 

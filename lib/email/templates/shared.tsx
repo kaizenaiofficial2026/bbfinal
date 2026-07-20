@@ -5,11 +5,13 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Preview,
   Section,
   Text,
 } from "@react-email/components";
 import type { ReactNode } from "react";
+import { LOGO_HEIGHT, LOGO_WIDTH, logoSrc } from "../logo";
 
 type EmailShellProps = {
   preview: string;
@@ -24,7 +26,15 @@ export function EmailShell({ preview, title, children }: EmailShellProps) {
       <Preview>{preview}</Preview>
       <Body style={body}>
         <Container style={container}>
-          <Text style={eyebrow}>Beyond Borders</Text>
+          {/* The brand mark replaces the old "BEYOND BORDERS" text eyebrow.
+              `alt` keeps the brand legible in clients that block images. */}
+          <Img
+            src={logoSrc()}
+            alt="Beyond Borders"
+            width={LOGO_WIDTH}
+            height={LOGO_HEIGHT}
+            style={logo}
+          />
           <Heading style={heading}>{title}</Heading>
           <Section>{children}</Section>
           <Hr style={rule} />
@@ -52,6 +62,12 @@ export const container = {
   width: "560px",
 };
 
+export const logo = {
+  display: "block",
+  marginBottom: "18px",
+};
+
+/** Kept for templates that still set a small caps label above their content. */
 export const eyebrow = {
   color: "#9d7936",
   fontSize: "12px",

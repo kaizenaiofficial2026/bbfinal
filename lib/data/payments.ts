@@ -12,6 +12,8 @@ export type PaymentRow = Database["public"]["Tables"]["payments"]["Row"];
 export type OrderBooking = {
   id: string;
   reference: string;
+  /** Owning customer, so the invoice can pull their billing details. */
+  user_id: string | null;
   traveller_name: string;
   email: string;
   phone: string | null;
@@ -41,7 +43,7 @@ export type PaymentWithBooking = PaymentWithBookings;
 // which returns an ARRAY — a payment can cover many bookings. The explicit FK name
 // disambiguates from the legacy payments.booking_id forward relationship.
 const ORDER_SELECT =
-  "*, bookings:bookings!bookings_payment_id_fkey(id, reference, traveller_name, email, phone, travel_dates, travellers, notes, status, quoted_amount, currency, tour_packages(title))";
+  "*, bookings:bookings!bookings_payment_id_fkey(id, reference, user_id, traveller_name, email, phone, travel_dates, travellers, notes, status, quoted_amount, currency, tour_packages(title))";
 
 /** The order reference (BB-ORD-####) for a payment. */
 export function orderReference(payment: PaymentWithBookings): string {

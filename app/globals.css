@@ -6191,6 +6191,255 @@ html.lenis body {
   gap: 18px;
 }
 
+/* Right-hand column of a detail header: status badge with its actions stacked
+   underneath (e.g. the receipt export buttons below "Paid"). */
+.admin-head-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* ── Booking / order detail: one tight, centred card ──────────────────────── */
+
+.order-page {
+  max-width: 680px;
+  margin-inline: auto;
+  width: 100%;
+}
+
+.order-card {
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 1.5);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.order-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 26px;
+  background: var(--ivory);
+  border-bottom: 1px solid var(--line);
+}
+
+.order-card-head h1 {
+  margin-top: 2px;
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+.order-card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sections are separated by rules rather than gaps, so the card reads as one
+   continuous document (like a printed receipt). */
+.order-section {
+  padding: 22px 26px;
+}
+
+.order-section + .order-section {
+  border-top: 1px solid var(--line);
+}
+
+.order-section h2 {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.order-customer {
+  margin-top: 10px;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.order-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin-top: 16px;
+}
+
+.order-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.order-field-label {
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.order-field-value {
+  color: var(--ink);
+  font-size: 14px;
+  /* Long emails and gateway refs must wrap instead of widening the card. */
+  overflow-wrap: anywhere;
+}
+
+/* Items table — package / qty / total, matching the receipt export. */
+.order-items-head,
+.order-item,
+.order-total {
+  display: grid;
+  grid-template-columns: 1fr 52px 110px;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.order-items-head {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.order-items-head span:nth-child(2),
+.order-item-qty {
+  text-align: center;
+}
+
+.order-items-head span:last-child,
+.order-item-amount,
+.order-total strong {
+  text-align: right;
+}
+
+.order-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.order-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.order-item-main strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.order-item-meta {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.order-item-notes {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  font-style: italic;
+}
+
+.order-item-qty,
+.order-item-amount {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.order-total {
+  padding-top: 16px;
+}
+
+.order-total span {
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  /* Span the package + qty columns so the label sits beside the amount. */
+  grid-column: 1 / 3;
+}
+
+.order-total strong {
+  color: var(--ink);
+  font-size: 17px;
+}
+
+.order-payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.order-card-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px 26px;
+  background: var(--ivory);
+  border-top: 1px solid var(--line);
+}
+
+/* In the card footer the export control reads as one row (label beside the
+   buttons) rather than the stacked form it takes under a status badge. */
+.order-card-foot .admin-receipt-actions {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 620px) {
+  .order-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .order-items-head,
+  .order-item,
+  .order-total {
+    grid-template-columns: 1fr 40px 90px;
+  }
+
+  .order-card-head,
+  .order-section,
+  .order-card-foot {
+    padding-inline: 18px;
+  }
+}
+
+.admin-receipt-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.admin-receipt-label {
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-receipt-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Compact against the page's standard button size — these are secondary. */
+.admin-receipt-buttons .btn {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
 .admin-head h1,
 .admin-stack h1 {
   color: var(--ink);

@@ -76,6 +76,19 @@ export async function reconcilePayment(
     // Fail-soft: the payment is already captured, so a receipt-email failure must
     // not throw — otherwise the webhook/return page 500s and, on retry, the
     // already-captured fast-path skips the email, losing the receipt permanently.
+    // Billing details for the invoice's address block. Best-effort: a missing
+    // customer row (legacy/guest booking) just omits those lines.
+    let billing: { country: string | null; passport_number: string | null } | null =
+      null;
+    if (primary.user_id) {
+      const { data } = await supabase
+        .from("customers")
+        .select("country, passport_number")
+        .eq("id", primary.user_id)
+        .maybeSingle();
+      billing = data ?? null;
+    }
+
     try {
       await sendInvoiceEmails({
         travellerName: primary.traveller_name,
@@ -86,9 +99,18 @@ export async function reconcilePayment(
         transactionId,
         items: bookings.map((b) => ({
           title: b.tour_packages?.title ?? "Beyond Borders journey",
+          // Travellers doubles as the quantity — quoted_amount is already the
+          // line total (per-traveller price × travellers).
+          quantity: b.travellers,
           amount: Number(b.quoted_amount ?? 0),
           currency: b.currency,
         })),
+        customer: {
+          email: primary.email,
+          phone: primary.phone,
+          country: billing?.country ?? null,
+          passportNumber: billing?.passport_number ?? null,
+        },
       });
     } catch (error) {
       console.error("[invoice email failed]", error);
