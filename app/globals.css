@@ -2622,13 +2622,29 @@ body.menu-open .menu-toggle span::after {
   left: 0;
   z-index: 50;
   width: 300px;
-  max-width: calc(100vw - 32px);
+  /* Also cap at the FIELD's width: the popover is anchored at the field's left
+     edge, which is already inset from the page, so a viewport-only cap still
+     let the calendar run off the right on narrow screens (the Saturday column
+     and next-year arrow were cut off at 320px). */
+  max-width: min(100%, calc(100vw - 32px));
   padding: 14px;
   border: 1px solid var(--line-gold);
   border-radius: 12px;
   background: var(--paper);
   box-shadow: var(--shadow);
   animation: combobox-pop 150ms var(--ease);
+}
+
+/* Tighten the calendar so seven columns still breathe in a narrow field. */
+@media (max-width: 400px) {
+  .datepicker-pop {
+    padding: 12px 10px;
+  }
+
+  .dp-day {
+    height: 34px;
+    font-size: 13px;
+  }
 }
 
 .dp-header {
@@ -5495,55 +5511,56 @@ body.menu-open .menu-toggle span::after {
     padding: 20px;
   }
 
+  /* The desktop collage overlaps its pieces at absolute offsets. Recreating that
+     on a phone put the images on top of each other AND spilled them out of the
+     section (fixed tops inside a min-height box that couldn't grow), so below
+     720px the composition simply STACKS — it can't overlap or bleed at any
+     width. The generic reset above already un-positions these; keep them in a
+     tidy column with the circle and card sized for a narrow screen. */
   .experience-composition {
     position: relative;
-    display: block;
-    min-height: 500px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    min-height: auto;
+  }
+
+  /* Reset at the SAME specificity as the desktop rules (.exp-photo.one beats a
+     bare .exp-photo), or their inset/height survive and re-overlap the stack. */
+  .exp-photo.one,
+  .exp-photo.two,
+  .exp-photo.three {
+    position: relative;
+    inset: auto;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: auto;
+    height: auto;
   }
 
   .exp-photo.one {
-    position: absolute;
-    top: 0;
-    right: 0;
-    left: 14%;
-    width: auto;
-    height: 270px;
-    aspect-ratio: auto;
-    border: 0;
-    border-radius: var(--radius);
+    aspect-ratio: 1.45;
   }
 
   .exp-photo.two {
-    position: absolute;
-    top: 194px;
-    left: 0;
-    width: 60%;
-    height: auto;
-    aspect-ratio: 0.72;
+    aspect-ratio: 1.35;
     border: 8px solid var(--paper);
     border-radius: var(--radius-sm);
-    z-index: 3;
   }
 
   .exp-photo.three {
-    position: absolute;
-    top: 338px;
-    right: 0;
-    width: 43%;
-    max-width: 160px;
+    width: 160px;
+    justify-self: end;
     aspect-ratio: 1;
     border: 8px solid var(--paper);
     border-radius: 50%;
-    z-index: 2;
   }
 
   .experience-card {
-    position: absolute;
-    top: 248px;
-    right: 0;
-    z-index: 4;
-    width: 52%;
-    padding: 14px;
+    width: auto;
+    padding: 18px 20px;
     border: 1px solid var(--line-gold);
   }
 
@@ -9850,6 +9867,38 @@ body.cart-modal-open {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+/* Narrow screens: keep the filters on ONE line that swipes sideways instead of
+   wrapping into two or three stacked rows that push the list down the page.
+   min-width:0 lets this flex/grid child shrink below its content so the ROW
+   scrolls rather than widening the page. */
+@media (max-width: 720px) {
+  .admin-filter-pills {
+    flex-wrap: nowrap;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-block: 2px;
+  }
+
+  .admin-filter-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-filter-pill {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  /* `margin-left:auto` collapses once the row overflows, so the sort toggle
+     would jam against the last pill — give it a real gap instead. */
+  .admin-sort-toggle {
+    margin-left: 4px;
+  }
 }
 
 .admin-filter-pill {

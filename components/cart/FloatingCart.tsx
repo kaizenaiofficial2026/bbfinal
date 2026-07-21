@@ -59,6 +59,10 @@ export default function FloatingCart() {
           </DialogPrimitive.Overlay>
           <DialogPrimitive.Content
             className="cart-modal-panel"
+            // The site runs Lenis smooth-scroll, which hijacks wheel events. Without
+            // this the panel's own scroll area never receives them, so a cart longer
+            // than the panel simply wouldn't scroll.
+            data-lenis-prevent
             aria-describedby={undefined}
           >
             <div className="cart-modal-head">
