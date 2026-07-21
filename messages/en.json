@@ -486,7 +486,8 @@
     "resetServerError": "Something went wrong. Please try again.",
     "currentPasswordWrong": "Your current password is incorrect.",
     "accountDeactivated": "Your account has been deactivated. Please contact our team.",
-    "rateLimited": "You've been rate limited. Please wait about {minutes} minute(s) before trying again."
+    "rateLimited": "You've been rate limited. Please wait about {minutes} minute(s) before trying again.",
+    "emailUnavailable": "That email address is not available. Please use a different one."
   },
   "formOptions": {
     "Economy": "Economy",

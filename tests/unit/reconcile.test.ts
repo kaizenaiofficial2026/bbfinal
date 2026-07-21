@@ -113,6 +113,9 @@ describe("reconcilePayment", () => {
     retrieveOrder.mockResolvedValue({
       result: "SUCCESS",
       status: "CAPTURED",
+      // The gateway echoes what was actually paid; reconcile now verifies it.
+      amount: 1000,
+      currency: "LKR",
       transaction: [{ transaction: { id: "txn-1" } }],
     });
     maybeSingle.mockResolvedValue({ data: { id: "pay-1" }, error: null });
@@ -160,7 +163,12 @@ describe("reconcilePayment", () => {
   });
 
   it("does not send a receipt when a concurrent call already transitioned the row", async () => {
-    retrieveOrder.mockResolvedValue({ result: "SUCCESS", status: "CAPTURED" });
+    retrieveOrder.mockResolvedValue({
+      result: "SUCCESS",
+      status: "CAPTURED",
+      amount: 1000,
+      currency: "LKR",
+    });
     // The guarded update matched no row → another call won the race.
     maybeSingle.mockResolvedValue({ data: null, error: null });
 
@@ -196,5 +204,44 @@ describe("reconcilePayment", () => {
     expect(sendInvoiceEmails).not.toHaveBeenCalled();
     expect(sendPaymentSms).not.toHaveBeenCalled();
     expect(bookingsUpdateEq).not.toHaveBeenCalled();
+  });
+
+  /**
+   * A hosted-checkout session id is handed to the browser, so unless the merchant
+   * profile enforces session signing its holder can alter the amount before
+   * paying. A capture for the wrong amount must never mark the order paid.
+   */
+  it("refuses to mark paid when the captured AMOUNT differs from the order", async () => {
+    retrieveOrder.mockResolvedValue({
+      result: "SUCCESS",
+      status: "CAPTURED",
+      amount: 0.01, // paid a cent against a 1000 order
+      currency: "LKR",
+    });
+    maybeSingle.mockResolvedValue({ data: { id: "pay-1" }, error: null });
+
+    const result = await reconcilePayment(makePayment());
+
+    expect(result.captured).toBe(false);
+    // Left for a human rather than written as a terminal failure.
+    expect(capturedPaymentUpdate?.status).toBe("pending");
+    expect(sendInvoiceEmails).not.toHaveBeenCalled();
+    expect(sendPaymentSms).not.toHaveBeenCalled();
+    expect(bookingsUpdateEq).not.toHaveBeenCalled();
+  });
+
+  it("refuses to mark paid when the captured CURRENCY differs", async () => {
+    retrieveOrder.mockResolvedValue({
+      result: "SUCCESS",
+      status: "CAPTURED",
+      amount: 1000,
+      currency: "USD", // 1000 USD is not 1000 LKR
+    });
+    maybeSingle.mockResolvedValue({ data: { id: "pay-1" }, error: null });
+
+    const result = await reconcilePayment(makePayment());
+
+    expect(result.captured).toBe(false);
+    expect(sendInvoiceEmails).not.toHaveBeenCalled();
   });
 });

@@ -4,7 +4,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 // The provider now syncs with the server. Stub the actions: they're "use server"
 // modules whose import chain (Supabase, next-intl navigation) can't load in jsdom.
 type StoredItem = Record<string, unknown>;
-const loadCartAction = vi.fn<() => Promise<StoredItem[]>>(async () => []);
+const loadCartAction = vi.fn<
+  () => Promise<{ items: StoredItem[]; hasRow: boolean }>
+>(async () => ({ items: [], hasRow: false }));
 const saveCartAction = vi.fn<
   (items: unknown) => Promise<{ ok: boolean; items: StoredItem[] }>
 >(async () => ({ ok: true, items: [] }));
@@ -52,7 +54,7 @@ function Harness() {
 
 beforeEach(() => {
   window.localStorage.clear();
-  loadCartAction.mockReset().mockResolvedValue([]);
+  loadCartAction.mockReset().mockResolvedValue({ items: [], hasRow: false });
   saveCartAction.mockReset().mockResolvedValue({ ok: true, items: [] });
 });
 afterEach(() => window.localStorage.clear());
@@ -123,7 +125,9 @@ describe("CartProvider — per-user scoping", () => {
  */
 describe("CartProvider — server sync", () => {
   it("shows a cart saved on another device", async () => {
-    loadCartAction.mockResolvedValue([
+    loadCartAction.mockResolvedValue({
+      hasRow: true,
+      items: [
       {
         lineId: "from-phone",
         packageId: "11111111-1111-4111-8111-111111111111",
@@ -134,7 +138,7 @@ describe("CartProvider — server sync", () => {
         travelDates: "2027-01-01 to 2027-01-05",
         travellers: 2,
       },
-    ]);
+    ]});
 
     render(
       <CartProvider userId="user-a">
@@ -150,13 +154,18 @@ describe("CartProvider — server sync", () => {
     expect(screen.getByTestId("subtotal").textContent).toBe("998");
   });
 
-  it("merges the two carts rather than letting either side win", async () => {
-    // This browser already has an item…
+  /**
+   * Regression: the two carts used to be UNIONED, which cannot express a
+   * removal. Removing a package on your laptop, or checking out (which clears
+   * the cart), left the other device's stale copy to push the line back — so a
+   * paid-for trip reappeared in the cart and could be bought twice.
+   */
+  it("does not resurrect a line this browser still has but the server dropped", async () => {
     window.localStorage.setItem(
       "bb-cart:user-b",
       JSON.stringify([
         {
-          lineId: "local-1",
+          lineId: "stale-local",
           packageId: "22222222-2222-4222-8222-222222222222",
           slug: "bali-escape",
           title: "Bali Escape",
@@ -167,19 +176,8 @@ describe("CartProvider — server sync", () => {
         },
       ]),
     );
-    // …and the server has a different one.
-    loadCartAction.mockResolvedValue([
-      {
-        lineId: "server-1",
-        packageId: "33333333-3333-4333-8333-333333333333",
-        slug: "heart-of-city",
-        title: "The Heart of City",
-        currency: "USD",
-        amount: 200,
-        travelDates: "2027-03-01",
-        travellers: 1,
-      },
-    ]);
+    // The server has a saved cart that no longer contains it (removed/checked out).
+    loadCartAction.mockResolvedValue({ hasRow: true, items: [] });
 
     render(
       <CartProvider userId="user-b">
@@ -188,10 +186,41 @@ describe("CartProvider — server sync", () => {
     );
 
     await waitFor(() =>
+      expect(screen.getByTestId("count").textContent).toBe("0"),
+    );
+    expect(screen.queryByText("Bali Escape")).toBeNull();
+    // And it must not be pushed back up to the server either.
+    expect(saveCartAction).not.toHaveBeenCalled();
+  });
+
+  it("seeds the server from this browser when no cart row exists yet", async () => {
+    window.localStorage.setItem(
+      "bb-cart:user-d",
+      JSON.stringify([
+        {
+          lineId: "local-1",
+          packageId: "33333333-3333-4333-8333-333333333333",
+          slug: "heart-of-city",
+          title: "The Heart of City",
+          currency: "USD",
+          amount: 200,
+          travelDates: "2027-03-01",
+          travellers: 1,
+        },
+      ]),
+    );
+    loadCartAction.mockResolvedValue({ hasRow: false, items: [] });
+
+    render(
+      <CartProvider userId="user-d">
+        <Harness />
+      </CartProvider>,
+    );
+
+    await waitFor(() =>
       expect(screen.getByText("The Heart of City")).toBeInTheDocument(),
     );
-    expect(screen.getByText("Bali Escape")).toBeInTheDocument();
-    expect(screen.getByTestId("count").textContent).toBe("2");
+    await waitFor(() => expect(saveCartAction).toHaveBeenCalled());
   });
 
   it("pushes local changes to the server", async () => {

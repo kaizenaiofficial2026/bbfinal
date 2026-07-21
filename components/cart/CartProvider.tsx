@@ -106,12 +106,21 @@ function emit() {
  * "server wins") means nothing a customer added on either device silently
  * disappears when the two meet.
  */
-function mergeCarts(local: CartItem[], server: CartItem[]): CartItem[] {
-  if (local.length === 0) return server;
-  if (server.length === 0) return local;
-  const byLine = new Map<string, CartItem>();
-  for (const item of [...server, ...local]) byLine.set(item.lineId, item);
-  return [...byLine.values()];
+function mergeCarts(
+  local: CartItem[],
+  server: CartItem[],
+  serverHasRow: boolean,
+): CartItem[] {
+  // The SERVER is the source of truth once a cart row exists. A union looks
+  // friendlier but can't express a removal — deletion is only ever "absence", so
+  // unioning resurrects it: remove a package on your laptop and your phone's
+  // stale copy pushes it back, and a cart cleared by checkout reappears and gets
+  // paid for twice.
+  if (serverHasRow) return server;
+
+  // No row yet (first sync for this customer): adopt whatever this browser has,
+  // which also migrates a cart left over from the old localStorage-only version.
+  return local;
 }
 
 // ── Server sync ──────────────────────────────────────────────────────────────
@@ -265,13 +274,15 @@ export function CartProvider({
     });
 
     loadCartAction()
-      .then((serverItems) => {
+      .then(({ items: serverItems, hasRow }) => {
         if (cancelled) return;
-        const merged = mergeCarts(cartStore.getSnapshot(), serverItems);
-        cartStore.adoptServerItems(merged);
+        const local = cartStore.getSnapshot();
+        const resolved = mergeCarts(local, serverItems, hasRow);
+        cartStore.adoptServerItems(resolved);
         cartStore.markHydrated(`${STORAGE_PREFIX}:${userId}`);
-        // Push the union back so the other device converges too.
-        void saveCartAction(merged);
+        // Only write when this browser is the one seeding the server; adopting
+        // the server's cart must not echo straight back.
+        if (!hasRow && resolved.length > 0) void saveCartAction(resolved);
       })
       .catch(() => {
         // Offline or the row is unreadable — carry on with the local cart and

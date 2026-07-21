@@ -34,7 +34,34 @@ export async function reconcilePayment(
   }
 
   const order = await retrieveOrder(payment.mpgs_order_id);
-  const captured = order.result === "SUCCESS" && order.status === "CAPTURED";
+
+  // The gateway is trusted for the OUTCOME, but never for the amount. A hosted
+  // checkout session id is handed to the browser, so unless session signing is
+  // enforced on the merchant profile the holder can alter the session before
+  // paying. Confirm the captured money matches what we asked for, or a 0.01
+  // capture would mark the whole order paid and email a full-price invoice.
+  const paidAmount = Number(order.amount);
+  const amountMatches =
+    Number.isFinite(paidAmount) &&
+    paidAmount.toFixed(2) === Number(payment.amount).toFixed(2);
+  const currencyMatches =
+    String(order.currency ?? "").toUpperCase() ===
+    String(payment.currency ?? "").toUpperCase();
+
+  const gatewaySucceeded =
+    order.result === "SUCCESS" && order.status === "CAPTURED";
+  const captured = gatewaySucceeded && amountMatches && currencyMatches;
+
+  if (gatewaySucceeded && !captured) {
+    // Money moved, but not the amount we billed. Never mark this paid — leave it
+    // for a human, and make the mismatch loud.
+    console.error("[payment amount mismatch]", {
+      reference: orderReference(payment),
+      mpgsOrderId: payment.mpgs_order_id,
+      expected: `${payment.currency} ${Number(payment.amount).toFixed(2)}`,
+      captured: `${order.currency} ${order.amount}`,
+    });
+  }
   // Only move to a terminal "failed" on a real gateway failure. If the order is
   // still pending/initiated (e.g. the customer hit the return page before MPGS
   // finalized), leave it "pending" so a later notification can still capture it

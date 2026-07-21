@@ -486,7 +486,8 @@
     "resetServerError": "出现错误。请重试。",
     "currentPasswordWrong": "你的当前密码不正确。",
     "accountDeactivated": "你的账户已被停用。请联系我们的团队。",
-    "rateLimited": "你的操作过于频繁。请等待约 {minutes} 分钟后再试。"
+    "rateLimited": "你的操作过于频繁。请等待约 {minutes} 分钟后再试。",
+    "emailUnavailable": "该电子邮件地址不可用。请使用其他地址。"
   },
   "formOptions": {
     "Economy": "经济舱",

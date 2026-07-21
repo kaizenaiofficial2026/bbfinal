@@ -9,6 +9,7 @@ import {
   createSupabaseServiceClient,
 } from "@/lib/supabase/service";
 import { requireCustomer } from "@/lib/customer/auth";
+import { env } from "@/lib/env";
 import { registerSchema } from "@/lib/validation/account";
 import { checkEmailDeliverable } from "@/lib/validation/email-deliverability";
 import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
@@ -81,9 +82,28 @@ export async function registerAction(formData: FormData) {
     localeRedirect(withNext(`/register?error=${encodeURIComponent(message)}`, next), locale);
   }
 
+  const email = parsed.data.email.trim().toLowerCase();
+
+  // PRIVILEGE ESCALATION GUARD. `getAdminUser()` bootstraps a staff `profiles`
+  // row for any authenticated user whose email is in ADMIN_ALLOWED_EMAILS. Since
+  // signup is public and Supabase email confirmation is OFF, registering with a
+  // staff address would hand the registrant a real admin account. Staff accounts
+  // are provisioned by a super admin (createAdminAction), never self-served.
+  if (
+    env.adminAllowedEmails.includes(email) ||
+    env.superAdminEmails.includes(email)
+  ) {
+    localeRedirect(
+      withNext(
+        `/register?error=${encodeURIComponent(t("emailUnavailable"))}`,
+        next,
+      ),
+      locale,
+    );
+  }
+
   // Reject addresses that can't actually receive mail before we burn a signup
   // attempt (and before emailing a bogus address).
-  const email = parsed.data.email.trim().toLowerCase();
   const deliverable = await checkEmailDeliverable(email);
   if (!deliverable.ok) {
     localeRedirect(

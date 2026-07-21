@@ -45,8 +45,18 @@ export function parseCartItems(value: unknown): StoredCartItem[] {
   });
 }
 
-/** The signed-in customer's cart. Empty for guests or on any read failure. */
-export async function readCart(userId: string): Promise<StoredCartItem[]> {
+/**
+ * The signed-in customer's cart.
+ *
+ * `hasRow` distinguishes "this customer has a saved cart that happens to be
+ * empty" from "this customer has never saved one". The caller needs that to
+ * decide whether the server or the browser is authoritative — without it, a cart
+ * emptied on another device is indistinguishable from a first-ever sync, and the
+ * browser's stale copy would resurrect removed (or already-paid-for) items.
+ */
+export async function readCart(
+  userId: string,
+): Promise<{ items: StoredCartItem[]; hasRow: boolean }> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("carts")
@@ -54,8 +64,8 @@ export async function readCart(userId: string): Promise<StoredCartItem[]> {
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (error || !data) return [];
-  return parseCartItems(data.items);
+  if (error || !data) return { items: [], hasRow: false };
+  return { items: parseCartItems(data.items), hasRow: true };
 }
 
 /** Overwrite the customer's cart. Returns the items actually stored. */

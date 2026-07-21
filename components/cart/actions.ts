@@ -13,13 +13,18 @@ import { readCart, writeCart, type StoredCartItem } from "@/lib/data/carts";
  * of truth for the current tab either way.
  */
 
-export async function loadCartAction(): Promise<StoredCartItem[]> {
+export async function loadCartAction(): Promise<{
+  items: StoredCartItem[];
+  hasRow: boolean;
+}> {
   const session = await getCustomerUser();
-  if (!session) return [];
+  if (!session) return { items: [], hasRow: false };
   try {
     return await readCart(session.user.id);
   } catch {
-    return [];
+    // Treat a read failure as "unknown", not "empty", so the local cart is kept
+    // rather than being overwritten by a phantom empty server cart.
+    return { items: [], hasRow: false };
   }
 }
 

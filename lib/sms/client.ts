@@ -27,11 +27,28 @@ export function canUseSms(): boolean {
  * with the Sri Lanka country code `94` and no leading `+`. Handles the common
  * inputs — `+94771234567`, `0771234567`, `94771234567`, `771234567`.
  */
-export function normalizeMsisdn(input: string): string {
-  const digits = input.replace(/\D/g, "");
+export function normalizeMsisdn(input: string): string | null {
+  const trimmed = input.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length < 9) return null;
+
+  // Already Sri Lankan.
   if (digits.startsWith("94")) return digits;
-  if (digits.startsWith("0")) return `94${digits.slice(1)}`;
-  return `94${digits}`;
+
+  // A LOCAL number: either 0771234567 or the bare 9-digit 771234567. Only these
+  // may be given the 94 country code.
+  const local = digits.startsWith("0") ? digits.slice(1) : digits;
+  const isLocalShape =
+    (digits.startsWith("0") || !trimmed.startsWith("+")) &&
+    local.length === 9 &&
+    local.startsWith("7");
+  if (isLocalShape) return `94${local}`;
+
+  // Anything else is a FOREIGN number. Blindly prefixing 94 turned a UK
+  // "07700 900123" into a valid Sri Lankan MSISDN belonging to a stranger, who
+  // then received the customer's name, order reference and amount. The Dialog
+  // gateway only delivers to Sri Lankan networks, so skip instead of misrouting.
+  return null;
 }
 
 /** Dialog's `CREATED` header timestamp: `YYYY-MM-DDTHH:mm:ss` (no milliseconds). */
@@ -62,6 +79,14 @@ export async function sendSms({
     return { skipped: true };
   }
 
+  // Never guess a recipient: an unroutable/foreign number is skipped rather than
+  // coerced into a Sri Lankan MSISDN that belongs to somebody else.
+  const msisdn = normalizeMsisdn(to);
+  if (!msisdn) {
+    console.info("[sms skipped] not a deliverable Sri Lankan number");
+    return { skipped: true };
+  }
+
   const digest = createHash("md5")
     .update(env.smsPassword ?? "")
     .digest("hex");
@@ -70,7 +95,7 @@ export async function sendSms({
     messages: [
       {
         clientRef: Date.now(),
-        number: normalizeMsisdn(to),
+        number: msisdn,
         mask: env.smsMask,
         text: message,
       },
