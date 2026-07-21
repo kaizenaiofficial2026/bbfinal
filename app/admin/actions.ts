@@ -818,6 +818,62 @@ export async function deleteCustomerAction(formData: FormData) {
   if (!customerId) {
     throw new Error("Missing customer id.");
   }
+
+  const supabase = await createSupabaseServerClient();
+
+  // ARCHIVE rather than erase: the row is kept (listed under the "Deleted"
+  // filter, restorable) and the login is disabled, which getCustomerUser treats
+  // as signed out. Bookings stay linked, so the customer's history survives.
+  // `purgeCustomerAction` below is the irreversible path.
+  const { error } = await supabase
+    .from("customers")
+    .update({ deleted_at: new Date().toISOString(), active: false })
+    .eq("id", customerId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/users");
+}
+
+/** Undo a soft delete: the account is listed and can sign in again. */
+export async function restoreCustomerAction(formData: FormData) {
+  await requireSuperAdmin();
+  const customerId = formString(formData, "customerId");
+
+  if (!customerId) {
+    throw new Error("Missing customer id.");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("customers")
+    .update({ deleted_at: null, active: true })
+    .eq("id", customerId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/users");
+}
+
+/**
+ * Permanently remove an archived account — the old destructive behaviour, now
+ * reachable only from the "Deleted" view so it can't happen by accident.
+ * Booking/payment records are PRESERVED for the business: their `user_id` is
+ * detached first (the FK has no ON DELETE action, so the auth-user delete would
+ * otherwise fail), then the auth user is removed, cascading to the customers
+ * row, profile and any password-reset codes.
+ */
+export async function purgeCustomerAction(formData: FormData) {
+  await requireSuperAdmin();
+  const customerId = formString(formData, "customerId");
+
+  if (!customerId) {
+    throw new Error("Missing customer id.");
+  }
   if (!canUseSupabaseService()) {
     throw new Error(
       "Account deletion is unavailable (service role not configured).",

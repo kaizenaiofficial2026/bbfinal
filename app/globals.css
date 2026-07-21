@@ -6334,11 +6334,13 @@ html.lenis body {
 .order-item,
 .order-total {
   display: grid;
-  /* Qty and Total size to their CONTENT, not fixed widths: a five-figure
-     amount ("LKR 67,200.00") overflowed a fixed 110px column and was clipped at
-     the card edge on small screens. The package name takes the rest and wraps. */
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 12px;
+  /* Qty and Total have a MINIMUM width but still grow with their content: fixed
+     widths clipped a five-figure amount ("LKR 67,200.00") at the card edge,
+     while pure `auto` collapsed Qty against Total with only the gap between
+     them. minmax keeps the columns apart and still fits any amount. */
+  grid-template-columns: minmax(0, 1fr) minmax(56px, auto) minmax(96px, auto);
+  column-gap: 20px;
+  row-gap: 12px;
   align-items: baseline;
 }
 
@@ -6447,8 +6449,9 @@ html.lenis body {
   .order-items-head,
   .order-item,
   .order-total {
-    /* Content-sized here too — see the base rule. */
-    gap: 14px;
+    /* Narrower minimums so three columns still fit a 320px card. */
+    grid-template-columns: minmax(0, 1fr) minmax(40px, auto) minmax(88px, auto);
+    column-gap: 12px;
   }
 
   .order-card-head,

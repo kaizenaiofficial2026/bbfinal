@@ -3,6 +3,8 @@ import { requireAdminContext } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   deleteCustomerAction,
+  purgeCustomerAction,
+  restoreCustomerAction,
   setCustomerActiveAction,
   verifyCustomerAction,
 } from "../actions";
@@ -24,15 +26,19 @@ type CustomerRow = {
   verified: boolean;
   active: boolean;
   created_at: string;
+  /** Set when the account has been archived by an admin. */
+  deleted_at: string | null;
 };
 
-// The four filter pills. "deactivated" cuts across the other two (a customer in
-// any verification state can have their login disabled), so it's its own view.
+// The filter pills. "deactivated" cuts across verification state (any customer
+// can have their login disabled), and "deleted" lists archived accounts, which
+// every other view excludes.
 const FILTERS = [
   { key: "all", label: "All" },
   { key: "pending", label: "New applications" },
   { key: "verified", label: "Verified" },
   { key: "deactivated", label: "Deactivated" },
+  { key: "deleted", label: "Deleted" },
 ] as const;
 
 type FilterKey = (typeof FILTERS)[number]["key"];
@@ -62,7 +68,29 @@ function DeleteCustomerForm({ customer }: { customer: CustomerRow }) {
       <input type="hidden" name="customerId" value={customer.id} />
       <DeleteButton
         label="Delete account"
-        confirmText={`Permanently delete ${customer.full_name}'s account? Their login and profile are removed and their bookings are unlinked (kept as records). This cannot be undone.`}
+        confirmText={`Delete ${customer.full_name}'s account? Their login is disabled immediately and the account moves to the Deleted filter, where you can restore it or remove it permanently. Their bookings are kept.`}
+      />
+    </form>
+  );
+}
+
+/** Actions available only on an archived account. */
+function RestoreCustomerForm({ customer }: { customer: CustomerRow }) {
+  return (
+    <form action={restoreCustomerAction}>
+      <input type="hidden" name="customerId" value={customer.id} />
+      <SubmitButton pendingLabel="Restoring…">Restore account</SubmitButton>
+    </form>
+  );
+}
+
+function PurgeCustomerForm({ customer }: { customer: CustomerRow }) {
+  return (
+    <form action={purgeCustomerAction}>
+      <input type="hidden" name="customerId" value={customer.id} />
+      <DeleteButton
+        label="Delete permanently"
+        confirmText={`Permanently delete ${customer.full_name}'s account? Their login and profile are removed for good and their bookings are unlinked (kept as records). This CANNOT be undone.`}
       />
     </form>
   );
@@ -181,21 +209,26 @@ export default async function AdminCustomersPage({
   const { data } = await supabase
     .from("customers")
     .select(
-      "id, full_name, email, phone, country, city, date_of_birth, passport_number, passport_expiry, verified, active, created_at",
+      "id, full_name, email, phone, country, city, date_of_birth, passport_number, passport_expiry, verified, active, created_at, deleted_at",
     )
     .order("verified", { ascending: true })
     .order("created_at", { ascending: false });
 
   const rows = (data ?? []) as CustomerRow[];
-  const pending = rows.filter((c) => !c.verified);
-  const verified = rows.filter((c) => c.verified);
-  const deactivated = rows.filter((c) => !c.active);
+  // Archived accounts appear ONLY under "Deleted" — they'd otherwise show up as
+  // deactivated customers and read like live accounts.
+  const live = rows.filter((c) => !c.deleted_at);
+  const deleted = rows.filter((c) => c.deleted_at);
+  const pending = live.filter((c) => !c.verified);
+  const verified = live.filter((c) => c.verified);
+  const deactivated = live.filter((c) => !c.active);
 
   const counts: Record<FilterKey, number> = {
-    all: rows.length,
+    all: live.length,
     pending: pending.length,
     verified: verified.length,
     deactivated: deactivated.length,
+    deleted: deleted.length,
   };
 
   return (
@@ -271,6 +304,44 @@ export default async function AdminCustomersPage({
                 isSuperAdmin={isSuperAdmin}
                 key={customer.id}
               />
+            ))
+          )}
+        </section>
+      ) : null}
+
+      {filter === "deleted" ? (
+        <section className="admin-card admin-stack">
+          <h2>Deleted customers ({deleted.length})</h2>
+          <p className="form-hint">
+            Archived accounts. They can&apos;t sign in and are hidden from every
+            other view, but their bookings are kept. Restore one to bring the
+            account back, or delete it permanently to remove it for good.
+          </p>
+          {deleted.length === 0 ? (
+            <p className="form-hint">No deleted customers.</p>
+          ) : (
+            deleted.map((customer) => (
+              <article className="admin-applicant" key={customer.id}>
+                <div className="admin-applicant-head">
+                  <div>
+                    <strong>{customer.full_name}</strong>
+                    <span className="admin-muted-block">
+                      {customer.email}
+                      {customer.phone ? ` · ${customer.phone}` : ""}
+                    </span>
+                    <span className="admin-muted-block">
+                      Deleted {formatDate(customer.deleted_at)}
+                    </span>
+                  </div>
+                  <StatusBadge status="inactive" />
+                </div>
+                <div className="admin-actions-row">
+                  <RestoreCustomerForm customer={customer} />
+                  {isSuperAdmin ? (
+                    <PurgeCustomerForm customer={customer} />
+                  ) : null}
+                </div>
+              </article>
             ))
           )}
         </section>

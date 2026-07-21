@@ -61,6 +61,13 @@ async function _getCustomerUser(): Promise<CustomerSession | null> {
     return null;
   }
 
+  // An archived (soft-deleted) account is signed out too. Deleting also clears
+  // `active`, but check explicitly so re-activating alone can never resurrect a
+  // deleted login — only an explicit restore does.
+  if (customer.deleted_at) {
+    return null;
+  }
+
   return { user: { id: user.id, email: user.email }, customer };
 }
 

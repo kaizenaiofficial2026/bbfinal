@@ -153,6 +153,9 @@ export default function Destinations({ destinations }: DestinationsProps) {
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button
                   key={i}
+                  // Without an explicit type a <button> defaults to "submit",
+                  // so it would post any form it's ever nested inside.
+                  type="button"
                   className={"dest-dot" + (i === activePage ? " is-active" : "")}
                   aria-label={`Page ${i + 1}`}
                   // dots are read-only scroll indicators — no click handler needed
