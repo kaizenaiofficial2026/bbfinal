@@ -245,12 +245,54 @@ export async function deleteAccountAction() {
 
   if (canUseSupabaseService()) {
     const service = createSupabaseServiceClient();
-    // Keep bookings as records but unlink them from the account being deleted.
-    await service.from("bookings").update({ user_id: null }).eq("user_id", userId);
-    await service.auth.admin.deleteUser(userId);
+
+    // Remember what we're about to detach. The two steps below can't run in one
+    // transaction (one is PostgREST, one is the Auth admin API), so if the
+    // account deletion fails after the detach we must put the links back —
+    // otherwise the customer keeps a working account whose entire booking
+    // history has been orphaned, which is worse than not deleting at all.
+    const { data: owned } = await service
+      .from("bookings")
+      .select("id")
+      .eq("user_id", userId);
+    const bookingIds = (owned ?? []).map((b) => b.id as string);
+
+    // Bookings are KEPT as business records but unlinked: the bookings.user_id
+    // FK has no ON DELETE action, so the rows must be detached before the auth
+    // user can be removed.
+    const { error: detachError } = await service
+      .from("bookings")
+      .update({ user_id: null })
+      .eq("user_id", userId);
+    if (detachError) {
+      console.error("[account delete] detach failed", { userId, detachError });
+      throw new Error(
+        "We could not delete your account just now. Please try again or contact our team.",
+      );
+    }
+
+    const { error: deleteError } = await service.auth.admin.deleteUser(userId);
+    if (deleteError) {
+      // Compensate, so the customer is left exactly as they started.
+      if (bookingIds.length) {
+        await service
+          .from("bookings")
+          .update({ user_id: userId })
+          .in("id", bookingIds);
+      }
+      console.error("[account delete] deleteUser failed, bookings restored", {
+        userId,
+        bookingIds: bookingIds.length,
+        deleteError,
+      });
+      throw new Error(
+        "We could not delete your account just now. Please try again or contact our team.",
+      );
+    }
   }
 
-  // Clear the (now-orphaned) session locally, then send them home.
+  // Clear the (now-orphaned) session locally, then send them home. Only reached
+  // once the account is genuinely gone.
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut({ scope: "local" });
 

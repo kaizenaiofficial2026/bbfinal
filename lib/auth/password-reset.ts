@@ -119,6 +119,23 @@ export async function createAndSendResetCode({
       return;
     }
 
+    // A STAFF account may only be reset through the admin flow, which mails the
+    // code to ADMIN_SECURITY_INBOX rather than the account's own mailbox. The
+    // public /forgot-password form would otherwise issue a working code for an
+    // admin account and send it to that admin's inbox, quietly bypassing that
+    // control. Returning silently keeps the form's "if the address exists we've
+    // emailed it" behaviour, so this doesn't reveal which addresses are staff.
+    if (audience === "customer") {
+      const { data: staff } = await service
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (staff) {
+        return;
+      }
+    }
+
     const code = generateCode();
     const expiresAt = new Date(
       Date.now() + OTP_TTL_MINUTES * 60 * 1000,
@@ -192,6 +209,11 @@ export async function verifyAndReset({
       .from("password_reset_codes")
       .select("id, user_id, code_hash, expires_at, attempts")
       .eq("email", lower)
+      // Scope to the flow that issued it. Without this, a code created for one
+      // audience could be redeemed through the other's form — an admin-issued
+      // code (mailed to the security inbox) being consumed by the public
+      // customer reset page, or vice versa.
+      .eq("audience", audience)
       .is("consumed_at", null)
       .order("created_at", { ascending: false })
       .limit(1);

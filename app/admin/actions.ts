@@ -623,10 +623,22 @@ export async function verifyCustomerAction(formData: FormData) {
   }
 
   if (customer) {
-    await sendAccountVerifiedEmail({
-      fullName: customer.full_name,
-      email: customer.email,
-    });
+    // The customer is ALREADY verified at this point. If the mail server hiccups,
+    // an uncaught throw would drop the admin on the error page even though the
+    // change succeeded — so they'd retry and re-send the email. Log it instead;
+    // the verification stands and the mail can be re-sent by hand.
+    try {
+      await sendAccountVerifiedEmail({
+        fullName: customer.full_name,
+        email: customer.email,
+      });
+    } catch (mailError) {
+      console.error("[verify customer] CUSTOMER VERIFIED, EMAIL NOT SENT", {
+        customerId,
+        email: customer.email,
+        error: mailError,
+      });
+    }
   }
 
   revalidatePath("/admin/users");
@@ -688,6 +700,23 @@ export async function setAdminActiveAction(formData: FormData) {
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (!active) {
+    // Revoke the tokens they already hold. `is_admin()` now refuses a
+    // deactivated profile, so RLS stops them at the database — but their issued
+    // JWT stays valid until it expires and the refresh token would keep minting
+    // new ones. A global sign-out ends the session immediately. Best-effort: the
+    // deactivation itself has already taken effect, so a failure here must not
+    // roll it back or surface an error to the super admin.
+    try {
+      await service.auth.admin.signOut(adminId, "global");
+    } catch (signOutError) {
+      console.error("[deactivate admin] could not revoke sessions", {
+        adminId,
+        error: signOutError,
+      });
+    }
   }
 
   revalidatePath("/admin/admins");
