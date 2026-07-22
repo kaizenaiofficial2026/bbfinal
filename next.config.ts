@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -21,6 +22,18 @@ const mpgsOrigin = safeOrigin(
   "https://test-seylan.mtf.gateway.mastercard.com",
 );
 const supabaseOrigin = safeOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL);
+// Sentry's ingest host, derived from the DSN so it follows the project's region
+// (ours is .de). The browser SDK POSTs events here; without it in connect-src the
+// CSP silently drops every client-side error and the dashboard just looks empty.
+const sentryOrigin = (() => {
+  const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+  if (!dsn) return "";
+  try {
+    return new URL(dsn).origin;
+  } catch {
+    return "";
+  }
+})();
 // Hostname for next/image. Admin-uploaded package/destination media is served
 // from Supabase Storage (https://<project>.supabase.co/storage/v1/object/public/…).
 // Without whitelisting it, the optimizer throws "hostname not configured" and any
@@ -56,7 +69,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseOrigin} https://*.supabase.co wss://*.supabase.co ${mpgsOrigin} https://*.gateway.mastercard.com ${vercelScript} ${vercelVitals}`,
+  `connect-src 'self' ${supabaseOrigin} https://*.supabase.co wss://*.supabase.co ${mpgsOrigin} https://*.gateway.mastercard.com ${vercelScript} ${vercelVitals} ${sentryOrigin}`,
   `frame-src 'self' ${mpgsOrigin} https://*.gateway.mastercard.com`,
 ]
   .map((directive) => directive.replace(/\s+/g, " ").trim())
@@ -117,4 +130,19 @@ const nextConfig: NextConfig = {
   },
 } as NextConfig & { reactCompiler: boolean };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  // Source maps are uploaded only when an auth token is present, so a build
+  // without one (local, or CI without secrets) still succeeds — it just yields
+  // minified stack traces.
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: true,
+  // Strip the maps from the client bundle after upload so the readable source
+  // isn't served to browsers.
+  sourcemaps: { deleteSourcemapsAfterUpload: true },
+  // NOTE: `tunnelRoute` is deliberately NOT set. It proxies events through our
+  // own domain to dodge ad blockers, but the route is not generated under
+  // Turbopack (it 404s), which would break client-side reporting entirely. The
+  // SDK posts straight to Sentry instead, which the CSP connect-src allows.
+});

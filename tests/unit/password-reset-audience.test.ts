@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  */
 
 const insert = vi.fn(async () => ({ error: null }));
-const sendPasswordResetEmail = vi.fn(async () => {});
+const sendPasswordResetEmail = vi.fn(async (..._args: unknown[]) => {});
 let profileRow: { id: string } | null = null;
 const capturedFilters: Record<string, unknown> = {};
 
