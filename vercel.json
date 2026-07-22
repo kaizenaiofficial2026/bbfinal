@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/payments/reconcile-pending",
+      "schedule": "0 2 * * *"
+    }
+  ],
+  "functions": {
+    "app/api/payments/**": {
+      "maxDuration": 60
+    }
+  }
+}

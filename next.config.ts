@@ -81,16 +81,19 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   reactCompiler: true,
   experimental: {
-    // Admin image uploads run through Server Actions. Next caps action request
-    // bodies at 1MB by default, so any real photo (the app allows up to 8MB per
-    // image, and a package/destination can post BOTH a card and hero image in one
-    // form) failed the whole save with an opaque "unexpected response" error that
-    // dropped the admin onto the error page. Raise the limit to comfortably cover
-    // two 8MB images plus the form fields and multipart overhead. The forms also
-    // validate sizes in the browser so an over-limit upload is caught with a
-    // friendly message before it is ever sent.
+    // Next caps Server Action request bodies at 1MB by default, which is too
+    // small for the admin forms, so this is raised — but NOT past 4.5MB, because
+    // Vercel enforces a hard 4.5MB cap on serverless request bodies that this
+    // setting cannot override. A larger value here works locally and then returns
+    // a platform 413 in production only, which is the worst kind of bug.
+    //
+    // Package/destination photos do NOT count against this: MediaUploadField
+    // uploads them straight from the browser to Supabase Storage via a signed URL
+    // (lib/admin/upload-media.ts) and submits only the resulting URL. The one path
+    // that does put bytes in the body is the support-ticket screenshot, which is
+    // sent as base64 and is capped at 2MB in the browser.
     serverActions: {
-      bodySizeLimit: "20mb",
+      bodySizeLimit: "4mb",
     },
   },
   images: {

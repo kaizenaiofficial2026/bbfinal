@@ -196,6 +196,25 @@ export async function signInAction(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   const email = formString(formData, "email");
   const password = formString(formData, "password");
+
+  // Throttle admin sign-in like the customer login. One shared admin password
+  // guards all customer PII, so brute force here is the highest-value target;
+  // only Supabase's default endpoint limits stood in the way before. Scope by
+  // (IP, email) so a shared office/CGNAT IP doesn't lock out the whole team.
+  const ipHash = await getRequestIpHash();
+  const rate = await checkAndRecordRateLimit(
+    "admin-login",
+    scopedRateKey(ipHash, email),
+    { max: 8, windowMinutes: 15 },
+  );
+  if (!rate.allowed) {
+    redirect(
+      `/admin/login?error=${encodeURIComponent(
+        rateLimitMessage(rate.retryAfterSeconds),
+      )}`,
+    );
+  }
+
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {

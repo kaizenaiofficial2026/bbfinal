@@ -140,7 +140,15 @@ export async function reconcilePayment(
         },
       });
     } catch (error) {
-      console.error("[invoice email failed]", error);
+      // The customer has been charged but has no receipt. Log the order details,
+      // not just the error, so it can be found and the invoice re-sent by hand.
+      console.error("[invoice email failed] CUSTOMER CHARGED, NO RECEIPT SENT", {
+        reference,
+        paymentId: payment.id,
+        email: primary.email,
+        amount: `${payment.currency} ${Number(payment.amount).toFixed(2)}`,
+        error,
+      });
     }
 
     // One order-level payment SMS — to the business (env number) and the customer

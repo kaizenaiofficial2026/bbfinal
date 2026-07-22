@@ -65,6 +65,42 @@ export async function getPaymentByToken(token: string) {
   return data as PaymentWithBookings | null;
 }
 
+/**
+ * Payments that were started but never reached a terminal state.
+ *
+ * Reconciliation normally happens on the MPGS webhook, or when the customer
+ * lands back on the result page. If the webhook misfires AND the customer closes
+ * the tab, the money is captured but the order stays `pending` forever — no
+ * receipt, and nothing retrying. The scheduled job re-checks these against the
+ * gateway so a captured payment can't be lost.
+ *
+ * `olderThanMinutes` skips in-flight checkouts, which are legitimately pending
+ * while the customer is still on the card page.
+ */
+export async function listStalePendingPayments(options?: {
+  olderThanMinutes?: number;
+  limit?: number;
+}) {
+  const olderThanMinutes = options?.olderThanMinutes ?? 15;
+  const limit = options?.limit ?? 25;
+  const cutoff = new Date(Date.now() - olderThanMinutes * 60_000).toISOString();
+
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("payments")
+    .select(ORDER_SELECT)
+    .in("status", ["pending", "initiated"])
+    .lt("created_at", cutoff)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    dbError(error);
+  }
+
+  return (data ?? []) as PaymentWithBookings[];
+}
+
 export async function getPaymentByOrderId(orderId: string) {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase

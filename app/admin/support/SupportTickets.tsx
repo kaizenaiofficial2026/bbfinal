@@ -29,6 +29,11 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Closed",
 };
 
+// Attachments travel as base64 in the Server Action body (~33% larger than the
+// file). Keep the raw file well under Vercel's hard 4.5 MB request-body cap.
+const MAX_ATTACHMENT_MB = 2;
+const MAX_ATTACHMENT_BYTES = MAX_ATTACHMENT_MB * 1024 * 1024;
+
 export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
   const router = useRouter();
   const toast = useToast();
@@ -82,6 +87,19 @@ export default function SupportTickets({ tickets }: { tickets: Ticket[] }) {
       setImage(undefined);
       return;
     }
+
+    // The screenshot is submitted as a base64 data URL inside the request body,
+    // which inflates it by ~33%. Vercel caps a Server Action body at 4.5 MB
+    // regardless of next.config's bodySizeLimit, so anything much over 2 MB
+    // would fail in production only — with no useful message. Reject it here.
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      toast.error(
+        `That image is ${(file.size / (1024 * 1024)).toFixed(1)} MB. The maximum is ${MAX_ATTACHMENT_MB} MB.`,
+      );
+      setFileKey((k) => k + 1);
+      return;
+    }
+
     setRemoved(false);
     const reader = new FileReader();
     reader.onload = () =>

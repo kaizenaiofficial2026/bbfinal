@@ -24,7 +24,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  await reconcilePayment(payment);
+  try {
+    await reconcilePayment(payment);
+  } catch (error) {
+    // An uncaught throw here became an opaque, unlogged 500 — so a persistently
+    // failing webhook was invisible. Log it with enough context to find the
+    // order, and still return 500 so the gateway retries.
+    console.error("[payment webhook] reconcile failed", {
+      orderId,
+      paymentId: payment.id,
+      error,
+    });
+    return NextResponse.json({ error: "Reconcile failed." }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

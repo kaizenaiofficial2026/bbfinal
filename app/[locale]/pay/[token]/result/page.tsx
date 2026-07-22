@@ -23,9 +23,26 @@ export default async function PaymentResultPage({ params }: ResultPageProps) {
   if (bookings.length && env.paymentsEnabled) {
     // Idempotent: safe even if the webhook already finalized this payment, or
     // the customer refreshes this page — no duplicate receipt is sent.
-    const result = await reconcilePayment(payment!);
-    paid = result.captured;
-    message = result.captured ? t("resultReceived") : t("resultNotConfirmed");
+    try {
+      const result = await reconcilePayment(payment!);
+      paid = result.captured;
+      message = result.captured ? t("resultReceived") : t("resultNotConfirmed");
+    } catch (error) {
+      // This page renders for someone who has JUST PAID. `retrieveOrder` throws
+      // on any non-OK gateway response or network blip, and an uncaught throw
+      // here would hand that customer a full error page — so they'd believe the
+      // payment failed and either pay again or raise a dispute. Fall back to the
+      // status we already hold; the webhook still finalises the order.
+      console.error("[pay result reconcile failed]", {
+        reference: orderReference(payment!),
+        paymentId: payment!.id,
+        error,
+      });
+      paid =
+        payment!.status === "captured" ||
+        bookings.every((b) => b.status === "paid");
+      message = paid ? t("resultReceived") : t("resultNotConfirmed");
+    }
   } else if (bookings.length) {
     paid =
       payment!.status === "captured" || bookings.every((b) => b.status === "paid");
