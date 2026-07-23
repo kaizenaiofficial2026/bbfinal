@@ -2636,14 +2636,52 @@ body.menu-open .menu-toggle span::after {
 }
 
 /* Tighten the calendar so seven columns still breathe in a narrow field. */
-@media (max-width: 400px) {
+/* Narrow fields (mobile, and the register form's inset card) leave the popover
+   only ~230px. Shrink the chrome so seven columns and the month heading all fit
+   on one line instead of clipping and wrapping. */
+@media (max-width: 480px) {
   .datepicker-pop {
-    padding: 12px 10px;
+    padding: 12px 8px;
+  }
+
+  .dp-nav {
+    width: 26px;
+    height: 26px;
+    font-size: 16px;
+  }
+
+  .dp-month {
+    font-size: 13px;
+  }
+
+  .dp-weekday {
+    height: 26px;
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+
+  .dp-day,
+  .dp-blank {
+    height: 34px;
   }
 
   .dp-day {
-    height: 34px;
     font-size: 13px;
+  }
+}
+
+/* Very narrow fields (~230px of popover on a 320px screen). Four arrows at 26px
+   plus gaps left too little for the month label, so it ran over the next-month
+   arrow. Shrink both so the whole header fits with room to spare. */
+@media (max-width: 360px) {
+  .dp-nav {
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+  }
+
+  .dp-month {
+    font-size: 12px;
   }
 }
 
@@ -2651,6 +2689,7 @@ body.menu-open .menu-toggle span::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 4px;
   margin-bottom: 10px;
 }
 
@@ -2658,6 +2697,8 @@ body.menu-open .menu-toggle span::after {
   display: flex;
   align-items: center;
   gap: 2px;
+  /* Four 32px arrows must not squeeze the month label into wrapping. */
+  flex: 0 0 auto;
 }
 
 .dp-month {
@@ -2665,6 +2706,16 @@ body.menu-open .menu-toggle span::after {
   font-size: 15px;
   font-weight: 600;
   color: var(--ink);
+  /* "January 2000" was breaking onto two lines and pushing the grid down.
+     nowrap alone just traded that for the text spilling over the next-month
+     arrow, so clip as a last resort — the breakpoints below size the chrome so
+     it genuinely fits and this never actually triggers. */
+  white-space: nowrap;
+  text-align: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dp-nav {
@@ -2687,7 +2738,12 @@ body.menu-open .menu-toggle span::after {
 
 .dp-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /* minmax(0, …) is load-bearing: a bare `1fr` is `minmax(auto, 1fr)`, so each
+     column refuses to shrink below its min-content width. The weekday headings
+     then forced the grid wider than the popover and the Saturday column was
+     clipped off the edge. Worse in non-English locales, where
+     Intl's "short" weekday names are longer than SUN/MON. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 2px;
 }
 
@@ -2700,6 +2756,9 @@ body.menu-open .menu-toggle span::after {
   font-weight: 600;
   text-transform: uppercase;
   color: var(--muted);
+  /* Long localized labels get trimmed rather than widening the whole grid. */
+  min-width: 0;
+  overflow: hidden;
 }
 
 .dp-blank {
