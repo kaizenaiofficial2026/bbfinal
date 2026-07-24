@@ -23,7 +23,12 @@ function loadEnv(): Record<string, string> {
   );
 }
 
-const env = loadEnv();
+const fileEnv = loadEnv();
+const env = new Proxy(fileEnv, {
+  get(target, key: string) {
+    return process.env[key] ?? target[key];
+  },
+});
 
 export const SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL;
 export const ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -64,6 +69,13 @@ export type TestCustomer = {
   id: string;
   email: string;
   password: string;
+};
+
+export type TestAdmin = {
+  id: string;
+  email: string;
+  password: string;
+  tier: "super" | "second";
 };
 
 /** Create a real auth user + customers row via the service role. */
@@ -114,15 +126,58 @@ export async function createCustomer(opts: {
   return { id, email, password };
 }
 
+/** Create an isolated staff account with a database-enforced admin tier. */
+export async function createAdmin(
+  tier: "super" | "second",
+): Promise<TestAdmin> {
+  const sb = service();
+  const email = testEmail(`${tier}-admin`);
+  const password = "QaAdmin!2026";
+
+  const { data: created, error } = await sb.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: `QA ${tier} admin` },
+    app_metadata: { admin_tier: tier },
+  });
+  if (error || !created.user) {
+    throw new Error(`createAdmin auth failed: ${error?.message}`);
+  }
+
+  const { error: profileError } = await sb.from("profiles").upsert(
+    {
+      id: created.user.id,
+      role: "admin",
+      full_name: `QA ${tier} admin`,
+      active: true,
+      tier,
+    },
+    { onConflict: "id" },
+  );
+  if (profileError) {
+    await sb.auth.admin.deleteUser(created.user.id);
+    throw new Error(`createAdmin profile failed: ${profileError.message}`);
+  }
+
+  return { id: created.user.id, email, password, tier };
+}
+
 /** Ensure the allowlisted admin auth user exists with a known password. */
 export async function ensureAdmin(): Promise<{ email: string; password: string }> {
   const sb = service();
   const { data } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 });
   const existing = data?.users.find((u) => u.email === TEST_ADMIN.email);
+  let adminId: string;
 
   if (existing) {
+    adminId = existing.id;
     await sb.auth.admin.updateUserById(existing.id, {
       password: TEST_ADMIN.password,
+      app_metadata: {
+        ...(existing.app_metadata ?? {}),
+        admin_tier: "super",
+      },
       // Clear any held single-active-admin seat (user_metadata.admin_session) so
       // the test login is never contested into the waiting screen.
       user_metadata: {
@@ -131,14 +186,33 @@ export async function ensureAdmin(): Promise<{ email: string; password: string }
       },
     });
   } else {
-    const { error } = await sb.auth.admin.createUser({
+    const { data: created, error } = await sb.auth.admin.createUser({
       email: TEST_ADMIN.email,
       password: TEST_ADMIN.password,
       email_confirm: true,
       user_metadata: { full_name: "QA Admin" },
+      app_metadata: { admin_tier: "super" },
     });
-    if (error) throw new Error(`ensureAdmin failed: ${error.message}`);
+    if (error || !created.user) {
+      throw new Error(`ensureAdmin failed: ${error?.message}`);
+    }
+    adminId = created.user.id;
   }
+
+  const { error: profileError } = await sb.from("profiles").upsert(
+    {
+      id: adminId,
+      role: "admin",
+      full_name: "QA Admin",
+      active: true,
+      tier: "super",
+    },
+    { onConflict: "id" },
+  );
+  if (profileError) {
+    throw new Error(`ensureAdmin profile failed: ${profileError.message}`);
+  }
+
   return { ...TEST_ADMIN };
 }
 
@@ -179,6 +253,9 @@ export async function cleanupTestData(): Promise<void> {
   }
   await sb.from("password_reset_codes").delete().ilike("email", pattern);
   await sb.from("customers").delete().ilike("email", pattern);
+  await sb.from("enquiries").delete().ilike("email", pattern);
+  await sb.from("custom_inquiries").delete().ilike("email", pattern);
+  await sb.from("destinations").delete().like("slug", "qa-%");
 
   // Remove the auth users themselves.
   const { data: users } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 });

@@ -253,6 +253,7 @@ export type Database = {
           role: "admin";
           full_name: string | null;
           active: boolean;
+          tier: "super" | "second";
         };
         Insert: Partial<Database["public"]["Tables"]["profiles"]["Row"]> &
           Pick<Database["public"]["Tables"]["profiles"]["Row"], "id">;

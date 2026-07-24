@@ -11,10 +11,9 @@ export const env = {
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean),
-  // Subset of ADMIN_ALLOWED_EMAILS with SUPER-admin (full) access. Allowlisted
-  // emails NOT listed here are second-level admins with restricted access (see
-  // lib/admin/auth.ts). If empty, every admin is a super admin — preserving the
-  // original single-tier behaviour.
+  // Existing profile-backed admins listed here are synced to SUPER access.
+  // Panel-created accounts carry an explicit service-role-only tier stamp, which
+  // takes precedence. If empty, existing unstamped admins remain single-tier.
   superAdminEmails: (process.env.SUPER_ADMIN_EMAILS ?? "")
     .split(",")
     .map((email) => email.trim().toLowerCase())

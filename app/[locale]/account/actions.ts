@@ -84,11 +84,9 @@ export async function registerAction(formData: FormData) {
 
   const email = parsed.data.email.trim().toLowerCase();
 
-  // PRIVILEGE ESCALATION GUARD. `getAdminUser()` bootstraps a staff `profiles`
-  // row for any authenticated user whose email is in ADMIN_ALLOWED_EMAILS. Since
-  // signup is public and Supabase email confirmation is OFF, registering with a
-  // staff address would hand the registrant a real admin account. Staff accounts
-  // are provisioned by a super admin (createAdminAction), never self-served.
+  // Keep staff identities out of customer self-service. Admin authorization no
+  // longer trusts this allowlist by itself, but reserving these addresses also
+  // prevents account confusion and password-reset audience collisions.
   if (
     env.adminAllowedEmails.includes(email) ||
     env.superAdminEmails.includes(email)

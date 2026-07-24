@@ -13,22 +13,50 @@ import {
 import { getAdminSessionId, heartbeatAdminSession } from "@/lib/admin/session";
 
 /**
- * Ensure an allowlisted staff member has a `profiles` row. The app-layer
- * allowlist (ADMIN_ALLOWED_EMAILS) and the database RLS `is_admin()` check
- * must agree: RLS only trusts `profiles`, so without this an allowlisted admin
- * would pass `requireAdmin()` yet read/write nothing through RLS. Bootstrapping
- * the profile here keeps the two in sync. Uses the service client because RLS
- * "Admins manage profiles" would otherwise block the very first insert.
+ * Bootstrap only accounts carrying a service-role-only tier stamp. Email
+ * ownership is not sufficient authorization: public sign-up can create an auth
+ * user for an allowlisted address when email confirmation is disabled.
  */
-async function ensureAdminProfile(userId: string, fullName: string | null) {
+async function provisionStampedAdminProfile(
+  userId: string,
+  fullName: string | null,
+  tier: AdminTier,
+) {
   if (!canUseSupabaseService()) {
-    return;
+    return false;
   }
 
   const service = createSupabaseServiceClient();
-  await service
-    .from("profiles")
-    .upsert({ id: userId, role: "admin", full_name: fullName }, { onConflict: "id" });
+  const { error } = await service.from("profiles").upsert(
+    {
+      id: userId,
+      role: "admin",
+      full_name: fullName,
+      active: true,
+      tier,
+    },
+    { onConflict: "id" },
+  );
+
+  if (error) {
+    console.error("Failed to provision stamped admin profile", error.message);
+    return false;
+  }
+
+  return true;
+}
+
+function withAdminTier<T extends { app_metadata: Record<string, unknown> }>(
+  user: T,
+  tier: AdminTier,
+): T {
+  return {
+    ...user,
+    app_metadata: {
+      ...user.app_metadata,
+      [ADMIN_TIER_KEY]: tier,
+    },
+  };
 }
 
 export async function getAdminUser() {
@@ -49,7 +77,7 @@ export async function getAdminUser() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, active")
+    .select("role, active, tier")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -57,32 +85,56 @@ export async function getAdminUser() {
     // A deactivated admin is denied everywhere — this blocks their login and
     // kicks any live session on the next request (requireAdmin → null → login).
     if (profile.role === "admin" && profile.active !== false) {
-      return user;
+      const configuredTier: AdminTier =
+        readAdminTier(user.app_metadata) ??
+        (isSuperAdminEmail(email) ? "super" : "second");
+      let effectiveTier: AdminTier =
+        profile.tier === "super" ? "super" : "second";
+
+      if (configuredTier !== effectiveTier && canUseSupabaseService()) {
+        const service = createSupabaseServiceClient();
+        const { error: tierError } = await service
+          .from("profiles")
+          .update({ tier: configuredTier })
+          .eq("id", user.id);
+
+        if (tierError) {
+          console.error("Failed to sync admin tier", tierError.message);
+        } else {
+          effectiveTier = configuredTier;
+        }
+      }
+
+      return withAdminTier(user, effectiveTier);
     }
     return null;
   }
 
-  // No profile row yet: allowlisted staff bootstrap themselves (active defaults
-  // to true). A deactivated admin already has a row, so is denied above and can
-  // never re-activate through this path.
-  if (env.adminAllowedEmails.includes(email)) {
-    const fullName =
-      typeof user.user_metadata?.full_name === "string"
-        ? user.user_metadata.full_name
-        : null;
-    await ensureAdminProfile(user.id, fullName);
-    return user;
+  // A missing profile may only be created for an account explicitly stamped by
+  // the service-role Admin API. Never bootstrap from an email allowlist alone.
+  const stampedTier = readAdminTier(user.app_metadata);
+  if (!stampedTier) {
+    return null;
   }
 
-  return null;
+  const fullName =
+    typeof user.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name
+      : null;
+  const provisioned = await provisionStampedAdminProfile(
+    user.id,
+    fullName,
+    stampedTier,
+  );
+
+  return provisioned ? withAdminTier(user, stampedTier) : null;
 }
 
 /**
  * Admin tiers. A SUPER admin has full access; a second-level admin is limited to
  * Dashboard (view), Bookings, Customers, Support panel and Settings. Both tiers
- * are `role = 'admin'` in `profiles` (RLS's `is_admin()` stays the coarse gate;
- * the fine-grained limits are enforced in the app layer: nav filtering + page and
- * action guards).
+ * are `role = 'admin'` in `profiles`. The tier is enforced both in RLS and in
+ * application navigation/action guards.
  *
  * Tier for admins bootstrapped from the env allowlist is config-driven
  * (SUPER_ADMIN_EMAILS). Admins CREATED in the panel can't use config — env vars
@@ -205,7 +257,7 @@ export async function listAdmins(): Promise<AdminAccount[]> {
   const service = createSupabaseServiceClient();
   const { data: profiles } = await service
     .from("profiles")
-    .select("id, full_name, active, created_at")
+    .select("id, full_name, active, tier, created_at")
     .eq("role", "admin")
     .order("created_at", { ascending: true });
 
@@ -217,15 +269,32 @@ export async function listAdmins(): Promise<AdminAccount[]> {
     profiles.map(async (profile) => {
       const { data } = await service.auth.admin.getUserById(profile.id);
       const email = data.user?.email ?? null;
+      const configuredTier: AdminTier = data.user
+        ? readAdminTier(data.user.app_metadata) ??
+          (isSuperAdminEmail(email) ? "super" : "second")
+        : profile.tier === "super"
+          ? "super"
+          : "second";
+      let effectiveTier: AdminTier =
+        profile.tier === "super" ? "super" : "second";
+
+      if (configuredTier !== effectiveTier) {
+        const { error: tierError } = await service
+          .from("profiles")
+          .update({ tier: configuredTier })
+          .eq("id", profile.id);
+
+        if (!tierError) {
+          effectiveTier = configuredTier;
+        }
+      }
+
       return {
         id: profile.id,
         email,
         fullName: profile.full_name,
         active: profile.active,
-        isSuper: resolveIsSuperAdmin({
-          email,
-          appMetadata: data.user?.app_metadata,
-        }),
+        isSuper: effectiveTier === "super",
       };
     }),
   );

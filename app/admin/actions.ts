@@ -731,8 +731,8 @@ export async function setAdminActiveAction(formData: FormData) {
  * only) rather than left to the env fallback, which treats every admin as super
  * when SUPER_ADMIN_EMAILS is empty.
  *
- * No env change is needed for the new admin to sign in: ADMIN_ALLOWED_EMAILS is
- * only the bootstrap path for staff WITHOUT a profile row, and this creates one.
+ * No env change is needed for the new admin to sign in: the service-created auth
+ * stamp and profile row are the authorization credentials.
  */
 export async function createAdminAction(
   formData: FormData,
@@ -789,7 +789,13 @@ export async function createAdminAction(
   // RLS's is_admin() trusts. Roll the auth user back if it can't be written, so a
   // half-created account can never linger.
   const { error: profileError } = await service.from("profiles").upsert(
-    { id: created.user.id, role: "admin", full_name: fullName, active: true },
+    {
+      id: created.user.id,
+      role: "admin",
+      full_name: fullName,
+      active: true,
+      tier: "second",
+    },
     { onConflict: "id" },
   );
 
