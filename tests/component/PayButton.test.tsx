@@ -4,16 +4,25 @@ import { renderIntl as render } from "./intl-render";
 import PayButton from "@/app/[locale]/pay/[token]/PayButton";
 
 describe("PayButton", () => {
-  it("keeps Pay securely disabled until the terms checkbox is ticked", () => {
+  it("requires both terms and privacy consent before enabling payment", () => {
     render(<PayButton token="tok" scriptUrl="https://example.com/checkout.js" />);
 
     const button = screen.getByRole("button", { name: /pay securely/i });
-    const checkbox = screen.getByRole("checkbox");
+    const terms = screen.getByRole("checkbox", {
+      name: /terms and conditions/i,
+    });
+    const privacy = screen.getByRole("checkbox", { name: /privacy policy/i });
 
     expect(button).toBeDisabled();
-    fireEvent.click(checkbox);
+    fireEvent.click(terms);
+    expect(button).toBeDisabled();
+    fireEvent.click(privacy);
     expect(button).toBeEnabled();
-    fireEvent.click(checkbox);
+    fireEvent.click(terms);
+    expect(button).toBeDisabled();
+    fireEvent.click(terms);
+    expect(button).toBeEnabled();
+    fireEvent.click(privacy);
     expect(button).toBeDisabled();
   });
 
@@ -23,9 +32,40 @@ describe("PayButton", () => {
     render(<PayButton token="tok" scriptUrl="x" />);
 
     const trigger = screen.getByRole("button", { name: /terms and conditions/i });
+    const checkbox = screen.getByRole("checkbox", {
+      name: /terms and conditions/i,
+    });
     expect(screen.queryByRole("dialog")).toBeNull();
 
     fireEvent.click(trigger);
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: /terms (?:&|and) conditions/i }),
+    ).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it("opens the supplied privacy policy in a matching dialog", () => {
+    render(<PayButton token="tok" scriptUrl="x" />);
+
+    const trigger = screen.getByRole("button", { name: /privacy policy/i });
+    const checkbox = screen.getByRole("checkbox", { name: /privacy policy/i });
+    expect(
+      screen.queryByRole("dialog", { name: /privacy policy/i }),
+    ).toBeNull();
+
+    fireEvent.click(trigger);
+
+    expect(
+      screen.getByRole("dialog", { name: /privacy policy/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: /controlling your personal information/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/credit card number will not be saved/i),
+    ).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
   });
 });

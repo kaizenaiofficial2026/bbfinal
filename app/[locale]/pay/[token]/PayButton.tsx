@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Spinner from "@/components/Spinner";
+import { PrivacyPolicyDialog } from "@/components/PrivacyPolicyDialog";
 import { TermsDialog } from "@/components/TermsDialog";
 
 declare global {
@@ -39,27 +40,48 @@ export default function PayButton({
 }) {
   const t = useTranslations("pay");
   const [pending, setPending] = useState(false);
-  const [agreed, setAgreed] = useState(false);
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [agreedPrivacy, setAgreedPrivacy] = useState(false);
   const [error, setError] = useState("");
 
   return (
     <div>
-      <label className="pay-terms">
-        <input
-          type="checkbox"
-          checked={agreed}
-          onChange={(e) => setAgreed(e.target.checked)}
-        />
-        <span>
-          {t.rich("agreeTerms", {
-            terms: (chunks) => <TermsDialog>{chunks}</TermsDialog>,
-          })}
-        </span>
-      </label>
+      <div className="pay-consents" role="group" aria-label={t("agreements")}>
+        <div className="pay-terms">
+          <input
+            id="agree-terms"
+            type="checkbox"
+            checked={agreedTerms}
+            onChange={(e) => setAgreedTerms(e.target.checked)}
+            aria-labelledby="agree-terms-label"
+          />
+          <span id="agree-terms-label">
+            {t.rich("agreeTerms", {
+              terms: (chunks) => <TermsDialog>{chunks}</TermsDialog>,
+            })}
+          </span>
+        </div>
+        <div className="pay-terms">
+          <input
+            id="agree-privacy"
+            type="checkbox"
+            checked={agreedPrivacy}
+            onChange={(e) => setAgreedPrivacy(e.target.checked)}
+            aria-labelledby="agree-privacy-label"
+          />
+          <span id="agree-privacy-label">
+            {t.rich("agreePrivacy", {
+              privacy: (chunks) => (
+                <PrivacyPolicyDialog>{chunks}</PrivacyPolicyDialog>
+              ),
+            })}
+          </span>
+        </div>
+      </div>
       <button
         className="btn btn-primary"
         type="button"
-        disabled={pending || !agreed}
+        disabled={pending || !agreedTerms || !agreedPrivacy}
         onClick={async () => {
           setPending(true);
           setError("");

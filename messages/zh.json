@@ -230,7 +230,9 @@
     "resultDisabled": "支付已停用。凭证启用后，此返回页面即可用于 MPGS。",
     "contactTeam": "联系团队",
     "chargeNote": "你将被收取 {amount}，以斯里兰卡卢比（LKR）结算。",
-    "agreeTerms": "我已阅读并同意<terms>条款与条件</terms>。"
+    "agreeTerms": "我已阅读并同意<terms>条款与条件</terms>。",
+    "agreePrivacy": "我已阅读并同意<privacy>隐私政策</privacy>。",
+    "agreements": "必需的同意事项"
   },
   "bookingPage": {
     "heroLabel": "行程结账",
