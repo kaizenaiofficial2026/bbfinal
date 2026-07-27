@@ -6,6 +6,41 @@ import { checkAndRecordRateLimit } from "@/lib/data/rate-limit";
 import { getRequestIpHash, isExpired } from "@/lib/security/request";
 import { toRetryMinutes } from "@/lib/security/retry-after";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import {
+  CHECKOUT_PRIVACY_VERSION,
+  CHECKOUT_TERMS_VERSION,
+} from "@/lib/payments/consent";
+
+const SESSION_REUSE_MS = 20 * 60_000;
+const SESSION_CREATION_LOCK_MS = 90_000;
+
+function ageMs(timestamp: string) {
+  const value = Date.parse(timestamp);
+  return Number.isFinite(value) ? Math.max(0, Date.now() - value) : Infinity;
+}
+
+function sessionAgeMs(payment: {
+  updated_at: string;
+  gateway_result?: unknown;
+}) {
+  const audit = payment.gateway_result;
+  const sessionCreatedAt =
+    audit && typeof audit === "object" && !Array.isArray(audit)
+      ? (audit as { sessionCreatedAt?: unknown }).sessionCreatedAt
+      : undefined;
+  return ageMs(
+    typeof sessionCreatedAt === "string"
+      ? sessionCreatedAt
+      : payment.updated_at,
+  );
+}
+
+function retryResponse() {
+  return NextResponse.json(
+    { error: "A payment session is already being prepared. Please try again." },
+    { status: 409, headers: { "Retry-After": "3" } },
+  );
+}
 
 export async function POST(request: Request) {
   if (!env.paymentsEnabled) {
@@ -18,7 +53,7 @@ export async function POST(request: Request) {
   if (origin) {
     let sameOrigin = false;
     try {
-      sameOrigin = new URL(origin).host === request.headers.get("host");
+      sameOrigin = new URL(origin).origin === new URL(request.url).origin;
     } catch {
       sameOrigin = false;
     }
@@ -49,7 +84,33 @@ export async function POST(request: Request) {
     );
   }
 
-  const { token } = await request.json();
+  let input: {
+    token?: unknown;
+    acceptedTerms?: unknown;
+    acceptedPrivacy?: unknown;
+  };
+  try {
+    const parsed: unknown = await request.json();
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    }
+    input = parsed;
+  } catch {
+    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  }
+
+  if (input.acceptedTerms !== true || input.acceptedPrivacy !== true) {
+    return NextResponse.json(
+      { error: "Please accept the terms and privacy policy before paying." },
+      { status: 400 },
+    );
+  }
+
+  const token = typeof input.token === "string" ? input.token.trim() : "";
+  if (!token || token.length > 256) {
+    return NextResponse.json({ error: "Invalid payment link." }, { status: 400 });
+  }
+
   const payment = await getPaymentByToken(String(token ?? ""));
 
   if (!payment?.bookings?.length) {
@@ -62,46 +123,142 @@ export async function POST(request: Request) {
 
   const alreadyPaid =
     payment.status === "captured" ||
+    payment.status === "refunded" ||
     payment.bookings.every((b) => b.status === "paid");
   if (alreadyPaid) {
     return NextResponse.json({ error: "Payment already completed." }, { status: 409 });
   }
 
-  // Surface a real reason if the gateway rejects the session (e.g. an
-  // unsupported currency) instead of letting it become an unhandled 500 — that
-  // crashes the client's response.json() into a misleading "string did not
-  // match the expected pattern" error.
+  // A live MID is provisioned for a specific presentment currency. Do not let a
+  // stale/mistyped package currency reach MPGS and fail after the customer has
+  // already committed to paying.
+  const expectedCurrency = env.mpgsCurrency.trim().toUpperCase();
+  const paymentCurrency = String(payment.currency ?? "").trim().toUpperCase();
+  if (
+    !/^[A-Z]{3}$/.test(expectedCurrency) ||
+    paymentCurrency !== expectedCurrency
+  ) {
+    console.error("[create-session] payment currency is not enabled", {
+      paymentId: payment.id,
+      expectedCurrency,
+      paymentCurrency,
+    });
+    return NextResponse.json(
+      { error: "This order cannot currently be paid online. Please contact us." },
+      { status: 409 },
+    );
+  }
+
+  // Reuse a recently-created session. This makes browser retries and a second
+  // tab idempotent instead of producing competing Hosted Checkout sessions.
+  if (
+    payment.status === "pending" &&
+    payment.mpgs_session_id &&
+    sessionAgeMs(payment) < SESSION_REUSE_MS
+  ) {
+    return NextResponse.json({ sessionId: payment.mpgs_session_id });
+  }
+
+  // `pending` + no session is the short-lived optimistic lock used by another
+  // request while it talks to MPGS. A crashed lock becomes reclaimable.
+  if (
+    payment.status === "pending" &&
+    !payment.mpgs_session_id &&
+    ageMs(payment.updated_at) < SESSION_CREATION_LOCK_MS
+  ) {
+    return retryResponse();
+  }
+
+  const supabase = createSupabaseServiceClient();
+  const previousStatus = payment.status;
+  const previousSessionId = payment.mpgs_session_id;
+  const { data: claimed, error: claimError } = await supabase
+    .from("payments")
+    .update({ status: "pending", mpgs_session_id: null })
+    .eq("id", payment.id)
+    .eq("updated_at", payment.updated_at)
+    .in("status", ["initiated", "pending", "failed"])
+    .select("id, updated_at")
+    .maybeSingle();
+
+  if (claimError) {
+    console.error("[create-session] could not claim payment", {
+      paymentId: payment.id,
+      error: claimError,
+    });
+    return NextResponse.json(
+      { error: "We couldn't start the payment. Please try again." },
+      { status: 500 },
+    );
+  }
+  if (!claimed) {
+    return retryResponse();
+  }
+
   let session;
   try {
     session = await createCheckoutSession({
       orderId: payment.mpgs_order_id,
       amount: payment.amount,
-      currency: payment.currency,
+      currency: paymentCurrency,
       description: `Beyond Borders order ${orderReference(payment)}`,
       returnUrl: `${env.siteUrl}/pay/${payment.pay_token}/result`,
     });
   } catch (caught) {
-    console.error("[create-session] gateway error", caught);
+    // Release only the lock this request owns. A newer request or webhook may
+    // already have moved the row; optimistic locking keeps those writes intact.
+    const { error: releaseError } = await supabase
+      .from("payments")
+      .update({
+        status: previousStatus,
+        mpgs_session_id: previousSessionId,
+      })
+      .eq("id", payment.id)
+      .eq("updated_at", claimed.updated_at);
+    console.error("[create-session] gateway request failed", {
+      paymentId: payment.id,
+      errorName: caught instanceof Error ? caught.name : "UnknownError",
+      releaseFailed: Boolean(releaseError),
+    });
     return NextResponse.json(
-      {
-        error:
-          caught instanceof Error
-            ? caught.message
-            : "We couldn't start the payment. Please contact us.",
-      },
+      { error: "We couldn't start the payment. Please try again." },
       { status: 502 },
     );
   }
 
-  const supabase = createSupabaseServiceClient();
-  await supabase
+  const acceptedAt = new Date().toISOString();
+  const { data: persisted, error: persistError } = await supabase
     .from("payments")
     .update({
       mpgs_session_id: session.id,
       status: "pending",
-      gateway_result: session.raw,
+      gateway_result: {
+        phase: "checkout_session",
+        sessionCreatedAt: acceptedAt,
+        session: session.raw,
+        consent: {
+          acceptedAt,
+          termsVersion: CHECKOUT_TERMS_VERSION,
+          privacyVersion: CHECKOUT_PRIVACY_VERSION,
+        },
+      },
     })
-    .eq("id", payment.id);
+    .eq("id", payment.id)
+    .eq("updated_at", claimed.updated_at)
+    .neq("status", "captured")
+    .select("id")
+    .maybeSingle();
+
+  if (persistError || !persisted) {
+    console.error("[create-session] could not persist gateway session", {
+      paymentId: payment.id,
+      error: persistError,
+    });
+    return NextResponse.json(
+      { error: "We couldn't start the payment. Please try again." },
+      { status: persistError ? 500 : 409 },
+    );
+  }
 
   return NextResponse.json({ sessionId: session.id });
 }

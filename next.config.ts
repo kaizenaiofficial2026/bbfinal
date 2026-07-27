@@ -7,7 +7,8 @@ const withNextIntl = createNextIntlPlugin();
 const isDev = process.env.NODE_ENV !== "production";
 
 // Origins the browser must reach for the hosted MPGS checkout and Supabase.
-// Derived from env where available, with stable wildcards for prod/test hosts.
+// MPGS is restricted to the single configured origin so a production page
+// cannot load the MTF checkout (or another gateway tenant) through a wildcard.
 function safeOrigin(value: string | undefined, fallback = "") {
   if (!value) return fallback;
   try {
@@ -19,8 +20,19 @@ function safeOrigin(value: string | undefined, fallback = "") {
 
 const mpgsOrigin = safeOrigin(
   process.env.MPGS_BASE_URL,
-  "https://test-seylan.mtf.gateway.mastercard.com",
+  process.env.VERCEL_ENV === "production"
+    ? "https://seylan.gateway.mastercard.com"
+    : "https://test-seylan.mtf.gateway.mastercard.com",
 );
+if (
+  process.env.VERCEL_ENV === "production" &&
+  process.env.PAYMENTS_ENABLED === "true" &&
+  mpgsOrigin !== "https://seylan.gateway.mastercard.com"
+) {
+  throw new Error(
+    "Production payments require MPGS_BASE_URL=https://seylan.gateway.mastercard.com",
+  );
+}
 const supabaseOrigin = safeOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL);
 // Sentry's ingest host, derived from the DSN so it follows the project's region
 // (ours is .de). The browser SDK POSTs events here; without it in connect-src the
@@ -65,12 +77,12 @@ const contentSecurityPolicy = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${mpgsOrigin} https://*.gateway.mastercard.com ${vercelScript}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${mpgsOrigin} ${vercelScript}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseOrigin} https://*.supabase.co wss://*.supabase.co ${mpgsOrigin} https://*.gateway.mastercard.com ${vercelScript} ${vercelVitals} ${sentryOrigin}`,
-  `frame-src 'self' ${mpgsOrigin} https://*.gateway.mastercard.com`,
+  `connect-src 'self' ${supabaseOrigin} https://*.supabase.co wss://*.supabase.co ${mpgsOrigin} ${vercelScript} ${vercelVitals} ${sentryOrigin}`,
+  `frame-src 'self' ${mpgsOrigin}`,
 ]
   .map((directive) => directive.replace(/\s+/g, " ").trim())
   .join("; ");

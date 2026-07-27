@@ -27,9 +27,12 @@ export default async function PayPage({ params }: PayPageProps) {
   const single = bookings.length === 1;
   const reference = orderReference(payment);
   const expired = isExpired(payment.pay_token_expires_at);
+  const refunded = payment.status === "refunded";
   const paid =
-    payment.status === "captured" || bookings.every((b) => b.status === "paid");
-  const canPay = env.paymentsEnabled && !expired && !paid;
+    !refunded &&
+    (payment.status === "captured" ||
+      bookings.every((b) => b.status === "paid"));
+  const canPay = env.paymentsEnabled && !expired && !paid && !refunded;
 
   return (
     <SiteShell>
@@ -85,7 +88,13 @@ export default async function PayPage({ params }: PayPageProps) {
               <div className="booking-total-row">
                 <span>{t("status")}</span>
                 <strong>
-                  {paid ? t("paid") : expired ? t("expired") : payment.status}
+                  {refunded
+                    ? payment.status
+                    : paid
+                      ? t("paid")
+                      : expired
+                        ? t("expired")
+                        : payment.status}
                 </strong>
               </div>
 

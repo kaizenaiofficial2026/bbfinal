@@ -5,6 +5,10 @@ import { useTranslations } from "next-intl";
 import Spinner from "@/components/Spinner";
 import { PrivacyPolicyDialog } from "@/components/PrivacyPolicyDialog";
 import { TermsDialog } from "@/components/TermsDialog";
+import {
+  CHECKOUT_PRIVACY_VERSION,
+  CHECKOUT_TERMS_VERSION,
+} from "@/lib/payments/consent";
 
 declare global {
   interface Window {
@@ -92,17 +96,39 @@ export default function PayButton({
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ token }),
+              body: JSON.stringify({
+                token,
+                acceptedTerms: agreedTerms,
+                acceptedPrivacy: agreedPrivacy,
+                termsVersion: CHECKOUT_TERMS_VERSION,
+                privacyVersion: CHECKOUT_PRIVACY_VERSION,
+              }),
             });
-            const payload = await response.json();
+            const payload = (await response.json().catch(() => null)) as {
+              error?: unknown;
+              sessionId?: unknown;
+            } | null;
 
             if (!response.ok) {
-              throw new Error(payload.error ?? t("unableStart"));
+              throw new Error(
+                typeof payload?.error === "string"
+                  ? payload.error
+                  : t("unableStart"),
+              );
+            }
+            if (
+              typeof payload?.sessionId !== "string" ||
+              payload.sessionId.length === 0
+            ) {
+              throw new Error(t("unableStart"));
             }
 
             await loadCheckoutScript(scriptUrl);
-            window.Checkout?.configure({ session: { id: payload.sessionId } });
-            window.Checkout?.showPaymentPage();
+            if (!window.Checkout) {
+              throw new Error(t("unableStart"));
+            }
+            window.Checkout.configure({ session: { id: payload.sessionId } });
+            window.Checkout.showPaymentPage();
           } catch (caught) {
             setError(caught instanceof Error ? caught.message : t("unableStart"));
           } finally {

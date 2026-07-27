@@ -230,12 +230,15 @@ export default async function AccountPage() {
                   <ul className="account-bookings">
                     {orders.map((order) => {
                       const payment = order.payment;
+                      const refunded = payment?.status === "refunded";
                       const paid =
-                        payment?.status === "captured" ||
-                        order.bookings.every((b) => b.status === "paid");
+                        !refunded &&
+                        (payment?.status === "captured" ||
+                          order.bookings.every((b) => b.status === "paid"));
                       const payable =
                         !!payment &&
                         !paid &&
+                        !refunded &&
                         !isExpired(payment.pay_token_expires_at);
                       const single = order.bookings.length === 1;
 
@@ -269,7 +272,13 @@ export default async function AccountPage() {
                           </div>
                           <div className="account-booking-side">
                             <StatusBadge
-                              status={paid ? "paid" : order.bookings[0].status}
+                              status={
+                                refunded
+                                  ? "refunded"
+                                  : paid
+                                    ? "paid"
+                                    : order.bookings[0].status
+                              }
                             />
                             {payable ? (
                               <Link

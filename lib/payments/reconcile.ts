@@ -1,5 +1,6 @@
 import "server-only";
 
+import { dbError } from "@/lib/data/errors";
 import { orderReference, type PaymentWithBookings } from "@/lib/data/payments";
 import { sendInvoiceEmails } from "@/lib/email/send";
 import { sendPaymentSms } from "@/lib/sms/send";
@@ -9,27 +10,68 @@ import { createSupabaseServiceClient } from "@/lib/supabase/service";
 export type ReconcileResult = {
   captured: boolean;
   alreadyFinalized: boolean;
+  refunded?: boolean;
 };
+
+function previousCheckoutAudit(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const audit = value as {
+    consent?: unknown;
+    sessionCreatedAt?: unknown;
+  };
+  const consent =
+    audit.consent &&
+    typeof audit.consent === "object" &&
+    !Array.isArray(audit.consent)
+      ? audit.consent
+      : undefined;
+  const sessionCreatedAt =
+    typeof audit.sessionCreatedAt === "string"
+      ? audit.sessionCreatedAt
+      : undefined;
+  return {
+    ...(consent ? { consent } : {}),
+    ...(sessionCreatedAt ? { sessionCreatedAt } : {}),
+  };
+}
 
 /**
  * Confirm a payment against MPGS and apply the outcome exactly once.
  *
- * Idempotent and concurrency-safe so it can be called from both the webhook
- * and the customer return page without sending duplicate receipts:
- *  - a fast path returns early when the payment is already captured;
- *  - the status update is guarded with `.neq("status", "captured")`, so only
- *    the single call that actually transitions the row sends the receipt email,
- *    even if the webhook and the return page race each other.
+ * Idempotent and concurrency-safe so it can be called from the webhook, return
+ * page, and scheduled recovery job without sending duplicate receipts.
+ *
+ * Bookings are marked paid before the guarded payment transition. That order is
+ * deliberate: if the booking write fails, the payment remains retryable instead
+ * of becoming permanently `captured` while its bookings still look unpaid. If
+ * the later payment write fails, another reconciliation safely repeats the
+ * idempotent booking update and completes the transition.
  */
 export async function reconcilePayment(
   payment: PaymentWithBookings,
+  options: { checkCaptured?: boolean } = {},
 ): Promise<ReconcileResult> {
   const bookings = payment.bookings ?? [];
   if (bookings.length === 0) {
     return { captured: false, alreadyFinalized: false };
   }
 
-  if (payment.status === "captured") {
+  const supabase = createSupabaseServiceClient();
+
+  if (payment.status === "refunded") {
+    return { captured: false, alreadyFinalized: true, refunded: true };
+  }
+
+  if (payment.status === "captured" && !options.checkCaptured) {
+    // Repair rows captured by an older/partial implementation. Never let the
+    // fast path preserve a captured payment whose bookings still look unpaid.
+    if (bookings.some((booking) => booking.status !== "paid")) {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ status: "paid" })
+        .eq("payment_id", payment.id);
+      if (error) dbError(error);
+    }
     return { captured: true, alreadyFinalized: true };
   }
 
@@ -40,17 +82,38 @@ export async function reconcilePayment(
   // enforced on the merchant profile the holder can alter the session before
   // paying. Confirm the captured money matches what we asked for, or a 0.01
   // capture would mark the whole order paid and email a full-price invoice.
-  const paidAmount = Number(order.amount);
+  // Retrieve Order exposes both the requested order amount and, where
+  // supported, the amount actually captured. Prefer the latter so a partial or
+  // altered capture can never satisfy reconciliation merely because
+  // `order.amount` still echoes the original request.
+  const capturedAmount = order.totalCapturedAmount ?? order.amount;
+  const paidAmount = Number(capturedAmount);
   const amountMatches =
     Number.isFinite(paidAmount) &&
     paidAmount.toFixed(2) === Number(payment.amount).toFixed(2);
   const currencyMatches =
     String(order.currency ?? "").toUpperCase() ===
     String(payment.currency ?? "").toUpperCase();
+  const orderIdMatches = String(order.id ?? "") === payment.mpgs_order_id;
 
   const gatewaySucceeded =
     order.result === "SUCCESS" && order.status === "CAPTURED";
-  const captured = gatewaySucceeded && amountMatches && currencyMatches;
+  const captured =
+    gatewaySucceeded && orderIdMatches && amountMatches && currencyMatches;
+  const refundedAmount = Number(order.totalRefundedAmount);
+  const refundAmountMatches =
+    Number.isFinite(refundedAmount) &&
+    refundedAmount.toFixed(2) === Number(payment.amount).toFixed(2);
+  const fullyRefunded =
+    order.result === "SUCCESS" &&
+    ["REFUNDED", "EXCESSIVELY_REFUNDED"].includes(
+      String(order.status ?? ""),
+    ) &&
+    orderIdMatches &&
+    currencyMatches &&
+    (String(order.status) === "EXCESSIVELY_REFUNDED"
+      ? refundedAmount >= Number(payment.amount)
+      : refundAmountMatches);
 
   if (gatewaySucceeded && !captured) {
     // Money moved, but not the amount we billed. Never mark this paid — leave it
@@ -59,7 +122,8 @@ export async function reconcilePayment(
       reference: orderReference(payment),
       mpgsOrderId: payment.mpgs_order_id,
       expected: `${payment.currency} ${Number(payment.amount).toFixed(2)}`,
-      captured: `${order.currency} ${order.amount}`,
+      captured: `${order.currency} ${String(capturedAmount ?? "")}`,
+      orderIdMatches,
     });
   }
   // Only move to a terminal "failed" on a real gateway failure. If the order is
@@ -72,29 +136,113 @@ export async function reconcilePayment(
       String(order.status ?? ""),
     );
   const nextStatus = captured ? "captured" : failed ? "failed" : "pending";
-  const supabase = createSupabaseServiceClient();
+  const checkoutAudit = previousCheckoutAudit(payment.gateway_result);
+  const gatewayResult = {
+    phase: "reconcile",
+    order,
+    ...checkoutAudit,
+  };
 
-  const { data: transitioned } = await supabase
+  if (fullyRefunded) {
+    const { data: transitioned, error } = await supabase
+      .from("payments")
+      .update({
+        status: "refunded",
+        mpgs_transaction_id:
+          order.transaction?.[0]?.transaction?.id ?? null,
+        gateway_result: gatewayResult,
+      })
+      .eq("id", payment.id)
+      .in("status", ["captured", "pending"])
+      .select("id")
+      .maybeSingle();
+    if (error) dbError(error);
+
+    if (transitioned) {
+      console.warn("[payment refunded]", {
+        reference: orderReference(payment),
+        paymentId: payment.id,
+        amount: `${payment.currency} ${Number(payment.amount).toFixed(2)}`,
+      });
+    }
+    return {
+      captured: false,
+      alreadyFinalized: !transitioned,
+      refunded: true,
+    };
+  }
+
+  // A captured payment may receive later refund/chargeback notifications.
+  // Preserve the latest gateway state without ever downgrading it to pending.
+  // Full refunds transition above; partial/refund-requested states stay captured
+  // because the current data model has no partial-refund amount/status.
+  if (payment.status === "captured") {
+    if (bookings.some((booking) => booking.status !== "paid")) {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ status: "paid" })
+        .eq("payment_id", payment.id);
+      if (error) dbError(error);
+    }
+
+    const { error } = await supabase
+      .from("payments")
+      .update({
+        mpgs_transaction_id:
+          order.transaction?.[0]?.transaction?.id ?? null,
+        gateway_result: gatewayResult,
+      })
+      .eq("id", payment.id)
+      .eq("status", "captured");
+    if (error) dbError(error);
+
+    if (
+      [
+        "PARTIALLY_REFUNDED",
+        "REFUND_REQUESTED",
+        "DISPUTED",
+        "CHARGEBACK_PROCESSED",
+      ].includes(
+        String(order.status ?? ""),
+      )
+    ) {
+      console.warn("[payment requires refund review]", {
+        reference: orderReference(payment),
+        paymentId: payment.id,
+        gatewayStatus: order.status,
+        refundedAmount: order.totalRefundedAmount ?? null,
+      });
+    }
+    return { captured: true, alreadyFinalized: true };
+  }
+
+  if (captured) {
+    // This write is idempotent. Do it first so a failure leaves the payment
+    // eligible for webhook/return/cron reconciliation instead of stranding a
+    // captured payment with unpaid bookings.
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "paid" })
+      .eq("payment_id", payment.id);
+    if (error) dbError(error);
+  }
+
+  const { data: transitioned, error: transitionError } = await supabase
     .from("payments")
     .update({
       status: nextStatus,
       mpgs_transaction_id: order.transaction?.[0]?.transaction?.id ?? null,
-      gateway_result: order,
+      gateway_result: gatewayResult,
     })
     .eq("id", payment.id)
     .neq("status", "captured")
     .select("id")
     .maybeSingle();
+  if (transitionError) dbError(transitionError);
 
   const didTransition = Boolean(transitioned);
 
   if (captured && didTransition) {
-    // Mark EVERY booking in the order paid (a payment can cover several).
-    await supabase
-      .from("bookings")
-      .update({ status: "paid" })
-      .eq("payment_id", payment.id);
-
     // The order's contact is the same across bookings; use the first one.
     const primary = bookings[0];
     const reference = orderReference(payment);

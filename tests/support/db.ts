@@ -9,6 +9,7 @@
 import { readFileSync } from "node:fs";
 import { createHash, randomInt } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { assertSafeTestDatabaseMutation } from "./db-safety";
 
 function loadEnv(): Record<string, string> {
   const raw = readFileSync(".env", "utf8");
@@ -35,6 +36,14 @@ export const ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
 export const SITE_URL = env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
+function assertMutationIsSafe(): void {
+  assertSafeTestDatabaseMutation({
+    supabaseUrl: SUPABASE_URL,
+    allowMutation: env.ALLOW_E2E_DB_MUTATION,
+    expectedTestProjectRef: env.TEST_SUPABASE_PROJECT_REF,
+  });
+}
+
 export const TEST_EMAIL_DOMAIN = "beyondborders.test";
 export const TEST_ADMIN = {
   email: "reservations@beyondborders.lk",
@@ -42,12 +51,14 @@ export const TEST_ADMIN = {
 };
 
 export function service(): SupabaseClient {
+  assertMutationIsSafe();
   return createClient(SUPABASE_URL, SERVICE_KEY, {
     auth: { persistSession: false },
   });
 }
 
 export function anon(): SupabaseClient {
+  assertMutationIsSafe();
   return createClient(SUPABASE_URL, ANON_KEY, {
     auth: { persistSession: false },
   });

@@ -513,12 +513,12 @@ All form input is validated server-side with **Zod** schemas in `lib/validation/
 
 ### 9.7 Payment security
 
-- **MPGS Hosted Checkout** — card data is entered in the gateway's own hosted fields/iframe (PCI scope stays with the gateway, not the app). The app never sees raw PAN/CVC.
+- **MPGS Hosted Checkout** — card data is entered in the gateway's own hosted fields/iframe and the app never sees raw PAN/CVC. This minimizes the application's PCI DSS scope; it does not remove the merchant's PCI obligations.
 - **Pay tokens** — each payment gets a unique, unguessable `pay_token` (**32 random bytes / 256-bit, base64url**, via `crypto.randomBytes`) with a server-set expiry (`pay_token_expires_at`, default 72h via `PAY_LINK_TTL_HOURS`). Expired links render an "expired" state (HTTP 410 on the session endpoint); the token is the only handle exposed in the `/pay/<token>` URL.
 - **CSRF / same-origin guard** — `/api/payments/create-session` mutates payment state, so it rejects cross-site callers: the request `Origin` host must equal the `Host` header (a missing Origin, i.e. non-browser, is allowed). It is also rate-limited (20 / 10 min / IP) and returns `429` with `Retry-After` when exceeded.
-- **Webhook verification** — gateway notifications hit `/api/payments/webhook` and are verified against `MPGS_WEBHOOK_SECRET` (kept out of the repo entirely) using a **timing-safe** comparison (`crypto.timingSafeEqual`); it **fails closed** (401) on any mismatch, yet returns `200` for an unknown order so the endpoint can't be used to probe for valid order IDs.
-- **Reconciliation** (`lib/payments/reconcile.ts`) is the source of truth for moving a payment to `captured` and a booking to `paid`. It is **idempotent and concurrency-safe** — both the webhook and the customer's return page call it, but a guarded update (`.neq("status","captured")`) ensures only one transition fires the receipt email/SMS. Receipt/SMS sends are fail-soft.
-- The full gateway response is archived in `payments.gateway_result` (JSONB) for audit.
+- **Webhook verification** — gateway notifications hit `/api/payments/webhook` and are verified against `MPGS_WEBHOOK_SECRET` using a timing-safe comparison. Invalid notifications fail closed. Valid payloads are acknowledged quickly with `200`; database lookup + authoritative Retrieve Order reconciliation run through Next.js `after()`. `X-Notification-ID`/`Attempt` are logged only on deferred failures, and the scheduled reconciler is the recovery path.
+- **Reconciliation** (`lib/payments/reconcile.ts`) is the source of truth. It verifies the echoed order id, exact amount/currency, `result=SUCCESS`, and `status=CAPTURED`. Bookings are updated before the guarded payment transition so a database failure leaves the payment retryable; only the winning transition fires receipt email/SMS.
+- **Checkout consent** — both Terms and Privacy are enforced by the API. Server-owned document versions and the acceptance timestamp are archived with the gateway responses in `payments.gateway_result` (JSONB).
 
 ### 9.8 Password reset (OTP)
 
@@ -702,8 +702,8 @@ Run against a **local production build** (`npm run build && npm run start`) on t
 
 - **Flow:** admin (or the booking action) creates a payment → `/api/payments/create-session` opens an MPGS Hosted Checkout session → the customer lands on `/pay/<token>` which loads `checkout.min.js` and the gateway's hosted card fields → 3DS → capture → `/pay/<token>/result` → `reconcilePayment` writes the final `payment.status` and flips the `booking.status` to `paid`.
 - **Currency:** the Seylan merchant **settles in USD**; prices are charged in **USD with no conversion** (`MPGS_CURRENCY=USD`; new packages default to USD). A legacy USD→LKR converter remains as an unused fallback. The gateway rejects any currency the **merchant ID isn't provisioned for**, independent of the API field — so currency changes require the bank to provision the MID.
-- **Master switch:** `PAYMENTS_ENABLED`. Webhooks are verified with `MPGS_WEBHOOK_SECRET` (never committed). The full gateway response is stored in `payments.gateway_result`.
-- **Go-live:** switch `MPGS_BASE_URL` from `test-seylan.mtf…` to the **production** Seylan gateway, confirm USD is enabled on the **production** MID, update the CSP origins (derived from env automatically), and re-verify the live flow in a browser.
+- **Master switch:** `PAYMENTS_ENABLED`. Production fails closed unless the exact live host, a non-TEST MID, API v100, uppercase configured currency, and the gateway-issued 32-character notification secret are present. Preview can continue using MTF.
+- **Go-live:** set `MPGS_BASE_URL=https://seylan.gateway.mastercard.com`, confirm USD and PURCHASE/3DS are enabled on the production MID, and redeploy so the exact gateway origin is baked into CSP. Then run controlled low-value live capture, webhook/return, receipt, duplicate-delivery, refund, and settlement checks before opening payments broadly.
 
 ---
 

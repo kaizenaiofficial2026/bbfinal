@@ -213,8 +213,8 @@ MPGS_API_VERSION=100
 MPGS_MERCHANT_ID=your-merchant-id                    # pending from bank
 MPGS_API_PASSWORD=your-api-password                  # pending from bank — SERVER ONLY
 MPGS_MERCHANT_NAME=Beyond Borders
-MPGS_CURRENCY=LKR
-MPGS_WEBHOOK_SECRET=your-webhook-secret              # from Merchant Administration
+MPGS_CURRENCY=USD                                    # must match the currency enabled on the MID
+MPGS_WEBHOOK_SECRET=32-character-notification-secret # generated in Merchant Administration
 PAY_LINK_TTL_HOURS=72
 
 # --- Optional rate limiting (Upstash) ---

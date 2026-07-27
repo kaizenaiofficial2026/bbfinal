@@ -1,4 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnvConfig } from "@next/env";
+import { assertSafeTestDatabaseMutation } from "./tests/support/db-safety";
+
+// Match the environment files loaded by `next dev`, which Playwright starts
+// below, so the preflight validates the same database the application will use.
+loadEnvConfig(process.cwd(), true);
+assertSafeTestDatabaseMutation({
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  allowMutation: process.env.ALLOW_E2E_DB_MUTATION,
+  expectedTestProjectRef: process.env.TEST_SUPABASE_PROJECT_REF,
+});
 
 const chrome = devices["Desktop Chrome"];
 

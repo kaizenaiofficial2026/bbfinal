@@ -104,8 +104,25 @@ committed `.env`, no hardcoded private keys / JWTs / API secrets, the Supabase
   can raise `--workers`.
 - **Write-path runs against the TEST database** (`tests/support/db.ts`), and the
   payment flow against the **MPGS test gateway**. All test data uses the
-  `@beyondborders.test` domain and is cleaned up automatically. Point these at a
-  fresh prod Supabase / live gateway later — the suite is unchanged.
+  `@beyondborders.test` domain and is cleaned up automatically.
+- **Database mutation is fail-closed.** Integration and E2E refuse to start
+  unless `NEXT_PUBLIC_SUPABASE_URL` points to a standard Supabase project URL,
+  `TEST_SUPABASE_PROJECT_REF` exactly matches that URL's project ref, and
+  `ALLOW_E2E_DB_MUTATION=true` is explicitly set. The production project
+  `aupzgqlkmawmizyutuyt` is permanently denied even when the opt-in is present.
+  The test ref must belong to a dedicated, disposable Supabase project—not
+  production or shared staging.
+
+  ```bash
+  ALLOW_E2E_DB_MUTATION=true \
+  TEST_SUPABASE_PROJECT_REF=<isolated-test-project-ref> \
+  NEXT_PUBLIC_SUPABASE_URL=https://<isolated-test-project-ref>.supabase.co \
+  npm run test:integration
+  ```
+
+  Use the same three-variable interlock with `npm run test:e2e`. Supply that
+  test project's anon and service-role keys through the normal environment.
+  Never store the opt-in in Vercel production settings.
 - **What's still left to a human / a richer environment:**
   - **Completing a card on the MPGS sandbox** — tests reach the hosted-checkout
     page and confirm the payment is *initiated*, but don't drive the third-party

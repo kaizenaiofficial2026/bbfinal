@@ -66,7 +66,7 @@ export async function getPaymentByToken(token: string) {
 }
 
 /**
- * Payments that were started but never reached a terminal state.
+ * Gateway sessions that were started but never reached a terminal state.
  *
  * Reconciliation normally happens on the MPGS webhook, or when the customer
  * lands back on the result page. If the webhook misfires AND the customer closes
@@ -74,8 +74,14 @@ export async function getPaymentByToken(token: string) {
  * receipt, and nothing retrying. The scheduled job re-checks these against the
  * gateway so a captured payment can't be lost.
  *
- * `olderThanMinutes` skips in-flight checkouts, which are legitimately pending
- * while the customer is still on the card page.
+ * Only `pending` rows with a persisted MPGS session are eligible. An
+ * `initiated` row has not reached the gateway yet, so attempting Retrieve Order
+ * for it only produces "order not found" noise and can starve real captures
+ * from this bounded batch.
+ *
+ * `olderThanMinutes` is measured from `updated_at`, not creation time. Session
+ * creation touches the row, and that is the point from which an in-flight
+ * checkout should be given time to finish.
  */
 export async function listStalePendingPayments(options?: {
   olderThanMinutes?: number;
@@ -89,9 +95,10 @@ export async function listStalePendingPayments(options?: {
   const { data, error } = await supabase
     .from("payments")
     .select(ORDER_SELECT)
-    .in("status", ["pending", "initiated"])
-    .lt("created_at", cutoff)
-    .order("created_at", { ascending: true })
+    .eq("status", "pending")
+    .not("mpgs_session_id", "is", null)
+    .lt("updated_at", cutoff)
+    .order("updated_at", { ascending: true })
     .limit(limit);
 
   if (error) {

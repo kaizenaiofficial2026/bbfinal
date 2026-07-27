@@ -20,6 +20,7 @@ export default async function PaymentResultPage({ params }: ResultPageProps) {
   let paid = false;
 
   const bookings = payment?.bookings ?? [];
+  const refunded = payment?.status === "refunded";
   if (bookings.length && env.paymentsEnabled) {
     // Idempotent: safe even if the webhook already finalized this payment, or
     // the customer refreshes this page — no duplicate receipt is sent.
@@ -39,13 +40,16 @@ export default async function PaymentResultPage({ params }: ResultPageProps) {
         error,
       });
       paid =
-        payment!.status === "captured" ||
-        bookings.every((b) => b.status === "paid");
+        !refunded &&
+        (payment!.status === "captured" ||
+          bookings.every((b) => b.status === "paid"));
       message = paid ? t("resultReceived") : t("resultNotConfirmed");
     }
   } else if (bookings.length) {
     paid =
-      payment!.status === "captured" || bookings.every((b) => b.status === "paid");
+      !refunded &&
+      (payment!.status === "captured" ||
+        bookings.every((b) => b.status === "paid"));
     message = t("resultDisabled");
   }
 
