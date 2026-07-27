@@ -31,25 +31,23 @@ export function PrivacyPolicyContent() {
       <section>
         <h3>1. Who we are</h3>
         <p>
-          Beyond Borders is a Colombo-based travel company specialising in
-          private and tailor-made journeys across Sri Lanka. For the personal
-          information covered by this policy, Beyond Borders is generally
-          responsible for deciding how and why it is used.
+          Beyond Borders Travels (Private) Limited is a Colombo-based travel
+          company specialising in private and tailor-made journeys across Sri
+          Lanka. For the personal information covered by this policy, Beyond
+          Borders Travels (Private) Limited is generally responsible for
+          deciding how and why it is used.
         </p>
         <address className="privacy-policy-contact">
-          <strong>Beyond Borders</strong>
+          <strong>Beyond Borders Travels (Private) Limited</strong>
           <br />
           3rd Floor, No. 430, R A De Mel Mawatha
           <br />
           Colombo 03, Sri Lanka
           <br />
           Email:{" "}
-          <a href="mailto:reservations@beyondborders.lk">
-            reservations@beyondborders.lk
-          </a>
+          <a href="mailto:info@beyondborders.lk">info@beyondborders.lk</a>
           <br />
-          Telephone: <a href="tel:+94112425087">+94 11 242 5087</a> or{" "}
-          <a href="tel:+94760979222">+94 76 097 9222</a>
+          Telephone: <a href="tel:+94760979222">+94 76 097 9222</a>
         </address>
       </section>
 
@@ -323,9 +321,7 @@ export function PrivacyPolicyContent() {
           You can update certain details through your account and can request
           account deletion from the account page. For any other privacy request,
           email{" "}
-          <a href="mailto:reservations@beyondborders.lk">
-            reservations@beyondborders.lk
-          </a>
+          <a href="mailto:info@beyondborders.lk">info@beyondborders.lk</a>
           . We may need to verify your identity before acting on a request.
         </p>
         <p>

@@ -67,6 +67,16 @@ describe("PayButton", () => {
     expect(
       screen.getByText(/does not directly collect the full card number/i),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText("Beyond Borders Travels (Private) Limited"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: "info@beyondborders.lk" }),
+    ).toHaveLength(2);
+    expect(
+      screen.getByRole("link", { name: "+94 76 097 9222" }),
+    ).toHaveAttribute("href", "tel:+94760979222");
+    expect(screen.queryByText(/reservations@beyondborders\.lk/i)).toBeNull();
     expect(screen.getByText(/27 July 2026/i)).toBeInTheDocument();
     expect(screen.queryByText(/Data Protection Act 1998/i)).toBeNull();
     expect(checkbox).not.toBeChecked();
