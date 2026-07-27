@@ -4,7 +4,7 @@ import { renderIntl as render } from "./intl-render";
 import PayButton from "@/app/[locale]/pay/[token]/PayButton";
 
 describe("PayButton", () => {
-  it("requires both terms and privacy consent before enabling payment", () => {
+  it("requires terms agreement and privacy acknowledgment before payment", () => {
     render(<PayButton token="tok" scriptUrl="https://example.com/checkout.js" />);
 
     const button = screen.getByRole("button", { name: /pay securely/i });
@@ -13,6 +13,7 @@ describe("PayButton", () => {
     });
     const privacy = screen.getByRole("checkbox", { name: /privacy policy/i });
 
+    expect(privacy).toHaveAccessibleName(/acknowledge that i have read/i);
     expect(button).toBeDisabled();
     fireEvent.click(terms);
     expect(button).toBeDisabled();
@@ -60,12 +61,14 @@ describe("PayButton", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: /controlling your personal information/i,
+        name: /your privacy choices and rights/i,
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/credit card number will not be saved/i),
+      screen.getByText(/does not directly collect the full card number/i),
     ).toBeInTheDocument();
+    expect(screen.getByText(/27 July 2026/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Data Protection Act 1998/i)).toBeNull();
     expect(checkbox).not.toBeChecked();
   });
 });

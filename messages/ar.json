@@ -231,7 +231,7 @@
     "contactTeam": "تواصل مع الفريق",
     "chargeNote": "سيتم خصم {amount}، وتُحتسب الفاتورة بالروبية السريلانكية (LKR).",
     "agreeTerms": "لقد قرأت <terms>الشروط والأحكام</terms> وأوافق عليها.",
-    "agreePrivacy": "لقد قرأت <privacy>سياسة الخصوصية</privacy> وأوافق عليها.",
+    "agreePrivacy": "أقر بأنني قرأت <privacy>سياسة الخصوصية</privacy>.",
     "agreements": "الموافقات المطلوبة"
   },
   "bookingPage": {

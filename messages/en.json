@@ -231,7 +231,7 @@
     "contactTeam": "Contact the team",
     "chargeNote": "You'll be charged {amount}, billed in Sri Lankan Rupees (LKR).",
     "agreeTerms": "I have read and agree to the <terms>terms and conditions</terms>.",
-    "agreePrivacy": "I have read and agree to the <privacy>privacy policy</privacy>.",
+    "agreePrivacy": "I acknowledge that I have read the <privacy>privacy policy</privacy>.",
     "agreements": "Required agreements"
   },
   "bookingPage": {

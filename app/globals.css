@@ -9396,13 +9396,29 @@ body.menu-open .cookie-consent {
   gap: 18px;
 }
 
+.privacy-policy-updated {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.privacy-policy-intro {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  background: rgba(179, 146, 79, 0.08);
+  border: 1px solid var(--line-gold);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+
 .privacy-policy-prose section {
   display: grid;
   gap: 10px;
-  padding-top: 4px;
+  padding-top: 10px;
 }
 
-.privacy-policy-prose h2 {
+.privacy-policy-prose h3 {
   margin: 0;
   font-family: var(--font-display);
   font-size: 20px;
@@ -9413,6 +9429,24 @@ body.menu-open .cookie-consent {
 
 .privacy-policy-prose p {
   margin: 0;
+}
+
+.privacy-policy-prose strong {
+  color: var(--ink);
+}
+
+.privacy-policy-prose a {
+  font-style: normal;
+  font-weight: 600;
+}
+
+.privacy-policy-contact {
+  padding: 14px 16px;
+  background: var(--line-soft);
+  border-radius: var(--radius);
+  font-style: normal;
+  line-height: 1.7;
+  color: var(--ink-soft);
 }
 
 .privacy-policy-list {
