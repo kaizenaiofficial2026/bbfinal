@@ -4,7 +4,7 @@ import PageHero from "@/components/PageHero";
 import PaymentMethods from "@/components/PaymentMethods";
 import SiteShell from "@/components/SiteShell";
 import { getPaymentByToken, orderReference } from "@/lib/data/payments";
-import { env } from "@/lib/env";
+import { canInitiatePayment } from "@/lib/payments/availability";
 import { getHostedCheckoutScriptUrl } from "@/lib/payments/mpgs";
 import { isExpired } from "@/lib/security/request";
 import PayButton from "./PayButton";
@@ -32,7 +32,8 @@ export default async function PayPage({ params }: PayPageProps) {
     !refunded &&
     (payment.status === "captured" ||
       bookings.every((b) => b.status === "paid"));
-  const canPay = env.paymentsEnabled && !expired && !paid && !refunded;
+  const paymentInitiationEnabled = canInitiatePayment(token);
+  const canPay = paymentInitiationEnabled && !expired && !paid && !refunded;
 
   return (
     <SiteShell>
@@ -101,7 +102,7 @@ export default async function PayPage({ params }: PayPageProps) {
               {canPay ? (
                 <PayButton token={token} scriptUrl={getHostedCheckoutScriptUrl()} />
               ) : null}
-              {!env.paymentsEnabled ? (
+              {!paymentInitiationEnabled ? (
                 <p className="form-note">{t("notEnabled")}</p>
               ) : null}
               {expired ? <p className="form-note">{t("expiredNote")}</p> : null}

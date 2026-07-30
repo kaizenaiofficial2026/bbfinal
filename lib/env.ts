@@ -27,6 +27,9 @@ export const env = {
   emailTeamInbox:
     process.env.EMAIL_TEAM_INBOX ?? "reservations@beyondborders.lk",
   paymentsEnabled: bool(process.env.PAYMENTS_ENABLED),
+  // Optional one-payment production canary. Store only the SHA-256 hex digest
+  // of the private pay token; the raw bearer token remains solely in the link.
+  mpgsCanaryTokenSha256: process.env.MPGS_CANARY_TOKEN_SHA256,
   mpgsBaseUrl:
     process.env.MPGS_BASE_URL ??
     "https://test-seylan.mtf.gateway.mastercard.com",

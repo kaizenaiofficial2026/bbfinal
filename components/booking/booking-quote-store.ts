@@ -18,7 +18,7 @@ import { useSyncExternalStore } from "react";
  * delete the digit to type your own count.
  */
 
-export const DEFAULT_TRAVELLERS = 2;
+export const DEFAULT_TRAVELLERS = 1;
 export const MIN_TRAVELLERS = 1;
 export const MAX_TRAVELLERS = 50;
 

@@ -26,7 +26,13 @@ MPGS_CURRENCY=USD
 MPGS_WEBHOOK_SECRET=<gateway-issued 32-character secret>
 NEXT_PUBLIC_SITE_URL=https://www.beyondborders.lk
 PAYMENTS_ENABLED=false
+# Optional during a controlled canary only:
+MPGS_CANARY_TOKEN_SHA256=<SHA-256 hex digest of the private pay token>
 ```
+
+`MPGS_CANARY_TOKEN_SHA256` allows only that single private pay link to initiate
+checkout while the global switch stays off. Store the digest, never the raw
+bearer token, and remove the variable immediately after the canary.
 
 Keep secrets in Vercel/Merchant Administration. Never paste them into source,
 logs, tickets, screenshots, or this document.
@@ -74,4 +80,3 @@ reconciliation cadence before broad payment volume.
 - [Interpret the response](https://seylan.gateway.mastercard.com/api/documentation/integrationGuidelines/hostedCheckout/interpretingTheResponse.html?locale=en_US)
 - [Webhook notifications](https://seylan.gateway.mastercard.com/api/documentation/integrationGuidelines/supportedFeatures/pickAdditionalFunctionality/webhookNotifications.html?locale=en_US)
 - [Retrieve Order v100](https://seylan.gateway.mastercard.com/api/documentation/apiDocumentation/rest-json/version/100/operation/Transaction%3A%20%20Retrieve%20Order.html?locale=en_US)
-

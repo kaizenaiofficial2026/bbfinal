@@ -357,6 +357,19 @@ describe("createCheckoutSession", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("permits an explicitly allowlisted canary while payments are disabled", async () => {
+    mockEnv.paymentsEnabled = false;
+    fetchMock.mockResolvedValue(
+      jsonResponse({ result: "SUCCESS", session: { id: "CANARY-SESSION" } }),
+    );
+
+    await expect(
+      createCheckoutSession(validOrder(), {
+        allowWhenPaymentsDisabled: true,
+      }),
+    ).resolves.toMatchObject({ id: "CANARY-SESSION" });
+  });
+
   it.each([
     ["a zero amount", { amount: 0 }],
     ["a non-finite amount", { amount: Number.POSITIVE_INFINITY }],
@@ -442,6 +455,22 @@ describe("retrieveOrder", () => {
       gatewayStatus: 503,
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("still reconciles in-flight money after new payments are disabled", async () => {
+    mockEnv.paymentsEnabled = false;
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        result: "SUCCESS",
+        status: "CAPTURED",
+        amount: 1,
+        currency: "USD",
+      }),
+    );
+
+    await expect(retrieveOrder("BB-CANARY-1")).resolves.toMatchObject({
+      status: "CAPTURED",
+    });
   });
 });
 

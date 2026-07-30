@@ -59,14 +59,14 @@ describe("BookingRequestForm", () => {
     success.mockClear();
   });
 
-  it("shows the total for the default 2 travellers (price is per traveller)", () => {
+  it("shows the total for the default 1 traveller (price is per traveller)", () => {
     const { container } = render(<BookingRequestForm {...PROPS} />);
 
     expect(container.querySelector('input[name="package"]')).toHaveValue(
       "Glamour of Sri Lanka",
     );
-    expect(container.querySelector('input[name="travellers"]')).toHaveValue(2);
-    expect(screen.getByText("USD 2000.00")).toBeInTheDocument();
+    expect(container.querySelector('input[name="travellers"]')).toHaveValue(1);
+    expect(screen.getByText("USD 1000.00")).toBeInTheDocument();
   });
 
   it("recalculates the total live as the traveller count changes", () => {

@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   checkAndRecordRateLimit: vi.fn(),
   getRequestIpHash: vi.fn(),
   isExpired: vi.fn(),
+  isCanaryPaymentToken: vi.fn(),
   createSupabaseServiceClient: vi.fn(),
   env: {
     paymentsEnabled: true,
@@ -32,6 +33,11 @@ vi.mock("@/lib/env", () => ({
 vi.mock("@/lib/payments/mpgs", () => ({
   createCheckoutSession: (...args: unknown[]) =>
     mocks.createCheckoutSession(...args),
+}));
+
+vi.mock("@/lib/payments/availability", () => ({
+  isCanaryPaymentToken: (...args: unknown[]) =>
+    mocks.isCanaryPaymentToken(...args),
 }));
 
 vi.mock("@/lib/data/rate-limit", () => ({
@@ -195,6 +201,7 @@ beforeEach(() => {
   });
   mocks.getRequestIpHash.mockReset().mockResolvedValue("hashed-ip");
   mocks.isExpired.mockReset().mockReturnValue(false);
+  mocks.isCanaryPaymentToken.mockReset().mockReturnValue(false);
   mocks.createSupabaseServiceClient.mockReset();
 
   mocks.env.paymentsEnabled = true;
@@ -230,8 +237,28 @@ describe("POST /api/payments/create-session", () => {
     await expect(response.json()).resolves.toEqual({
       error: "Payments are disabled.",
     });
-    expect(mocks.getRequestIpHash).not.toHaveBeenCalled();
+    expect(mocks.isCanaryPaymentToken).toHaveBeenCalledWith(
+      "server-payment-token",
+    );
+    expect(mocks.getPaymentByToken).not.toHaveBeenCalled();
     expect(mocks.createCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("allows only the hashed canary token while normal payments are disabled", async () => {
+    mocks.env.paymentsEnabled = false;
+    mocks.isCanaryPaymentToken.mockReturnValue(true);
+
+    const response = await POST(makeRequest(validBody));
+
+    expect(response.status).toBe(200);
+    expect(mocks.createCheckoutSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderId: "gateway-order-123",
+        amount: 1250.5,
+        currency: "USD",
+      }),
+      { allowWhenPaymentsDisabled: true },
+    );
   });
 
   it("rejects a cross-origin browser request before rate limiting it", async () => {
@@ -541,14 +568,17 @@ describe("POST /api/payments/create-session", () => {
       "server-payment-token",
     );
     expect(mocks.createCheckoutSession).toHaveBeenCalledTimes(1);
-    expect(mocks.createCheckoutSession).toHaveBeenCalledWith({
-      orderId: "gateway-order-123",
-      amount: 1250.5,
-      currency: "USD",
-      description: "Beyond Borders order BB-ORD-SERVER",
-      returnUrl:
-        "https://travel.example/pay/canonical-server-token/result",
-    });
+    expect(mocks.createCheckoutSession).toHaveBeenCalledWith(
+      {
+        orderId: "gateway-order-123",
+        amount: 1250.5,
+        currency: "USD",
+        description: "Beyond Borders order BB-ORD-SERVER",
+        returnUrl:
+          "https://travel.example/pay/canonical-server-token/result",
+      },
+      { allowWhenPaymentsDisabled: false },
+    );
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({

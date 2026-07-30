@@ -5,6 +5,7 @@ import AuthShell from "@/components/AuthShell";
 import AuthErrorToast from "@/components/AuthErrorToast";
 import HoneypotField from "@/components/HoneypotField";
 import PasswordInput from "@/components/PasswordInput";
+import { PrivacyPolicyDialog } from "@/components/PrivacyPolicyDialog";
 import RegisterContactFields from "@/components/RegisterContactFields";
 import DateField from "@/components/DateField";
 import SubmitButton from "@/components/SubmitButton";
@@ -32,9 +33,14 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
       subtitle={t("registerSummary")}
       asideVariant="register"
       footer={
-        <p>
-          {t("haveAccount")} <Link href={loginHref}>{t("signIn")}</Link>
-        </p>
+        <>
+          <p>
+            {t("haveAccount")} <Link href={loginHref}>{t("signIn")}</Link>
+          </p>
+          <p>
+            <PrivacyPolicyDialog>{t("privacyPolicy")}</PrivacyPolicyDialog>
+          </p>
+        </>
       }
     >
       <AuthErrorToast error={error} />

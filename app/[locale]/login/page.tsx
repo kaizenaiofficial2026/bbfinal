@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import AuthShell from "@/components/AuthShell";
 import AuthErrorToast from "@/components/AuthErrorToast";
 import PasswordInput from "@/components/PasswordInput";
+import { PrivacyPolicyDialog } from "@/components/PrivacyPolicyDialog";
 import SubmitButton from "@/components/SubmitButton";
 import { loginAction } from "../account/actions";
 
@@ -34,9 +35,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             {t("newHere")}{" "}
             <Link href={registerHref}>{t("createAccountLink")}</Link>
           </p>
-          <p>
+          <div className="auth-footer-links">
+            <PrivacyPolicyDialog>{t("privacyPolicy")}</PrivacyPolicyDialog>
             <Link href="/forgot-password">{t("forgotLink")}</Link>
-          </p>
+          </div>
         </>
       }
     >

@@ -10,6 +10,7 @@ import {
   CHECKOUT_PRIVACY_VERSION,
   CHECKOUT_TERMS_VERSION,
 } from "@/lib/payments/consent";
+import { isCanaryPaymentToken } from "@/lib/payments/availability";
 
 const SESSION_REUSE_MS = 20 * 60_000;
 const SESSION_CREATION_LOCK_MS = 90_000;
@@ -43,10 +44,6 @@ function retryResponse() {
 }
 
 export async function POST(request: Request) {
-  if (!env.paymentsEnabled) {
-    return NextResponse.json({ error: "Payments are disabled." }, { status: 503 });
-  }
-
   // Same-origin only: this endpoint mutates payment state, so reject cross-site
   // callers (CSRF / abuse hardening). A missing Origin (non-browser) is allowed.
   const origin = request.headers.get("origin");
@@ -109,6 +106,14 @@ export async function POST(request: Request) {
   const token = typeof input.token === "string" ? input.token.trim() : "";
   if (!token || token.length > 256) {
     return NextResponse.json({ error: "Invalid payment link." }, { status: 400 });
+  }
+
+  const isCanary = isCanaryPaymentToken(token);
+  if (!env.paymentsEnabled && !isCanary) {
+    return NextResponse.json(
+      { error: "Payments are disabled." },
+      { status: 503 },
+    );
   }
 
   const payment = await getPaymentByToken(String(token ?? ""));
@@ -197,13 +202,18 @@ export async function POST(request: Request) {
 
   let session;
   try {
-    session = await createCheckoutSession({
-      orderId: payment.mpgs_order_id,
-      amount: payment.amount,
-      currency: paymentCurrency,
-      description: `Beyond Borders order ${orderReference(payment)}`,
-      returnUrl: `${env.siteUrl}/pay/${payment.pay_token}/result`,
-    });
+    session = await createCheckoutSession(
+      {
+        orderId: payment.mpgs_order_id,
+        amount: payment.amount,
+        currency: paymentCurrency,
+        description: `Beyond Borders order ${orderReference(payment)}`,
+        returnUrl: `${env.siteUrl}/pay/${payment.pay_token}/result`,
+      },
+      {
+        allowWhenPaymentsDisabled: isCanary,
+      },
+    );
   } catch (caught) {
     // Release only the lock this request owns. A newer request or webhook may
     // already have moved the row; optimistic locking keeps those writes intact.

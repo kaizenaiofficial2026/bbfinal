@@ -3,7 +3,6 @@ import { Link } from "@/i18n/navigation";
 import PageHero from "@/components/PageHero";
 import SiteShell from "@/components/SiteShell";
 import { getPaymentByToken, orderReference } from "@/lib/data/payments";
-import { env } from "@/lib/env";
 import { reconcilePayment } from "@/lib/payments/reconcile";
 
 type ResultPageProps = {
@@ -21,7 +20,9 @@ export default async function PaymentResultPage({ params }: ResultPageProps) {
 
   const bookings = payment?.bookings ?? [];
   const refunded = payment?.status === "refunded";
-  if (bookings.length && env.paymentsEnabled) {
+  // Reconcile any checkout already sent to MPGS even if new payments have since
+  // been disabled. Turning off initiation must never strand captured money.
+  if (bookings.length && payment?.mpgs_session_id) {
     // Idempotent: safe even if the webhook already finalized this payment, or
     // the customer refreshes this page — no duplicate receipt is sent.
     try {

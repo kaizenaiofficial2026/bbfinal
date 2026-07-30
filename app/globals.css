@@ -8510,6 +8510,7 @@ body.menu-open .cookie-consent {
   margin-top: 4px;
   display: grid;
   gap: 8px;
+  width: 100%;
   font-size: 14px;
   color: var(--ink-soft);
 }
@@ -8521,6 +8522,17 @@ body.menu-open .cookie-consent {
 
 .auth-footer a:hover {
   color: var(--gold);
+}
+
+.auth-footer-links {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 32px;
+}
+
+.auth-footer-links > a {
+  margin-inline-start: auto;
 }
 
 @media (max-width: 860px) {

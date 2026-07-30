@@ -24,9 +24,12 @@ const mpgsOrigin = safeOrigin(
     ? "https://seylan.gateway.mastercard.com"
     : "https://test-seylan.mtf.gateway.mastercard.com",
 );
+const canaryCheckoutEnabled = /^[a-f0-9]{64}$/i.test(
+  process.env.MPGS_CANARY_TOKEN_SHA256 ?? "",
+);
 if (
   process.env.VERCEL_ENV === "production" &&
-  process.env.PAYMENTS_ENABLED === "true" &&
+  (process.env.PAYMENTS_ENABLED === "true" || canaryCheckoutEnabled) &&
   mpgsOrigin !== "https://seylan.gateway.mastercard.com"
 ) {
   throw new Error(

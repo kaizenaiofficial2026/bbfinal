@@ -130,8 +130,10 @@ function gatewayBaseUrl() {
   return parsed.origin;
 }
 
-function assertPaymentConfig(): PaymentConfig {
-  if (!env.paymentsEnabled) {
+function assertPaymentConfig(options?: {
+  allowWhenPaymentsDisabled?: boolean;
+}): PaymentConfig {
+  if (!env.paymentsEnabled && !options?.allowWhenPaymentsDisabled) {
     throw new MpgsError("PAYMENTS_DISABLED");
   }
 
@@ -419,8 +421,11 @@ async function requestGateway(
   }
 }
 
-export async function createCheckoutSession(order: CheckoutOrder) {
-  const config = assertPaymentConfig();
+export async function createCheckoutSession(
+  order: CheckoutOrder,
+  options?: { allowWhenPaymentsDisabled?: boolean },
+) {
+  const config = assertPaymentConfig(options);
   const checkoutOrder = validateCheckoutOrder(order, config);
 
   const payload = await requestGateway(endpoint(config, "/session"), {
@@ -474,7 +479,9 @@ export async function createCheckoutSession(order: CheckoutOrder) {
 export async function retrieveOrder(
   orderId: string,
 ): Promise<MpgsOrderResponse> {
-  const config = assertPaymentConfig();
+  // A kill switch must stop new checkout sessions, not prevent reconciliation
+  // of money already in flight (including a tightly allowlisted canary).
+  const config = assertPaymentConfig({ allowWhenPaymentsDisabled: true });
   const safeOrderId = validateText(orderId, {
     maxLength: 40,
     trim: true,
