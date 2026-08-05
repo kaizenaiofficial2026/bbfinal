@@ -58,6 +58,11 @@ export const env = {
   smsApiKey: process.env.SMS_API_KEY,
   smsMask: process.env.SMS_MASK,
   smsTeamContact: process.env.SMS_TEAM_CONTACT,
+  // Business recipients per event, comma-separated (a purchase and a custom
+  // inquiry go to different people). Both fall back to SMS_TEAM_CONTACT, so a
+  // deployment that only sets the single legacy number keeps working unchanged.
+  smsPaymentContacts: process.env.SMS_PAYMENT_CONTACTS,
+  smsInquiryContacts: process.env.SMS_INQUIRY_CONTACTS,
   // Shared secret for the read-only support-tickets API (server-to-server, e.g.
   // the Kaizen Portal dashboard). When unset the API is disabled (fails closed).
   supportApiKey: process.env.SUPPORT_API_KEY,

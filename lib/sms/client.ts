@@ -13,12 +13,20 @@ export type SmsResult = {
  * (getMailTransport).
  */
 export function canUseSms(): boolean {
+  // Any ONE of the recipient lists counts as configured: the per-event lists
+  // (payment / inquiry) supersede the single legacy SMS_TEAM_CONTACT, so
+  // requiring the legacy one would silently disable SMS for a deployment that
+  // has moved to the new lists.
+  const hasRecipients = Boolean(
+    env.smsTeamContact || env.smsPaymentContacts || env.smsInquiryContacts,
+  );
+
   return Boolean(
     env.smsEnabled &&
       env.smsUsername &&
       env.smsPassword &&
       env.smsMask &&
-      env.smsTeamContact,
+      hasRecipients,
   );
 }
 

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { env } from "@/lib/env";
-import { sendSms } from "./client";
+import { normalizeMsisdn, sendSms } from "./client";
 
 /** "21/06/2026 11:14:46 AM" in Sri Lanka time, matching the agreed template. */
 export function formatColomboDateTime(date: Date = new Date()): string {
@@ -74,8 +74,33 @@ export function buildInquirySms(input: { reference: string; date?: Date }): stri
 }
 
 /**
- * Notify a payment was received. Sends TWO messages, each fail-soft:
- *  - the business team (designated env number), business-worded;
+ * Split a comma-separated recipient list into individual numbers.
+ *
+ * Duplicates are dropped so a number listed twice (or written two ways —
+ * `+94771234567` and `0771234567` are the same phone) is only texted once.
+ * De-duplication keys on the normalised MSISDN and falls back to the raw string
+ * for anything unroutable, which `sendSms` skips anyway.
+ */
+export function parseSmsRecipients(raw: string | null | undefined): string[] {
+  const seen = new Set<string>();
+  const recipients: string[] = [];
+
+  for (const part of (raw ?? "").split(",")) {
+    const value = part.trim();
+    if (!value) continue;
+    const key = normalizeMsisdn(value) ?? value.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    recipients.push(value);
+  }
+
+  return recipients;
+}
+
+/**
+ * Notify a payment was received. Sends one message per recipient, each
+ * fail-soft:
+ *  - every business number in SMS_PAYMENT_CONTACTS, business-worded;
  *  - the customer (their own number, if we have one), customer-worded.
  */
 export async function sendPaymentSms(input: {
@@ -85,10 +110,15 @@ export async function sendPaymentSms(input: {
   customerName?: string | null;
   customerPhone?: string | null;
 }): Promise<void> {
-  await sendSms({
-    to: env.smsTeamContact ?? "",
-    message: buildPaymentSms(input),
-  });
+  const businessMessage = buildPaymentSms(input);
+  // Sequential, not Promise.all: the Dialog gateway takes one message per call
+  // and a failure is logged-and-swallowed inside sendSms, so one bad number
+  // never stops the rest of the list.
+  for (const to of parseSmsRecipients(
+    env.smsPaymentContacts ?? env.smsTeamContact,
+  )) {
+    await sendSms({ to, message: businessMessage });
+  }
 
   const customerPhone = input.customerPhone?.trim();
   if (customerPhone) {
@@ -104,12 +134,18 @@ export async function sendPaymentSms(input: {
   }
 }
 
-/** Notify the business team that a custom inquiry was submitted. Fail-soft. */
+/**
+ * Notify the business team that a custom inquiry was submitted — one message per
+ * number in SMS_INQUIRY_CONTACTS. Never the customer (that stays email-only).
+ * Fail-soft.
+ */
 export async function sendInquirySms(input: {
   reference: string;
 }): Promise<void> {
-  await sendSms({
-    to: env.smsTeamContact ?? "",
-    message: buildInquirySms(input),
-  });
+  const message = buildInquirySms(input);
+  for (const to of parseSmsRecipients(
+    env.smsInquiryContacts ?? env.smsTeamContact,
+  )) {
+    await sendSms({ to, message });
+  }
 }
