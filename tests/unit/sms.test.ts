@@ -175,6 +175,36 @@ describe("sendPaymentSms fan-out", () => {
     expect(sent.map((s) => s.to)).toEqual(["+94760979197", "+94773409246"]);
   });
 
+  it("falls back to SMS_TEAM_CONTACT when the payment list is BLANK", async () => {
+    // A variable that exists but is empty means "not configured" — with `??`
+    // the blank string would win and the business would be texted nobody.
+    const { sent, sendPaymentSms } = await loadSendWith({
+      SMS_PAYMENT_CONTACTS: "",
+      SMS_TEAM_CONTACT: "+94764632369",
+    });
+
+    await sendPaymentSms({ reference: "BB-ORD-1", amount: 10, currency: "USD" });
+
+    expect(sent.map((s) => s.to)).toEqual(["+94764632369"]);
+  });
+
+  it("says so in the log when nobody is configured", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const { sent, sendPaymentSms } = await loadSendWith({
+      SMS_PAYMENT_CONTACTS: "",
+      SMS_TEAM_CONTACT: "",
+    });
+
+    await sendPaymentSms({ reference: "BB-ORD-2", amount: 10, currency: "USD" });
+
+    // A silent no-op is indistinguishable from a working send, so it must log.
+    expect(sent).toEqual([]);
+    expect(info).toHaveBeenCalledWith(
+      "[sms skipped] no business recipients configured for payment",
+    );
+    info.mockRestore();
+  });
+
   it("falls back to SMS_TEAM_CONTACT when no payment list is set", async () => {
     const { sent, sendPaymentSms } = await loadSendWith({
       SMS_TEAM_CONTACT: "+94764632369",
@@ -228,5 +258,48 @@ describe("buildInquirySms", () => {
       ].join("\n"),
     );
     expect(message.length).toBeLessThanOrEqual(621);
+  });
+});
+
+describe("sendSms timeout", () => {
+  it("gives up instead of hanging when the gateway never answers", async () => {
+    vi.resetModules();
+    for (const [key, value] of Object.entries({
+      SMS_ENABLED: "true",
+      SMS_USERNAME: "user",
+      SMS_PASSWORD: "pass",
+      SMS_MASK: "BB Tours SL",
+      SMS_TEAM_CONTACT: "+94771234567",
+    })) {
+      vi.stubEnv(key, value);
+    }
+    const { sendSms } = await import("@/lib/sms/client");
+
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    // A gateway that accepts the connection and then goes silent: the request
+    // only ever settles because our own AbortController fires.
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation((_url, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () =>
+            reject(new Error("aborted")),
+          );
+        }),
+      );
+    vi.useFakeTimers();
+
+    const pending = sendSms({ to: "+94771234567", message: "hello" });
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    // Fail-soft: reported as skipped, never thrown at the payment flow.
+    await expect(pending).resolves.toEqual({ skipped: true });
+    expect(errorLog).toHaveBeenCalledWith(
+      expect.stringContaining("timed out"),
+    );
+
+    vi.useRealTimers();
+    fetchSpy.mockRestore();
+    errorLog.mockRestore();
   });
 });

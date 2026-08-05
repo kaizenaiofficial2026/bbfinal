@@ -7,6 +7,9 @@ export type SmsResult = {
   skipped: boolean;
 };
 
+/** Matches MPGS_TIMEOUT_MS in lib/payments/mpgs.ts — same reasoning, same bound. */
+const SMS_TIMEOUT_MS = 10_000;
+
 /**
  * SMS is usable only when explicitly enabled AND the Dialog credentials +
  * recipient are configured. Mirrors the email transport's fail-soft contract
@@ -110,6 +113,14 @@ export async function sendSms({
     ],
   };
 
+  // Bound the call like the payment gateway client does (MPGS_TIMEOUT_MS). A
+  // gateway that accepts the connection and never answers would otherwise hang
+  // the caller indefinitely — and a payment now sends up to four messages in a
+  // row, inside a reconciliation job that has a 60s budget for a whole batch.
+  // One stuck connection must not eat that budget and strand captured payments.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SMS_TIMEOUT_MS);
+
   try {
     const response = await fetch(env.smsBaseUrl, {
       method: "POST",
@@ -121,6 +132,7 @@ export async function sendSms({
       },
       body: JSON.stringify(body),
       redirect: "manual",
+      signal: controller.signal,
     });
 
     const raw = await response.text().catch(() => "");
@@ -146,7 +158,16 @@ export async function sendSms({
 
     return { skipped: false };
   } catch (error) {
+    // Distinguish a timeout from a transport error: "the gateway went quiet" and
+    // "the request failed" need different follow-up, and a bare AbortError in
+    // the logs reads like a bug rather than a deliberate cut-off.
+    if (controller.signal.aborted) {
+      console.error(`[sms failed] gateway timed out after ${SMS_TIMEOUT_MS}ms`);
+      return { skipped: true };
+    }
     console.error("[sms error]", error);
     return { skipped: true };
+  } finally {
+    clearTimeout(timeout);
   }
 }

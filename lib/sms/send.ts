@@ -98,6 +98,32 @@ export function parseSmsRecipients(raw: string | null | undefined): string[] {
 }
 
 /**
+ * Resolve the business recipients for one event, falling back to the single
+ * legacy SMS_TEAM_CONTACT.
+ *
+ * The fallback is `||`, NOT `??`, on purpose: a variable that exists but is
+ * blank — easy to produce by clearing a value in the dashboard instead of
+ * deleting the row — means "not configured", exactly like unset. With `??` the
+ * blank string would win the fallback and the event would text nobody.
+ *
+ * The empty case is logged because a successful send is silent: without this
+ * line, "configured correctly" and "sending to nobody" produce identical output
+ * and a misconfiguration can only be found by submitting a real inquiry.
+ */
+function businessRecipients(
+  event: "payment" | "inquiry",
+  configured: string | undefined,
+): string[] {
+  const recipients = parseSmsRecipients(configured || env.smsTeamContact);
+
+  if (recipients.length === 0) {
+    console.info(`[sms skipped] no business recipients configured for ${event}`);
+  }
+
+  return recipients;
+}
+
+/**
  * Notify a payment was received. Sends one message per recipient, each
  * fail-soft:
  *  - every business number in SMS_PAYMENT_CONTACTS, business-worded;
@@ -114,9 +140,7 @@ export async function sendPaymentSms(input: {
   // Sequential, not Promise.all: the Dialog gateway takes one message per call
   // and a failure is logged-and-swallowed inside sendSms, so one bad number
   // never stops the rest of the list.
-  for (const to of parseSmsRecipients(
-    env.smsPaymentContacts ?? env.smsTeamContact,
-  )) {
+  for (const to of businessRecipients("payment", env.smsPaymentContacts)) {
     await sendSms({ to, message: businessMessage });
   }
 
@@ -143,9 +167,7 @@ export async function sendInquirySms(input: {
   reference: string;
 }): Promise<void> {
   const message = buildInquirySms(input);
-  for (const to of parseSmsRecipients(
-    env.smsInquiryContacts ?? env.smsTeamContact,
-  )) {
+  for (const to of businessRecipients("inquiry", env.smsInquiryContacts)) {
     await sendSms({ to, message });
   }
 }
